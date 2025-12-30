@@ -1,10 +1,11 @@
-import { AppState, UserProfile, WorkoutPlan } from '../types';
+import { AppState, UserProfile, WorkoutPlan, WorkoutHistoryEntry } from '../types';
 
 const KEYS = {
   USER_PROFILE: 'gymgenie_user',
   EQUIPMENT: 'gymgenie_equipment',
   WORKOUT_PLAN: 'gymgenie_plan',
-  APP_STEP: 'gymgenie_step'
+  APP_STEP: 'gymgenie_step',
+  WORKOUT_HISTORY: 'gymgenie_history'
 };
 
 export const StorageService = {
@@ -49,6 +50,15 @@ export const StorageService = {
 
   getStep: (): string | null => {
     return localStorage.getItem(KEYS.APP_STEP);
+  },
+
+  saveHistory: (history: WorkoutHistoryEntry[]): void => {
+    localStorage.setItem(KEYS.WORKOUT_HISTORY, JSON.stringify(history));
+  },
+
+  getHistory: (): WorkoutHistoryEntry[] => {
+    const data = localStorage.getItem(KEYS.WORKOUT_HISTORY);
+    return data ? JSON.parse(data) : [];
   },
 
   clearAll: (): void => {

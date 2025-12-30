@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, PropsWithChildren } from 'react';
-import { AppState, AppStep, UserProfile, WorkoutPlan, WorkoutDay } from '../types';
+import { AppState, AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry } from '../types';
 import { StorageService } from '../services/storageService';
 
 interface AppContextType extends AppState {
@@ -10,6 +10,7 @@ interface AppContextType extends AppState {
   setLoading: (loading: boolean) => void;
   toggleExercise: (exerciseId: string) => void;
   updateDayInPlan: (weekId: string, updatedDay: WorkoutDay) => void;
+  logWorkout: (weekId: string, dayId: string) => void;
   resetApp: () => void;
 }
 
@@ -20,6 +21,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   const [equipment, setEquipmentState] = useState<string[]>([]);
   const [currentPlan, setPlanState] = useState<WorkoutPlan | null>(null);
   const [step, setStepState] = useState<AppStep>('onboarding');
+  const [history, setHistoryState] = useState<WorkoutHistoryEntry[]>([]);
   const [isLoading, setLoading] = useState(false);
 
   // Load from storage on mount
@@ -28,11 +30,13 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     const savedEq = StorageService.getEquipment();
     const savedPlan = StorageService.getPlan();
     const savedStep = StorageService.getStep() as AppStep | null;
+    const savedHistory = StorageService.getHistory();
 
     if (savedUser) setUserState(savedUser);
     if (savedEq) setEquipmentState(savedEq);
     if (savedPlan) setPlanState(savedPlan);
     if (savedStep) setStepState(savedStep);
+    if (savedHistory) setHistoryState(savedHistory);
   }, []);
 
   // Sync to storage
@@ -95,18 +99,43 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
+  const logWorkout = (weekId: string, dayId: string) => {
+    if (!currentPlan) return;
+    const week = currentPlan.weeks.find(w => w.id === weekId);
+    const day = week?.days.find(d => d.id === dayId);
+    if (!week || !day) return;
+
+    const completedCount = day.exercises.filter(e => e.isCompleted).length;
+    
+    const entry: WorkoutHistoryEntry = {
+      id: crypto.randomUUID(),
+      completedAt: new Date().toISOString(),
+      planTitle: currentPlan.title,
+      weekNumber: week.weekNumber,
+      dayName: day.dayName,
+      dayTitle: day.title,
+      exercisesCompleted: completedCount,
+      totalExercises: day.exercises.length
+    };
+
+    const newHistory = [entry, ...history];
+    setHistoryState(newHistory);
+    StorageService.saveHistory(newHistory);
+  };
+
   const resetApp = () => {
     StorageService.clearAll();
     setUserState(null);
     setEquipmentState([]);
     setPlanState(null);
     setStepState('onboarding');
+    setHistoryState([]);
   };
 
   return (
     <AppContext.Provider value={{
-      user, equipment, currentPlan, step, isLoading,
-      setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, resetApp
+      user, equipment, currentPlan, step, isLoading, history,
+      setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, logWorkout, resetApp
     }}>
       {children}
     </AppContext.Provider>

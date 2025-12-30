@@ -1,13 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { modifyWorkoutDay } from '../services/geminiService';
-import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList } from 'lucide-react';
+import WorkoutHistory from './WorkoutHistory';
 
 const WorkoutDashboard = () => {
-  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, setLoading, isLoading } = useApp();
+  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, setLoading, isLoading } = useApp();
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   
+  // Navigation State
+  const [showHistory, setShowHistory] = useState(false);
+
   // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editPrompt, setEditPrompt] = useState('');
@@ -52,8 +56,20 @@ const WorkoutDashboard = () => {
     }
   };
 
+  const handleFinishWorkout = () => {
+    if (confirm("Finish and log this workout to history?")) {
+        logWorkout(activeWeek.id, activeDay.id);
+        setShowHistory(true); // Switch to history view to show confirmation implicitly
+    }
+  };
+
   const progress = calculateProgress();
   const isRestDay = activeDay.isRestDay;
+
+  // Render History View
+  if (showHistory) {
+    return <WorkoutHistory onBack={() => setShowHistory(false)} />;
+  }
 
   return (
     <div className="min-h-full bg-gray-50 md:bg-white animate-fade-in flex flex-col h-full relative">
@@ -101,10 +117,23 @@ const WorkoutDashboard = () => {
         </div>
         <div className="relative z-10 w-full max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <p className="opacity-80 text-xs md:text-sm uppercase tracking-wider mb-1 font-semibold">4-Week Program</p>
-              <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-1">{currentPlan.title}</h1>
-              <p className="text-brand-100 text-xs md:text-sm max-w-xl leading-relaxed opacity-90 line-clamp-2">{currentPlan.description}</p>
+            <div className="flex-1">
+              <div className="flex justify-between items-start">
+                  <div>
+                    <p className="opacity-80 text-xs md:text-sm uppercase tracking-wider mb-1 font-semibold">4-Week Program</p>
+                    <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-1">{currentPlan.title}</h1>
+                  </div>
+                  {/* History Button (Mobile/Desktop) */}
+                  <button 
+                    onClick={() => setShowHistory(true)}
+                    className="flex flex-col items-center justify-center bg-brand-700/50 hover:bg-brand-700 p-2 rounded-xl transition-all border border-brand-500/30"
+                    title="View History"
+                  >
+                     <HistoryIcon size={24} />
+                     <span className="text-[10px] uppercase font-bold mt-1">History</span>
+                  </button>
+              </div>
+              <p className="text-brand-100 text-xs md:text-sm max-w-xl leading-relaxed opacity-90 line-clamp-2 mt-2 md:mt-0">{currentPlan.description}</p>
             </div>
             
             {/* Desktop Progress */}
@@ -187,7 +216,7 @@ const WorkoutDashboard = () => {
                </div>
             </div>
 
-            {/* Stats Cards (Hidden on small mobile if needed, or simplified) */}
+            {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
               <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 md:border-gray-200 flex flex-col">
                 <span className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Weekly Focus</span>
@@ -232,8 +261,8 @@ const WorkoutDashboard = () => {
                   </button>
                </div>
             ) : (
-              <div className="space-y-4 pb-20 md:pb-0 overflow-y-auto pr-1 custom-scrollbar">
-                <div className="flex items-center justify-between mb-2">
+              <div className="space-y-4 pb-20 md:pb-0 overflow-y-auto pr-1 custom-scrollbar flex flex-col h-full">
+                <div className="flex items-center justify-between mb-2 shrink-0">
                     <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                        {activeDay.title} <span className="text-gray-300 font-normal">/</span> {activeDay.exercises.length} Exercises
                     </h3>
@@ -247,48 +276,52 @@ const WorkoutDashboard = () => {
                     </button>
                 </div>
 
-                {activeDay.exercises.map((exercise) => (
-                  <div 
-                    key={exercise.id}
-                    onClick={() => toggleExercise(exercise.id)}
-                    className={`group bg-white p-4 md:p-6 rounded-2xl border transition-all duration-200 cursor-pointer active:scale-[0.99] ${
-                      exercise.isCompleted 
-                        ? 'border-green-200 bg-green-50/50 shadow-none' 
-                        : 'border-gray-100 md:border-gray-200 shadow-sm hover:shadow-md hover:border-brand-200'
-                    }`}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className={`mt-1 transition-colors ${exercise.isCompleted ? 'text-green-500' : 'text-gray-300 group-hover:text-brand-300'}`}>
-                        {exercise.isCompleted ? <CheckCircle2 size={28} className="fill-green-100" /> : <Circle size={28} />}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className={`font-bold text-lg mb-2 ${exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-                          {exercise.name}
-                        </h3>
-                        <div className="flex flex-wrap gap-2 md:gap-3 text-sm text-gray-600 mb-3">
-                          <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.sets} Sets</span>
-                          <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.reps} Reps</span>
-                          <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-medium border border-blue-100">
-                            <Clock size={14} /> {exercise.restSeconds}s Rest
-                          </span>
+                <div className="space-y-4 flex-1">
+                  {activeDay.exercises.map((exercise) => (
+                    <div 
+                      key={exercise.id}
+                      onClick={() => toggleExercise(exercise.id)}
+                      className={`group bg-white p-4 md:p-6 rounded-2xl border transition-all duration-200 cursor-pointer active:scale-[0.99] ${
+                        exercise.isCompleted 
+                          ? 'border-green-200 bg-green-50/50 shadow-none' 
+                          : 'border-gray-100 md:border-gray-200 shadow-sm hover:shadow-md hover:border-brand-200'
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className={`mt-1 transition-colors ${exercise.isCompleted ? 'text-green-500' : 'text-gray-300 group-hover:text-brand-300'}`}>
+                          {exercise.isCompleted ? <CheckCircle2 size={28} className="fill-green-100" /> : <Circle size={28} />}
                         </div>
-                        {exercise.notes && (
-                          <p className="text-sm text-gray-500 italic border-l-2 border-brand-200 pl-3 py-1 bg-gray-50/50 rounded-r-lg">
-                            {exercise.notes}
-                          </p>
-                        )}
+                        <div className="flex-1">
+                          <h3 className={`font-bold text-lg mb-2 ${exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                            {exercise.name}
+                          </h3>
+                          <div className="flex flex-wrap gap-2 md:gap-3 text-sm text-gray-600 mb-3">
+                            <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.sets} Sets</span>
+                            <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.reps} Reps</span>
+                            <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-medium border border-blue-100">
+                              <Clock size={14} /> {exercise.restSeconds}s Rest
+                            </span>
+                          </div>
+                          {exercise.notes && (
+                            <p className="text-sm text-gray-500 italic border-l-2 border-brand-200 pl-3 py-1 bg-gray-50/50 rounded-r-lg">
+                              {exercise.notes}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                
-                {activeDay.exercises.every(e => e.isCompleted) && activeDay.exercises.length > 0 && (
-                  <div className="text-center p-6 bg-green-50 rounded-2xl border border-green-100 animate-pop-in mt-4">
-                    <p className="text-green-700 font-bold flex items-center justify-center gap-2">
-                      <Trophy size={20} /> Day Complete!
-                    </p>
-                  </div>
-                )}
+                  ))}
+                </div>
+
+                {/* Log Workout Button */}
+                <div className="pt-4 shrink-0 pb-20 md:pb-4">
+                   <button 
+                    onClick={handleFinishWorkout}
+                    className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 transition-all"
+                   >
+                     <ClipboardList size={20} /> Finish & Log Workout
+                   </button>
+                </div>
               </div>
             )}
           </div>

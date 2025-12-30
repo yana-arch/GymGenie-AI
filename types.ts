@@ -57,6 +57,17 @@ export interface WorkoutPlan {
   weeks: WorkoutWeek[];
 }
 
+export interface WorkoutHistoryEntry {
+  id: string;
+  completedAt: string;
+  planTitle: string;
+  weekNumber: number;
+  dayName: string;
+  dayTitle: string;
+  exercisesCompleted: number;
+  totalExercises: number;
+}
+
 export type AppStep = 'onboarding' | 'scanning' | 'dashboard';
 
 export interface AppState {
@@ -65,4 +76,5 @@ export interface AppState {
   currentPlan: WorkoutPlan | null;
   step: AppStep;
   isLoading: boolean;
+  history: WorkoutHistoryEntry[];
 }
