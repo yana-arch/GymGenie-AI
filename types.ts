@@ -74,6 +74,7 @@ export interface WorkoutHistoryEntry {
   exercisesCompleted: number;
   totalExercises: number;
   durationMinutes: number;
+  rpe?: number; // 1-10 intensity rating
   analysis?: WorkoutAnalysis;
   syncStatus: 'pending' | 'synced';
 }

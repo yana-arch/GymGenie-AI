@@ -1,15 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { modifyWorkoutDay, swapExercise, analyzeWorkoutSession } from '../services/geminiService';
+import { modifyWorkoutDay, swapExercise, analyzeWorkoutSession, adjustPlanProgressively } from '../services/geminiService';
 import { WorkoutAnalysis } from '../types';
-import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList, Info, ArrowUp, ArrowDown, ArrowUpDown, Shuffle, Loader2, BrainCircuit, Zap, Utensils } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList, Info, ArrowUp, ArrowDown, ArrowUpDown, Shuffle, Loader2, BrainCircuit, Zap, Utensils, Star } from 'lucide-react';
 import WorkoutHistory from './WorkoutHistory';
 import ExerciseDetailModal from './ExerciseDetailModal';
 import RestTimer from './RestTimer';
 import NutritionGenie from './NutritionGenie';
 
 const WorkoutDashboard = () => {
-  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, moveExercise, replaceExerciseInPlan, equipment, setLoading, isLoading, sessionStartTime, exerciseTimestamps } = useApp();
+  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, moveExercise, replaceExerciseInPlan, equipment, setPlan, sessionStartTime, exerciseTimestamps } = useApp();
   const [activeTab, setActiveTab] = useState<'workout' | 'nutrition'>('workout');
   
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
@@ -23,6 +23,10 @@ const WorkoutDashboard = () => {
   const [editPrompt, setEditPrompt] = useState('');
   const [isModifying, setIsModifying] = useState(false);
 
+  // RPE Modal State
+  const [isRPEModalOpen, setIsRPEModalOpen] = useState(false);
+  const [rpeRating, setRpeRating] = useState(7); // Default moderate
+
   // Exercise Detail Modal State
   const [detailExerciseName, setDetailExerciseName] = useState<string | null>(null);
 
@@ -35,6 +39,7 @@ const WorkoutDashboard = () => {
   // Analysis State
   const [analyzingResult, setAnalyzingResult] = useState<WorkoutAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
 
   // Reset day selection when week changes
   const activeWeek = useMemo(() => currentPlan?.weeks[selectedWeekIndex], [currentPlan, selectedWeekIndex]);
@@ -91,7 +96,18 @@ const WorkoutDashboard = () => {
     }
   };
 
-  const handleFinishWorkout = async () => {
+  const onFinishClicked = () => {
+     const completedCount = activeDay.exercises.filter(e => e.isCompleted).length;
+     if (completedCount === 0) {
+        alert("You haven't completed any exercises yet!");
+        return;
+    }
+    setIsRPEModalOpen(true);
+  };
+
+  const handleConfirmFinish = async () => {
+    setIsRPEModalOpen(false);
+    
     // 1. Calculate Metrics
     const now = Date.now();
     const startTime = sessionStartTime || now;
@@ -104,25 +120,21 @@ const WorkoutDashboard = () => {
 
     for (let i = 1; i < times.length; i++) {
         const gap = (times[i] - times[i-1]) / 1000; // seconds
-        // Filter out absurdly long gaps (e.g. app closed) > 10 mins, or very short < 5s
         if (gap > 5 && gap < 600) {
             totalGap += gap;
             gapsCount++;
         }
     }
-    const averageGap = gapsCount > 0 ? Math.round(totalGap / gapsCount) : 60; // Default 60s if no data
+    const averageGap = gapsCount > 0 ? Math.round(totalGap / gapsCount) : 60; // Default 60s
 
     const completedCount = activeDay.exercises.filter(e => e.isCompleted).length;
-    
-    if (completedCount === 0) {
-        alert("You haven't completed any exercises yet!");
-        return;
-    }
 
     // 2. Call AI Analysis
     setIsAnalyzing(true);
+    let analysis: WorkoutAnalysis | undefined;
+    
     try {
-        const analysis = await analyzeWorkoutSession(
+        analysis = await analyzeWorkoutSession(
             durationMinutes, 
             completedCount, 
             activeDay.exercises.length, 
@@ -131,20 +143,36 @@ const WorkoutDashboard = () => {
         setAnalyzingResult(analysis);
     } catch (error) {
         console.error("Analysis failed", error);
-        // Proceed without analysis if it fails
-        logWorkout(activeWeek.id, activeDay.id);
-        setShowHistory(true);
     } finally {
         setIsAnalyzing(false);
     }
+
+    // 3. Smart Progressive Overload Check
+    // If user rated it as 'Too Easy' (<= 5) and it's not the last week
+    if (rpeRating <= 5 && activeWeek.weekNumber < currentPlan.totalDurationWeeks) {
+        setIsUpdatingPlan(true);
+        try {
+            const updatedPlan = await adjustPlanProgressively(
+                currentPlan, 
+                activeDay, 
+                activeWeek.weekNumber, 
+                rpeRating
+            );
+            setPlan(updatedPlan);
+        } catch (e) {
+            console.error("Failed to update plan progressively", e);
+        } finally {
+            setIsUpdatingPlan(false);
+        }
+    }
+
+    // 4. Log
+    logWorkout(activeWeek.id, activeDay.id, rpeRating, analysis);
   };
 
   const handleCloseAnalysis = () => {
-     if (analyzingResult) {
-         logWorkout(activeWeek.id, activeDay.id, analyzingResult);
-         setAnalyzingResult(null);
-         setShowHistory(true);
-     }
+     setAnalyzingResult(null);
+     setShowHistory(true);
   };
 
   const progress = calculateProgress();
@@ -161,6 +189,46 @@ const WorkoutDashboard = () => {
       
       {/* Rest Timer Overlay */}
       <RestTimer />
+
+      {/* RPE Rating Modal */}
+      {isRPEModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+           <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl scale-100 animate-pop-in">
+              <div className="text-center mb-6">
+                 <h2 className="text-2xl font-bold text-gray-900 mb-2">How was it?</h2>
+                 <p className="text-gray-500 text-sm">Rate the intensity of this session.</p>
+              </div>
+
+              <div className="flex flex-col items-center gap-6 mb-8">
+                 <div className={`text-6xl font-black transition-colors ${
+                    rpeRating <= 4 ? 'text-green-500' : rpeRating <= 7 ? 'text-orange-500' : 'text-red-600'
+                 }`}>
+                    {rpeRating}
+                 </div>
+                 <input 
+                   type="range" 
+                   min="1" 
+                   max="10" 
+                   value={rpeRating} 
+                   onChange={(e) => setRpeRating(Number(e.target.value))}
+                   className="w-full accent-brand-600 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                 />
+                 <div className="flex justify-between w-full text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    <span>Too Easy</span>
+                    <span>Just Right</span>
+                    <span>Limit</span>
+                 </div>
+              </div>
+
+              <button 
+                onClick={handleConfirmFinish}
+                className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-gray-800 transition-all active:scale-95"
+              >
+                Complete Workout
+              </button>
+           </div>
+        </div>
+      )}
 
       {/* Analysis Result Modal */}
       {analyzingResult && (
@@ -186,6 +254,13 @@ const WorkoutDashboard = () => {
                     <Zap className="inline-block text-blue-600 mr-2 mb-1" size={16} />
                     <strong>Tip:</strong> {analyzingResult.advice}
                  </div>
+                 {/* Smart Update Notification */}
+                 {isUpdatingPlan && (
+                    <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100 text-sm text-purple-800 animate-pulse">
+                        <Sparkles className="inline-block text-purple-600 mr-2 mb-1" size={16} />
+                        <strong>AI is working:</strong> Adjusting your future plan because this was too easy!
+                    </div>
+                 )}
               </div>
 
               <button 
@@ -199,7 +274,7 @@ const WorkoutDashboard = () => {
       )}
 
       {/* Loading Analysis Overlay */}
-      {isAnalyzing && (
+      {isAnalyzing && !analyzingResult && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-white/90 backdrop-blur-sm">
            <div className="flex flex-col items-center">
               <Loader2 size={48} className="animate-spin text-brand-600 mb-4" />
@@ -528,7 +603,7 @@ const WorkoutDashboard = () => {
 
                       <div className="pt-4 shrink-0 pb-20 md:pb-4">
                         <button 
-                          onClick={handleFinishWorkout}
+                          onClick={onFinishClicked}
                           disabled={isReordering || isAnalyzing}
                           className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-50"
                         >

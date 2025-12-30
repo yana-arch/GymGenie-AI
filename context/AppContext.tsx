@@ -10,7 +10,7 @@ interface AppContextType extends AppState {
   setLoading: (loading: boolean) => void;
   toggleExercise: (exerciseId: string) => void;
   updateDayInPlan: (weekId: string, updatedDay: WorkoutDay) => void;
-  logWorkout: (weekId: string, dayId: string, analysis?: WorkoutAnalysis) => void;
+  logWorkout: (weekId: string, dayId: string, rpe: number, analysis?: WorkoutAnalysis) => void;
   resetApp: () => void;
   
   // Timer related
@@ -280,7 +280,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     setPlan(newPlan);
   };
 
-  const logWorkout = (weekId: string, dayId: string, analysis?: WorkoutAnalysis) => {
+  const logWorkout = (weekId: string, dayId: string, rpe: number, analysis?: WorkoutAnalysis) => {
     if (!currentPlan) return;
     const week = currentPlan.weeks.find(w => w.id === weekId);
     const day = week?.days.find(d => d.id === dayId);
@@ -303,6 +303,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       exercisesCompleted: completedCount,
       totalExercises: day.exercises.length,
       durationMinutes,
+      rpe,
       analysis,
       syncStatus: 'pending'
     };
