@@ -78,6 +78,18 @@ export interface WorkoutHistoryEntry {
   syncStatus: 'pending' | 'synced';
 }
 
+export interface Recipe {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  ingredients: string[];
+  instructions: string[];
+  cookingTimeMinutes: number;
+}
+
 export type AppStep = 'onboarding' | 'scanning' | 'dashboard';
 
 export interface AppState {

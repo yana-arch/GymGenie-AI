@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { UserProfile, WorkoutPlan, WorkoutDay, Exercise, WorkoutAnalysis } from "../types";
+import { UserProfile, WorkoutPlan, WorkoutDay, Exercise, WorkoutAnalysis, Recipe } from "../types";
 
 // Note: In a real production app, never expose API keys on the client side.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -10,7 +10,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 export const identifyEquipment = async (base64Image: string): Promise<string[]> => {
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
+      model: 'gemini-3-flash-preview',
       contents: {
         parts: [
           {
@@ -40,6 +40,68 @@ export const identifyEquipment = async (base64Image: string): Promise<string[]> 
   } catch (error) {
     console.error("Vision API Error:", error);
     throw new Error("Failed to identify equipment.");
+  }
+};
+
+/**
+ * Uses Gemini Vision to identify food ingredients and suggest recipes.
+ */
+export const generateRecipesFromImage = async (base64Image: string, user: UserProfile): Promise<Recipe[]> => {
+  try {
+    const prompt = `
+      Analyze the food ingredients in this image.
+      Based on the ingredients found AND the user's profile below, suggest 3 healthy recipes.
+      
+      User Profile:
+      - TDEE: ${user.tdee} calories
+      - Goal: ${user.goal}
+      
+      Requirements:
+      1. Recipes must use the detected ingredients as main components.
+      2. Provide approximate macros (Protein, Carbs, Fat) and Calories.
+      3. Keep cooking time under 45 minutes.
+    `;
+
+    const schema: Schema = {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          calories: { type: Type.INTEGER },
+          protein: { type: Type.INTEGER },
+          carbs: { type: Type.INTEGER },
+          fats: { type: Type.INTEGER },
+          ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+          instructions: { type: Type.ARRAY, items: { type: Type.STRING } },
+          cookingTimeMinutes: { type: Type.INTEGER }
+        },
+        required: ["name", "calories", "protein", "carbs", "fats", "ingredients", "instructions", "cookingTimeMinutes"]
+      }
+    };
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview', 
+      contents: {
+        parts: [
+          { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
+          { text: prompt }
+        ]
+      },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: schema
+      }
+    });
+
+    if (response.text) {
+      const recipes = JSON.parse(response.text);
+      return recipes.map((r: any) => ({ ...r, id: crypto.randomUUID() }));
+    }
+    return [];
+  } catch (error) {
+    console.error("Recipe API Error:", error);
+    throw new Error("Failed to generate recipes.");
   }
 };
 
