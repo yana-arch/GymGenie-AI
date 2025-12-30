@@ -1,0 +1,7 @@
+{
+  "name": "GymGenie AI",
+  "description": "An AI-powered personal trainer that generates workouts based on available equipment identified via camera.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
