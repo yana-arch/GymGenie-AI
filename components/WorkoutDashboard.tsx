@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { modifyWorkoutDay } from '../services/geminiService';
-import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList, Info } from 'lucide-react';
+import { modifyWorkoutDay, swapExercise } from '../services/geminiService';
+import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList, Info, ArrowUp, ArrowDown, ArrowUpDown, Shuffle, Loader2 } from 'lucide-react';
 import WorkoutHistory from './WorkoutHistory';
 import ExerciseDetailModal from './ExerciseDetailModal';
 import RestTimer from './RestTimer';
 
 const WorkoutDashboard = () => {
-  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, setLoading, isLoading } = useApp();
+  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, moveExercise, replaceExerciseInPlan, equipment, setLoading, isLoading } = useApp();
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   
@@ -22,7 +22,13 @@ const WorkoutDashboard = () => {
   // Exercise Detail Modal State
   const [detailExerciseName, setDetailExerciseName] = useState<string | null>(null);
 
-  // Reset day selection when week changes if current day index is out of bounds (unlikely but safe)
+  // Reorder Mode State
+  const [isReordering, setIsReordering] = useState(false);
+  
+  // Swapping State
+  const [swappingId, setSwappingId] = useState<string | null>(null);
+
+  // Reset day selection when week changes
   const activeWeek = useMemo(() => currentPlan?.weeks[selectedWeekIndex], [currentPlan, selectedWeekIndex]);
   const activeDay = useMemo(() => activeWeek?.days[selectedDayIndex], [activeWeek, selectedDayIndex]);
 
@@ -58,6 +64,22 @@ const WorkoutDashboard = () => {
       alert('Failed to modify workout. Please try again.');
     } finally {
       setIsModifying(false);
+    }
+  };
+
+  const handleSwapExercise = async (exerciseId: string, exerciseName: string) => {
+    if (!activeWeek || !activeDay) return;
+    if (!confirm(`Find an alternative for ${exerciseName}?`)) return;
+
+    setSwappingId(exerciseId);
+    try {
+      const newExercise = await swapExercise(exerciseName, equipment);
+      replaceExerciseInPlan(activeWeek.id, activeDay.id, exerciseId, newExercise);
+    } catch (error) {
+      console.error(error);
+      alert("Couldn't find an alternative right now.");
+    } finally {
+      setSwappingId(null);
     }
   };
 
@@ -278,57 +300,112 @@ const WorkoutDashboard = () => {
                </div>
             ) : (
               <div className="space-y-4 pb-20 md:pb-0 overflow-y-auto pr-1 custom-scrollbar flex flex-col h-full">
-                <div className="flex items-center justify-between mb-2 shrink-0">
+                <div className="flex items-center justify-between mb-2 shrink-0 flex-wrap gap-2">
                     <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                        {activeDay.title} <span className="text-gray-300 font-normal">/</span> {activeDay.exercises.length} Exercises
                     </h3>
                     
-                    {/* Magic Edit Button */}
-                    <button 
-                      onClick={() => setIsEditModalOpen(true)}
-                      className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all active:scale-95"
-                    >
-                      <Sparkles size={16} /> <span className="hidden sm:inline">AI Edit</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {/* Reorder Toggle */}
+                      <button
+                        onClick={() => setIsReordering(!isReordering)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border transition-all active:scale-95 ${
+                          isReordering 
+                          ? 'bg-gray-900 text-white border-gray-900' 
+                          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                         <ArrowUpDown size={16} /> <span className="hidden sm:inline">{isReordering ? 'Done' : 'Reorder'}</span>
+                      </button>
+
+                      {/* Magic Edit Button */}
+                      <button 
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all active:scale-95"
+                      >
+                        <Sparkles size={16} /> <span className="hidden sm:inline">AI Edit</span>
+                      </button>
+                    </div>
                 </div>
 
                 <div className="space-y-4 flex-1">
-                  {activeDay.exercises.map((exercise) => (
+                  {activeDay.exercises.map((exercise, index) => (
                     <div 
                       key={exercise.id}
-                      className={`group bg-white p-4 md:p-6 rounded-2xl border transition-all duration-200 active:scale-[0.99] ${
-                        exercise.isCompleted 
+                      className={`group bg-white p-4 md:p-6 rounded-2xl border transition-all duration-200 relative overflow-hidden ${
+                        !isReordering && exercise.isCompleted 
                           ? 'border-green-200 bg-green-50/50 shadow-none' 
-                          : 'border-gray-100 md:border-gray-200 shadow-sm hover:shadow-md hover:border-brand-200'
-                      }`}
+                          : 'border-gray-100 md:border-gray-200 shadow-sm hover:shadow-md'
+                      } ${!isReordering ? 'cursor-pointer active:scale-[0.99]' : ''}`}
                     >
-                      <div className="flex items-start gap-4">
-                         {/* Toggle Checkbox */}
-                        <div 
-                          onClick={(e) => { e.stopPropagation(); toggleExercise(exercise.id); }}
-                          className={`mt-1 transition-colors cursor-pointer ${exercise.isCompleted ? 'text-green-500' : 'text-gray-300 group-hover:text-brand-300'}`}
-                        >
-                          {exercise.isCompleted ? <CheckCircle2 size={28} className="fill-green-100" /> : <Circle size={28} />}
+                      {/* Loading Overlay for Swap */}
+                      {swappingId === exercise.id && (
+                        <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center backdrop-blur-sm">
+                           <Loader2 className="animate-spin text-brand-600" size={24} />
                         </div>
+                      )}
+
+                      <div className="flex items-start gap-4">
+                         {/* Toggle Checkbox OR Reorder Controls */}
+                        {isReordering ? (
+                          <div className="flex flex-col gap-1 mt-1">
+                             <button 
+                                onClick={(e) => { e.stopPropagation(); moveExercise(activeWeek.id, activeDay.id, exercise.id, 'up'); }}
+                                disabled={index === 0}
+                                className="p-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100"
+                             >
+                                <ArrowUp size={20} />
+                             </button>
+                             <button 
+                                onClick={(e) => { e.stopPropagation(); moveExercise(activeWeek.id, activeDay.id, exercise.id, 'down'); }}
+                                disabled={index === activeDay.exercises.length - 1}
+                                className="p-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100"
+                             >
+                                <ArrowDown size={20} />
+                             </button>
+                          </div>
+                        ) : (
+                          <div 
+                            onClick={(e) => { e.stopPropagation(); toggleExercise(exercise.id); }}
+                            className={`mt-1 transition-colors cursor-pointer ${exercise.isCompleted ? 'text-green-500' : 'text-gray-300 group-hover:text-brand-300'}`}
+                          >
+                            {exercise.isCompleted ? <CheckCircle2 size={28} className="fill-green-100" /> : <Circle size={28} />}
+                          </div>
+                        )}
                         
                         <div className="flex-1">
                           <div className="flex justify-between items-start">
                              <h3 
-                                onClick={(e) => { e.stopPropagation(); toggleExercise(exercise.id); }}
-                                className={`font-bold text-lg mb-2 cursor-pointer ${exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}
+                                onClick={(e) => { if (!isReordering) { e.stopPropagation(); toggleExercise(exercise.id); }}}
+                                className={`font-bold text-lg mb-2 ${!isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'} ${!isReordering ? 'cursor-pointer' : ''}`}
                              >
                                 {exercise.name}
                              </h3>
-                             {/* Info Button - New Feature */}
-                             <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDetailExerciseName(exercise.name);
-                              }}
-                              className="text-gray-400 hover:text-brand-500 p-1"
-                             >
-                               <Info size={20} />
-                             </button>
+                             
+                             {/* Actions (Info & Swap) */}
+                             <div className="flex items-center gap-1">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSwapExercise(exercise.id, exercise.name);
+                                  }}
+                                  disabled={swappingId !== null}
+                                  className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all"
+                                  title="Swap for alternative"
+                                 >
+                                   <Shuffle size={18} />
+                                 </button>
+                                 <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDetailExerciseName(exercise.name);
+                                  }}
+                                  className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all"
+                                  title="View instructions"
+                                 >
+                                   <Info size={18} />
+                                 </button>
+                             </div>
                           </div>
                           
                           <div className="flex flex-wrap gap-2 md:gap-3 text-sm text-gray-600 mb-3">
@@ -353,7 +430,8 @@ const WorkoutDashboard = () => {
                 <div className="pt-4 shrink-0 pb-20 md:pb-4">
                    <button 
                     onClick={handleFinishWorkout}
-                    className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 transition-all"
+                    disabled={isReordering}
+                    className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-50"
                    >
                      <ClipboardList size={20} /> Finish & Log Workout
                    </button>

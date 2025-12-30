@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, PropsWithChildren, useRef } from 'react';
-import { AppState, AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry } from '../types';
+import { AppState, AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry, Exercise } from '../types';
 import { StorageService } from '../services/storageService';
 
 interface AppContextType extends AppState {
@@ -19,6 +19,10 @@ interface AppContextType extends AppState {
   startRestTimer: (seconds: number) => void;
   stopRestTimer: () => void;
   addTimerSeconds: (seconds: number) => void;
+
+  // Reorder & Swap
+  moveExercise: (weekId: string, dayId: string, exerciseId: string, direction: 'up' | 'down') => void;
+  replaceExerciseInPlan: (weekId: string, dayId: string, oldExerciseId: string, newExerciseData: Omit<Exercise, 'id' | 'isCompleted'>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -51,7 +55,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     if (savedHistory) setHistoryState(savedHistory);
   }, []);
 
-  // Sync Logic: Watch for online status and pending items
+  // Sync Logic
   useEffect(() => {
     const sync = async () => {
       if (typeof navigator === 'undefined' || !navigator.onLine) return;
@@ -84,7 +88,6 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       timerIntervalRef.current = window.setInterval(() => {
         setTimerSeconds((prev) => {
           if (prev <= 1) {
-            // Timer finished
             playTimerSound();
             setIsTimerRunning(false);
             if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
@@ -103,7 +106,6 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   }, [isTimerRunning, timerSeconds]);
 
   const playTimerSound = () => {
-    // Simple beep using Web Audio API or Audio object
     try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioCtx.createOscillator();
@@ -113,7 +115,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       gainNode.connect(audioCtx.destination);
 
       oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
       oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
       
       gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
@@ -140,7 +142,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     setTimerSeconds(prev => prev + seconds);
   };
 
-  // Sync to storage
+  // State Setters
   const setUser = (u: UserProfile) => {
     setUserState(u);
     StorageService.saveUser(u);
@@ -161,6 +163,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     StorageService.saveStep(s);
   };
 
+  // Actions
   const toggleExercise = (id: string) => {
     if (!currentPlan) return;
 
@@ -183,12 +186,8 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
 
     if (found && exerciseRef) {
       setPlan(newPlan);
-      // Logic for Timer Trigger: If we just marked it as completed, start timer
       if (exerciseRef.isCompleted) {
         startRestTimer(exerciseRef.restSeconds || 60);
-      } else {
-        // If unchecked, maybe stop timer? Optional.
-        // stopRestTimer(); 
       }
     }
   };
@@ -205,6 +204,55 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
        newPlan.weeks[weekIndex].days[dayIndex] = updatedDay;
        setPlan(newPlan);
     }
+  };
+
+  const moveExercise = (weekId: string, dayId: string, exerciseId: string, direction: 'up' | 'down') => {
+    if (!currentPlan) return;
+    const newPlan = { ...currentPlan };
+
+    const week = newPlan.weeks.find(w => w.id === weekId);
+    const day = week?.days.find(d => d.id === dayId);
+    
+    if (!day) return;
+
+    const index = day.exercises.findIndex(e => e.id === exerciseId);
+    if (index === -1) return;
+
+    if (direction === 'up' && index > 0) {
+      // Swap with previous
+      const temp = day.exercises[index];
+      day.exercises[index] = day.exercises[index - 1];
+      day.exercises[index - 1] = temp;
+      setPlan(newPlan);
+    } else if (direction === 'down' && index < day.exercises.length - 1) {
+      // Swap with next
+      const temp = day.exercises[index];
+      day.exercises[index] = day.exercises[index + 1];
+      day.exercises[index + 1] = temp;
+      setPlan(newPlan);
+    }
+  };
+
+  const replaceExerciseInPlan = (weekId: string, dayId: string, oldExerciseId: string, newExerciseData: Omit<Exercise, 'id' | 'isCompleted'>) => {
+    if (!currentPlan) return;
+    const newPlan = { ...currentPlan };
+
+    const week = newPlan.weeks.find(w => w.id === weekId);
+    const day = week?.days.find(d => d.id === dayId);
+    
+    if (!day) return;
+
+    const index = day.exercises.findIndex(e => e.id === oldExerciseId);
+    if (index === -1) return;
+
+    const newExercise: Exercise = {
+      ...newExerciseData,
+      id: crypto.randomUUID(),
+      isCompleted: false
+    };
+
+    day.exercises[index] = newExercise;
+    setPlan(newPlan);
   };
 
   const logWorkout = (weekId: string, dayId: string) => {
@@ -230,7 +278,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     const newHistory = [entry, ...history];
     setHistoryState(newHistory);
     StorageService.saveHistory(newHistory);
-    stopRestTimer(); // Stop any running timer
+    stopRestTimer();
   };
 
   const resetApp = () => {
@@ -248,7 +296,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       user, equipment, currentPlan, step, isLoading, history,
       timerSeconds, isTimerRunning,
       setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, logWorkout, resetApp,
-      startRestTimer, stopRestTimer, addTimerSeconds
+      startRestTimer, stopRestTimer, addTimerSeconds, moveExercise, replaceExerciseInPlan
     }}>
       {children}
     </AppContext.Provider>

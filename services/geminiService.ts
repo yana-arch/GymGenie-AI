@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { UserProfile, WorkoutPlan, WorkoutDay } from "../types";
+import { UserProfile, WorkoutPlan, WorkoutDay, Exercise } from "../types";
 
 // Note: In a real production app, never expose API keys on the client side.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -277,5 +277,51 @@ export const getExerciseDetails = async (exerciseName: string): Promise<Exercise
   } catch (error) {
     console.error("Exercise Details API Error:", error);
     throw new Error("Failed to get exercise details.");
+  }
+};
+
+/**
+ * Swaps a single exercise for an alternative based on available equipment.
+ */
+export const swapExercise = async (
+  currentExerciseName: string, 
+  availableEquipment: string[]
+): Promise<Omit<Exercise, 'id' | 'isCompleted'>> => {
+  try {
+    const prompt = `
+      The user wants to SWAP the exercise "${currentExerciseName}" for something else.
+      Available Equipment: ${availableEquipment.length > 0 ? availableEquipment.join(', ') : 'Bodyweight only'}.
+      
+      Task: Suggest ONE alternative exercise that hits the same muscle group but uses available equipment.
+      Return the result in JSON format matching the schema.
+    `;
+
+    const schema: Schema = {
+      type: Type.OBJECT,
+      properties: {
+        name: { type: Type.STRING },
+        sets: { type: Type.INTEGER },
+        reps: { type: Type.STRING },
+        restSeconds: { type: Type.INTEGER },
+        notes: { type: Type.STRING, description: "Why this is a good alternative" }
+      },
+      required: ["name", "sets", "reps", "restSeconds", "notes"]
+    };
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: schema
+      }
+    });
+
+    if (!response.text) throw new Error("No alternative found");
+    return JSON.parse(response.text);
+
+  } catch (error) {
+    console.error("Swap Exercise API Error:", error);
+    throw new Error("Failed to swap exercise.");
   }
 };
