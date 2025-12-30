@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar, CheckCircle2, TrendingUp, ArrowLeft } from 'lucide-react';
+import { Calendar, CheckCircle2, TrendingUp, ArrowLeft, Cloud, CloudOff } from 'lucide-react';
 
 interface WorkoutHistoryProps {
   onBack: () => void;
@@ -34,9 +34,20 @@ const WorkoutHistory: React.FC<WorkoutHistoryProps> = ({ onBack }) => {
             history.map(entry => (
               <div key={entry.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
                  <div>
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">
-                      {new Date(entry.completedAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                        {new Date(entry.completedAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </p>
+                      {entry.syncStatus === 'synced' ? (
+                        <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-md flex items-center gap-1 border border-blue-100">
+                           <Cloud size={10} /> Synced
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md flex items-center gap-1 border border-gray-200">
+                           <CloudOff size={10} /> Local
+                        </span>
+                      )}
+                    </div>
                     <h3 className="font-bold text-gray-900 text-lg leading-tight">{entry.dayTitle}</h3>
                     <p className="text-sm text-gray-500 mt-1">{entry.planTitle} • Week {entry.weekNumber}</p>
                  </div>

@@ -39,6 +39,43 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     if (savedHistory) setHistoryState(savedHistory);
   }, []);
 
+  // Sync Logic: Watch for online status and pending items
+  useEffect(() => {
+    const sync = async () => {
+      // Only proceed if browser reports online
+      if (typeof navigator === 'undefined' || !navigator.onLine) return;
+      
+      const pendingItems = history.filter(h => h.syncStatus === 'pending');
+      if (pendingItems.length === 0) return;
+
+      try {
+        console.log("Syncing pending items...", pendingItems.length);
+        // Simulate Network/API Call Delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Mark pending items as synced
+        const updatedHistory = history.map(h => 
+          h.syncStatus === 'pending' ? { ...h, syncStatus: 'synced' as const } : h
+        );
+        
+        setHistoryState(updatedHistory);
+        StorageService.saveHistory(updatedHistory);
+      } catch (error) {
+        console.error("Sync failed", error);
+      }
+    };
+
+    const handleOnline = () => sync();
+    
+    // Listen for network recovery
+    window.addEventListener('online', handleOnline);
+    
+    // Trigger sync check whenever history updates (e.g. new workout logged)
+    sync();
+
+    return () => window.removeEventListener('online', handleOnline);
+  }, [history]);
+
   // Sync to storage
   const setUser = (u: UserProfile) => {
     setUserState(u);
@@ -115,7 +152,8 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       dayName: day.dayName,
       dayTitle: day.title,
       exercisesCompleted: completedCount,
-      totalExercises: day.exercises.length
+      totalExercises: day.exercises.length,
+      syncStatus: 'pending' // Initially pending, useEffect will pick this up
     };
 
     const newHistory = [entry, ...history];

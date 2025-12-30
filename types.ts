@@ -66,6 +66,7 @@ export interface WorkoutHistoryEntry {
   dayTitle: string;
   exercisesCompleted: number;
   totalExercises: number;
+  syncStatus: 'pending' | 'synced';
 }
 
 export type AppStep = 'onboarding' | 'scanning' | 'dashboard';
