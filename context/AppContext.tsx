@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, PropsWithChildren } from 'react';
+import React, { createContext, useContext, useEffect, useState, PropsWithChildren, useRef } from 'react';
 import { AppState, AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry } from '../types';
 import { StorageService } from '../services/storageService';
 
@@ -12,6 +12,13 @@ interface AppContextType extends AppState {
   updateDayInPlan: (weekId: string, updatedDay: WorkoutDay) => void;
   logWorkout: (weekId: string, dayId: string) => void;
   resetApp: () => void;
+  
+  // Timer related
+  timerSeconds: number;
+  isTimerRunning: boolean;
+  startRestTimer: (seconds: number) => void;
+  stopRestTimer: () => void;
+  addTimerSeconds: (seconds: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -23,6 +30,11 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   const [step, setStepState] = useState<AppStep>('onboarding');
   const [history, setHistoryState] = useState<WorkoutHistoryEntry[]>([]);
   const [isLoading, setLoading] = useState(false);
+
+  // Timer State
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const timerIntervalRef = useRef<number | null>(null);
 
   // Load from storage on mount
   useEffect(() => {
@@ -42,22 +54,16 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   // Sync Logic: Watch for online status and pending items
   useEffect(() => {
     const sync = async () => {
-      // Only proceed if browser reports online
       if (typeof navigator === 'undefined' || !navigator.onLine) return;
       
       const pendingItems = history.filter(h => h.syncStatus === 'pending');
       if (pendingItems.length === 0) return;
 
       try {
-        console.log("Syncing pending items...", pendingItems.length);
-        // Simulate Network/API Call Delay
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Mark pending items as synced
         const updatedHistory = history.map(h => 
           h.syncStatus === 'pending' ? { ...h, syncStatus: 'synced' as const } : h
         );
-        
         setHistoryState(updatedHistory);
         StorageService.saveHistory(updatedHistory);
       } catch (error) {
@@ -66,15 +72,73 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     };
 
     const handleOnline = () => sync();
-    
-    // Listen for network recovery
     window.addEventListener('online', handleOnline);
-    
-    // Trigger sync check whenever history updates (e.g. new workout logged)
     sync();
 
     return () => window.removeEventListener('online', handleOnline);
   }, [history]);
+
+  // Timer Logic
+  useEffect(() => {
+    if (isTimerRunning && timerSeconds > 0) {
+      timerIntervalRef.current = window.setInterval(() => {
+        setTimerSeconds((prev) => {
+          if (prev <= 1) {
+            // Timer finished
+            playTimerSound();
+            setIsTimerRunning(false);
+            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    }
+
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, [isTimerRunning, timerSeconds]);
+
+  const playTimerSound = () => {
+    // Simple beep using Web Audio API or Audio object
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+      oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
+      
+      gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {
+      console.error("Audio play failed", e);
+    }
+  };
+
+  const startRestTimer = (seconds: number) => {
+    setTimerSeconds(seconds);
+    setIsTimerRunning(true);
+  };
+
+  const stopRestTimer = () => {
+    setIsTimerRunning(false);
+    setTimerSeconds(0);
+  };
+
+  const addTimerSeconds = (seconds: number) => {
+    setTimerSeconds(prev => prev + seconds);
+  };
 
   // Sync to storage
   const setUser = (u: UserProfile) => {
@@ -100,16 +164,16 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   const toggleExercise = (id: string) => {
     if (!currentPlan) return;
 
-    // Deep clone to safely mutate
     const newPlan = { ...currentPlan };
-    
-    // Find and toggle the exercise
     let found = false;
+    let exerciseRef = null;
+
     for (const week of newPlan.weeks) {
       for (const day of week.days) {
         const exercise = day.exercises.find(e => e.id === id);
         if (exercise) {
           exercise.isCompleted = !exercise.isCompleted;
+          exerciseRef = exercise;
           found = true;
           break;
         }
@@ -117,8 +181,15 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       if (found) break;
     }
 
-    if (found) {
-      setPlan(newPlan); // Save updated plan
+    if (found && exerciseRef) {
+      setPlan(newPlan);
+      // Logic for Timer Trigger: If we just marked it as completed, start timer
+      if (exerciseRef.isCompleted) {
+        startRestTimer(exerciseRef.restSeconds || 60);
+      } else {
+        // If unchecked, maybe stop timer? Optional.
+        // stopRestTimer(); 
+      }
     }
   };
 
@@ -153,12 +224,13 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       dayTitle: day.title,
       exercisesCompleted: completedCount,
       totalExercises: day.exercises.length,
-      syncStatus: 'pending' // Initially pending, useEffect will pick this up
+      syncStatus: 'pending'
     };
 
     const newHistory = [entry, ...history];
     setHistoryState(newHistory);
     StorageService.saveHistory(newHistory);
+    stopRestTimer(); // Stop any running timer
   };
 
   const resetApp = () => {
@@ -168,12 +240,15 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     setPlanState(null);
     setStepState('onboarding');
     setHistoryState([]);
+    stopRestTimer();
   };
 
   return (
     <AppContext.Provider value={{
       user, equipment, currentPlan, step, isLoading, history,
-      setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, logWorkout, resetApp
+      timerSeconds, isTimerRunning,
+      setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, logWorkout, resetApp,
+      startRestTimer, stopRestTimer, addTimerSeconds
     }}>
       {children}
     </AppContext.Provider>

@@ -4,6 +4,7 @@ import { modifyWorkoutDay } from '../services/geminiService';
 import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList, Info } from 'lucide-react';
 import WorkoutHistory from './WorkoutHistory';
 import ExerciseDetailModal from './ExerciseDetailModal';
+import RestTimer from './RestTimer';
 
 const WorkoutDashboard = () => {
   const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, setLoading, isLoading } = useApp();
@@ -78,6 +79,9 @@ const WorkoutDashboard = () => {
   return (
     <div className="min-h-full bg-gray-50 md:bg-white animate-fade-in flex flex-col h-full relative">
       
+      {/* Rest Timer Overlay */}
+      <RestTimer />
+
       {/* Exercise Detail Modal */}
       {detailExerciseName && (
         <ExerciseDetailModal 
