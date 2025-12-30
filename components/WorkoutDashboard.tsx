@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { modifyWorkoutDay, swapExercise } from '../services/geminiService';
-import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList, Info, ArrowUp, ArrowDown, ArrowUpDown, Shuffle, Loader2 } from 'lucide-react';
+import { modifyWorkoutDay, swapExercise, analyzeWorkoutSession } from '../services/geminiService';
+import { WorkoutAnalysis } from '../types';
+import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList, Info, ArrowUp, ArrowDown, ArrowUpDown, Shuffle, Loader2, BrainCircuit, Zap } from 'lucide-react';
 import WorkoutHistory from './WorkoutHistory';
 import ExerciseDetailModal from './ExerciseDetailModal';
 import RestTimer from './RestTimer';
 
 const WorkoutDashboard = () => {
-  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, moveExercise, replaceExerciseInPlan, equipment, setLoading, isLoading } = useApp();
+  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, moveExercise, replaceExerciseInPlan, equipment, setLoading, isLoading, sessionStartTime, exerciseTimestamps } = useApp();
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   
@@ -27,6 +28,10 @@ const WorkoutDashboard = () => {
   
   // Swapping State
   const [swappingId, setSwappingId] = useState<string | null>(null);
+
+  // Analysis State
+  const [analyzingResult, setAnalyzingResult] = useState<WorkoutAnalysis | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Reset day selection when week changes
   const activeWeek = useMemo(() => currentPlan?.weeks[selectedWeekIndex], [currentPlan, selectedWeekIndex]);
@@ -83,11 +88,60 @@ const WorkoutDashboard = () => {
     }
   };
 
-  const handleFinishWorkout = () => {
-    if (confirm("Finish and log this workout to history?")) {
-        logWorkout(activeWeek.id, activeDay.id);
-        setShowHistory(true); // Switch to history view to show confirmation implicitly
+  const handleFinishWorkout = async () => {
+    // 1. Calculate Metrics
+    const now = Date.now();
+    const startTime = sessionStartTime || now;
+    const durationMinutes = Math.max(1, Math.round((now - startTime) / 60000));
+    
+    // Sort timestamps to find gaps
+    const times = (Object.values(exerciseTimestamps) as number[]).sort((a, b) => a - b);
+    let totalGap = 0;
+    let gapsCount = 0;
+
+    for (let i = 1; i < times.length; i++) {
+        const gap = (times[i] - times[i-1]) / 1000; // seconds
+        // Filter out absurdly long gaps (e.g. app closed) > 10 mins, or very short < 5s
+        if (gap > 5 && gap < 600) {
+            totalGap += gap;
+            gapsCount++;
+        }
     }
+    const averageGap = gapsCount > 0 ? Math.round(totalGap / gapsCount) : 60; // Default 60s if no data
+
+    const completedCount = activeDay.exercises.filter(e => e.isCompleted).length;
+    
+    if (completedCount === 0) {
+        alert("You haven't completed any exercises yet!");
+        return;
+    }
+
+    // 2. Call AI Analysis
+    setIsAnalyzing(true);
+    try {
+        const analysis = await analyzeWorkoutSession(
+            durationMinutes, 
+            completedCount, 
+            activeDay.exercises.length, 
+            averageGap
+        );
+        setAnalyzingResult(analysis);
+    } catch (error) {
+        console.error("Analysis failed", error);
+        // Proceed without analysis if it fails
+        logWorkout(activeWeek.id, activeDay.id);
+        setShowHistory(true);
+    } finally {
+        setIsAnalyzing(false);
+    }
+  };
+
+  const handleCloseAnalysis = () => {
+     if (analyzingResult) {
+         logWorkout(activeWeek.id, activeDay.id, analyzingResult);
+         setAnalyzingResult(null);
+         setShowHistory(true);
+     }
   };
 
   const progress = calculateProgress();
@@ -103,6 +157,53 @@ const WorkoutDashboard = () => {
       
       {/* Rest Timer Overlay */}
       <RestTimer />
+
+      {/* Analysis Result Modal */}
+      {analyzingResult && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+           <div className="bg-white rounded-3xl w-full max-w-sm p-8 shadow-2xl scale-100 animate-pop-in relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500"></div>
+              
+              <div className="flex flex-col items-center text-center mb-6">
+                 <div className="w-20 h-20 bg-gray-900 text-white rounded-full flex flex-col items-center justify-center shadow-xl mb-4 border-4 border-brand-100">
+                    <span className="text-3xl font-black">{analyzingResult.score}</span>
+                    <span className="text-[10px] uppercase font-bold text-gray-400">Score</span>
+                 </div>
+                 <h2 className="text-2xl font-bold text-gray-900">{analyzingResult.mood}</h2>
+                 <p className="text-gray-500 text-sm mt-1">Session Analysis</p>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-sm text-gray-700">
+                    <BrainCircuit className="inline-block text-brand-600 mr-2 mb-1" size={16} />
+                    {analyzingResult.summary}
+                 </div>
+                 <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 text-sm text-blue-800">
+                    <Zap className="inline-block text-blue-600 mr-2 mb-1" size={16} />
+                    <strong>Tip:</strong> {analyzingResult.advice}
+                 </div>
+              </div>
+
+              <button 
+                onClick={handleCloseAnalysis}
+                className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-gray-800 transition-all active:scale-95"
+              >
+                Save & Continue
+              </button>
+           </div>
+        </div>
+      )}
+
+      {/* Loading Analysis Overlay */}
+      {isAnalyzing && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-white/90 backdrop-blur-sm">
+           <div className="flex flex-col items-center">
+              <Loader2 size={48} className="animate-spin text-brand-600 mb-4" />
+              <p className="font-bold text-lg text-gray-800">Analyzing Performance...</p>
+              <p className="text-sm text-gray-500">Checking your pace, consistency, and focus.</p>
+           </div>
+        </div>
+      )}
 
       {/* Exercise Detail Modal */}
       {detailExerciseName && (
@@ -430,10 +531,11 @@ const WorkoutDashboard = () => {
                 <div className="pt-4 shrink-0 pb-20 md:pb-4">
                    <button 
                     onClick={handleFinishWorkout}
-                    disabled={isReordering}
+                    disabled={isReordering || isAnalyzing}
                     className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-50"
                    >
-                     <ClipboardList size={20} /> Finish & Log Workout
+                     {isAnalyzing ? <Loader2 className="animate-spin" /> : <ClipboardList size={20} />} 
+                     {isAnalyzing ? "Analyzing Performance..." : "Finish & Log Workout"}
                    </button>
                 </div>
               </div>

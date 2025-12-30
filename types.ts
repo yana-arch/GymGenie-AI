@@ -57,6 +57,13 @@ export interface WorkoutPlan {
   weeks: WorkoutWeek[];
 }
 
+export interface WorkoutAnalysis {
+  score: number; // 1-10
+  mood: string; // e.g. "Focused", "Distracted", "Beast Mode"
+  summary: string;
+  advice: string;
+}
+
 export interface WorkoutHistoryEntry {
   id: string;
   completedAt: string;
@@ -66,6 +73,8 @@ export interface WorkoutHistoryEntry {
   dayTitle: string;
   exercisesCompleted: number;
   totalExercises: number;
+  durationMinutes: number;
+  analysis?: WorkoutAnalysis;
   syncStatus: 'pending' | 'synced';
 }
 

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, PropsWithChildren, useRef } from 'react';
-import { AppState, AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry, Exercise } from '../types';
+import { AppState, AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry, Exercise, WorkoutAnalysis } from '../types';
 import { StorageService } from '../services/storageService';
 
 interface AppContextType extends AppState {
@@ -10,7 +10,7 @@ interface AppContextType extends AppState {
   setLoading: (loading: boolean) => void;
   toggleExercise: (exerciseId: string) => void;
   updateDayInPlan: (weekId: string, updatedDay: WorkoutDay) => void;
-  logWorkout: (weekId: string, dayId: string) => void;
+  logWorkout: (weekId: string, dayId: string, analysis?: WorkoutAnalysis) => void;
   resetApp: () => void;
   
   // Timer related
@@ -23,6 +23,10 @@ interface AppContextType extends AppState {
   // Reorder & Swap
   moveExercise: (weekId: string, dayId: string, exerciseId: string, direction: 'up' | 'down') => void;
   replaceExerciseInPlan: (weekId: string, dayId: string, oldExerciseId: string, newExerciseData: Omit<Exercise, 'id' | 'isCompleted'>) => void;
+
+  // Session Tracking
+  sessionStartTime: number | null;
+  exerciseTimestamps: Record<string, number>; // exerciseId -> timestamp
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -39,6 +43,11 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const timerIntervalRef = useRef<number | null>(null);
+
+  // Session Tracking State
+  // We keep this in memory (or potentially session storage) to track the current active workout
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [exerciseTimestamps, setExerciseTimestamps] = useState<Record<string, number>>({});
 
   // Load from storage on mount
   useEffect(() => {
@@ -166,6 +175,12 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   // Actions
   const toggleExercise = (id: string) => {
     if (!currentPlan) return;
+    const now = Date.now();
+
+    // Start session if not started
+    if (!sessionStartTime) {
+        setSessionStartTime(now);
+    }
 
     const newPlan = { ...currentPlan };
     let found = false;
@@ -186,8 +201,18 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
 
     if (found && exerciseRef) {
       setPlan(newPlan);
+      
       if (exerciseRef.isCompleted) {
+        // Record timestamp
+        setExerciseTimestamps(prev => ({ ...prev, [id]: now }));
         startRestTimer(exerciseRef.restSeconds || 60);
+      } else {
+        // Remove timestamp if unchecked
+        setExerciseTimestamps(prev => {
+            const next = { ...prev };
+            delete next[id];
+            return next;
+        });
       }
     }
   };
@@ -255,7 +280,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     setPlan(newPlan);
   };
 
-  const logWorkout = (weekId: string, dayId: string) => {
+  const logWorkout = (weekId: string, dayId: string, analysis?: WorkoutAnalysis) => {
     if (!currentPlan) return;
     const week = currentPlan.weeks.find(w => w.id === weekId);
     const day = week?.days.find(d => d.id === dayId);
@@ -263,6 +288,11 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
 
     const completedCount = day.exercises.filter(e => e.isCompleted).length;
     
+    // Calculate final duration
+    const endTime = Date.now();
+    const startTime = sessionStartTime || endTime;
+    const durationMinutes = Math.max(1, Math.round((endTime - startTime) / 60000));
+
     const entry: WorkoutHistoryEntry = {
       id: crypto.randomUUID(),
       completedAt: new Date().toISOString(),
@@ -272,6 +302,8 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       dayTitle: day.title,
       exercisesCompleted: completedCount,
       totalExercises: day.exercises.length,
+      durationMinutes,
+      analysis,
       syncStatus: 'pending'
     };
 
@@ -279,6 +311,10 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     setHistoryState(newHistory);
     StorageService.saveHistory(newHistory);
     stopRestTimer();
+    
+    // Reset Session Stats
+    setSessionStartTime(null);
+    setExerciseTimestamps({});
   };
 
   const resetApp = () => {
@@ -289,6 +325,8 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     setStepState('onboarding');
     setHistoryState([]);
     stopRestTimer();
+    setSessionStartTime(null);
+    setExerciseTimestamps({});
   };
 
   return (
@@ -296,7 +334,8 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       user, equipment, currentPlan, step, isLoading, history,
       timerSeconds, isTimerRunning,
       setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, logWorkout, resetApp,
-      startRestTimer, stopRestTimer, addTimerSeconds, moveExercise, replaceExerciseInPlan
+      startRestTimer, stopRestTimer, addTimerSeconds, moveExercise, replaceExerciseInPlan,
+      sessionStartTime, exerciseTimestamps
     }}>
       {children}
     </AppContext.Provider>

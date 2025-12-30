@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar, CheckCircle2, TrendingUp, ArrowLeft, Cloud, CloudOff } from 'lucide-react';
+import { Calendar, CheckCircle2, TrendingUp, ArrowLeft, Cloud, CloudOff, BrainCircuit } from 'lucide-react';
 
 interface WorkoutHistoryProps {
   onBack: () => void;
@@ -32,9 +32,9 @@ const WorkoutHistory: React.FC<WorkoutHistoryProps> = ({ onBack }) => {
             </div>
           ) : (
             history.map(entry => (
-              <div key={entry.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
-                 <div>
-                    <div className="flex items-center gap-2 mb-1">
+              <div key={entry.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                 <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
                       <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
                         {new Date(entry.completedAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                       </p>
@@ -48,10 +48,17 @@ const WorkoutHistory: React.FC<WorkoutHistoryProps> = ({ onBack }) => {
                         </span>
                       )}
                     </div>
-                    <h3 className="font-bold text-gray-900 text-lg leading-tight">{entry.dayTitle}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{entry.planTitle} • Week {entry.weekNumber}</p>
+                    {/* Duration Pill */}
+                    <div className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                       {entry.durationMinutes || 0} mins
+                    </div>
                  </div>
-                 <div className="text-right pl-4">
+
+                 <div className="flex justify-between items-start">
+                    <div>
+                        <h3 className="font-bold text-gray-900 text-lg leading-tight">{entry.dayTitle}</h3>
+                        <p className="text-sm text-gray-500 mt-1">{entry.planTitle} • Week {entry.weekNumber}</p>
+                    </div>
                     <div className={`flex items-center gap-1.5 font-bold px-3 py-1.5 rounded-full border text-sm ${
                         entry.exercisesCompleted === entry.totalExercises 
                         ? 'bg-green-50 text-green-700 border-green-200'
@@ -60,8 +67,26 @@ const WorkoutHistory: React.FC<WorkoutHistoryProps> = ({ onBack }) => {
                        <CheckCircle2 size={16} />
                        {entry.exercisesCompleted}/{entry.totalExercises}
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-1 uppercase font-medium">Exercises</p>
                  </div>
+
+                 {/* AI Analysis Section */}
+                 {entry.analysis && (
+                     <div className="mt-4 pt-4 border-t border-dashed border-gray-100">
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center font-bold text-lg">
+                             {entry.analysis.score}
+                           </div>
+                           <div>
+                              <p className="text-xs text-gray-400 uppercase font-bold">AI Feedback</p>
+                              <p className="text-sm font-bold text-gray-800">{entry.analysis.mood}</p>
+                           </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 pl-1 leading-relaxed">
+                           <BrainCircuit size={12} className="inline mr-1" />
+                           {entry.analysis.summary}
+                        </p>
+                     </div>
+                 )}
               </div>
             ))
           )}
