@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { modifyWorkoutDay } from '../services/geminiService';
-import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList, Info } from 'lucide-react';
 import WorkoutHistory from './WorkoutHistory';
+import ExerciseDetailModal from './ExerciseDetailModal';
 
 const WorkoutDashboard = () => {
   const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, setLoading, isLoading } = useApp();
@@ -16,6 +17,9 @@ const WorkoutDashboard = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editPrompt, setEditPrompt] = useState('');
   const [isModifying, setIsModifying] = useState(false);
+
+  // Exercise Detail Modal State
+  const [detailExerciseName, setDetailExerciseName] = useState<string | null>(null);
 
   // Reset day selection when week changes if current day index is out of bounds (unlikely but safe)
   const activeWeek = useMemo(() => currentPlan?.weeks[selectedWeekIndex], [currentPlan, selectedWeekIndex]);
@@ -74,6 +78,14 @@ const WorkoutDashboard = () => {
   return (
     <div className="min-h-full bg-gray-50 md:bg-white animate-fade-in flex flex-col h-full relative">
       
+      {/* Exercise Detail Modal */}
+      {detailExerciseName && (
+        <ExerciseDetailModal 
+          exerciseName={detailExerciseName} 
+          onClose={() => setDetailExerciseName(null)} 
+        />
+      )}
+
       {/* Edit Modal Overlay */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
@@ -280,21 +292,41 @@ const WorkoutDashboard = () => {
                   {activeDay.exercises.map((exercise) => (
                     <div 
                       key={exercise.id}
-                      onClick={() => toggleExercise(exercise.id)}
-                      className={`group bg-white p-4 md:p-6 rounded-2xl border transition-all duration-200 cursor-pointer active:scale-[0.99] ${
+                      className={`group bg-white p-4 md:p-6 rounded-2xl border transition-all duration-200 active:scale-[0.99] ${
                         exercise.isCompleted 
                           ? 'border-green-200 bg-green-50/50 shadow-none' 
                           : 'border-gray-100 md:border-gray-200 shadow-sm hover:shadow-md hover:border-brand-200'
                       }`}
                     >
                       <div className="flex items-start gap-4">
-                        <div className={`mt-1 transition-colors ${exercise.isCompleted ? 'text-green-500' : 'text-gray-300 group-hover:text-brand-300'}`}>
+                         {/* Toggle Checkbox */}
+                        <div 
+                          onClick={(e) => { e.stopPropagation(); toggleExercise(exercise.id); }}
+                          className={`mt-1 transition-colors cursor-pointer ${exercise.isCompleted ? 'text-green-500' : 'text-gray-300 group-hover:text-brand-300'}`}
+                        >
                           {exercise.isCompleted ? <CheckCircle2 size={28} className="fill-green-100" /> : <Circle size={28} />}
                         </div>
+                        
                         <div className="flex-1">
-                          <h3 className={`font-bold text-lg mb-2 ${exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-                            {exercise.name}
-                          </h3>
+                          <div className="flex justify-between items-start">
+                             <h3 
+                                onClick={(e) => { e.stopPropagation(); toggleExercise(exercise.id); }}
+                                className={`font-bold text-lg mb-2 cursor-pointer ${exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}
+                             >
+                                {exercise.name}
+                             </h3>
+                             {/* Info Button - New Feature */}
+                             <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDetailExerciseName(exercise.name);
+                              }}
+                              className="text-gray-400 hover:text-brand-500 p-1"
+                             >
+                               <Info size={20} />
+                             </button>
+                          </div>
+                          
                           <div className="flex flex-wrap gap-2 md:gap-3 text-sm text-gray-600 mb-3">
                             <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.sets} Sets</span>
                             <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.reps} Reps</span>

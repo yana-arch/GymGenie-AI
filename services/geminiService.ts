@@ -233,3 +233,49 @@ export const modifyWorkoutDay = async (
     throw new Error("Failed to modify workout day.");
   }
 };
+
+export interface ExerciseDetails {
+  targetMuscles: string[];
+  instructions: string[];
+  commonMistakes: string[];
+  proTips: string[];
+}
+
+/**
+ * Fetches detailed instructions for a specific exercise.
+ */
+export const getExerciseDetails = async (exerciseName: string): Promise<ExerciseDetails> => {
+  try {
+    const prompt = `
+      Provide a concise, professional guide for the exercise: "${exerciseName}".
+      Target Audience: Gym beginner.
+    `;
+
+    const schema: Schema = {
+      type: Type.OBJECT,
+      properties: {
+        targetMuscles: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Primary muscle groups worked" },
+        instructions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-4 step-by-step execution instructions" },
+        commonMistakes: { type: Type.ARRAY, items: { type: Type.STRING }, description: "2 common form errors to avoid" },
+        proTips: { type: Type.ARRAY, items: { type: Type.STRING }, description: "1-2 tips for better activation or safety" }
+      },
+      required: ["targetMuscles", "instructions", "commonMistakes", "proTips"]
+    };
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: schema
+      }
+    });
+
+    if (!response.text) throw new Error("No details returned");
+    return JSON.parse(response.text) as ExerciseDetails;
+
+  } catch (error) {
+    console.error("Exercise Details API Error:", error);
+    throw new Error("Failed to get exercise details.");
+  }
+};
