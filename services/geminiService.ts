@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { UserProfile, WorkoutPlan } from "../types";
+import { UserProfile, WorkoutPlan, WorkoutDay } from "../types";
 
 // Note: In a real production app, never expose API keys on the client side.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -152,5 +152,84 @@ export const generateWorkoutPlan = async (user: UserProfile, equipment: string[]
   } catch (error) {
     console.error("Planning API Error:", error);
     throw new Error("Failed to generate workout plan.");
+  }
+};
+
+/**
+ * Modifies a specific workout day based on user request.
+ */
+export const modifyWorkoutDay = async (
+  currentDay: WorkoutDay, 
+  userRequest: string, 
+  user: UserProfile
+): Promise<WorkoutDay> => {
+  try {
+    const prompt = `
+      You are an elite Personal Trainer. Modify this specific Workout Day based on the User's Request.
+      
+      User Profile: Goal: ${user.goal}, Injuries: ${user.injuries || 'None'}
+      User Request: "${userRequest}"
+      
+      Current Day Structure (JSON):
+      ${JSON.stringify(currentDay)}
+      
+      Instructions:
+      1. Keep the 'dayName' and 'id' exactly the same.
+      2. Update 'title', 'isRestDay', and 'exercises' based on the request.
+      3. If the user asks to make it easier/harder, adjust sets/reps/rest.
+      4. If the user asks to swap exercises, provide suitable alternatives.
+    `;
+
+    const schema: Schema = {
+      type: Type.OBJECT,
+      properties: {
+        id: { type: Type.STRING },
+        dayName: { type: Type.STRING },
+        title: { type: Type.STRING },
+        isRestDay: { type: Type.BOOLEAN },
+        exercises: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              sets: { type: Type.INTEGER },
+              reps: { type: Type.STRING },
+              restSeconds: { type: Type.INTEGER },
+              notes: { type: Type.STRING }
+            },
+            required: ["name", "sets", "reps", "restSeconds", "notes"]
+          }
+        }
+      },
+      required: ["id", "dayName", "title", "isRestDay", "exercises"]
+    };
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: schema
+      }
+    });
+
+    if (!response.text) throw new Error("No response from AI");
+
+    const data = JSON.parse(response.text);
+
+    // Hydrate new exercises with IDs
+    return {
+      ...data,
+      exercises: data.exercises.map((ex: any) => ({
+        ...ex,
+        id: crypto.randomUUID(),
+        isCompleted: false
+      }))
+    };
+
+  } catch (error) {
+    console.error("Modify API Error:", error);
+    throw new Error("Failed to modify workout day.");
   }
 };

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, PropsWithChildren } from 'react';
-import { AppState, AppStep, UserProfile, WorkoutPlan } from '../types';
+import { AppState, AppStep, UserProfile, WorkoutPlan, WorkoutDay } from '../types';
 import { StorageService } from '../services/storageService';
 
 interface AppContextType extends AppState {
@@ -9,6 +9,7 @@ interface AppContextType extends AppState {
   setStep: (step: AppStep) => void;
   setLoading: (loading: boolean) => void;
   toggleExercise: (exerciseId: string) => void;
+  updateDayInPlan: (weekId: string, updatedDay: WorkoutDay) => void;
   resetApp: () => void;
 }
 
@@ -80,6 +81,20 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
+  const updateDayInPlan = (weekId: string, updatedDay: WorkoutDay) => {
+    if (!currentPlan) return;
+    const newPlan = { ...currentPlan };
+
+    const weekIndex = newPlan.weeks.findIndex(w => w.id === weekId);
+    if (weekIndex === -1) return;
+
+    const dayIndex = newPlan.weeks[weekIndex].days.findIndex(d => d.id === updatedDay.id);
+    if (dayIndex !== -1) {
+       newPlan.weeks[weekIndex].days[dayIndex] = updatedDay;
+       setPlan(newPlan);
+    }
+  };
+
   const resetApp = () => {
     StorageService.clearAll();
     setUserState(null);
@@ -91,7 +106,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   return (
     <AppContext.Provider value={{
       user, equipment, currentPlan, step, isLoading,
-      setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, resetApp
+      setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, resetApp
     }}>
       {children}
     </AppContext.Provider>

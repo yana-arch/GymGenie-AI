@@ -1,11 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft } from 'lucide-react';
+import { modifyWorkoutDay } from '../services/geminiService';
+import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send } from 'lucide-react';
 
 const WorkoutDashboard = () => {
-  const { currentPlan, toggleExercise, user, resetApp } = useApp();
+  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, setLoading, isLoading } = useApp();
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  
+  // Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editPrompt, setEditPrompt] = useState('');
+  const [isModifying, setIsModifying] = useState(false);
 
   // Reset day selection when week changes if current day index is out of bounds (unlikely but safe)
   const activeWeek = useMemo(() => currentPlan?.weeks[selectedWeekIndex], [currentPlan, selectedWeekIndex]);
@@ -28,12 +34,66 @@ const WorkoutDashboard = () => {
     return total === 0 ? 0 : Math.round((completed / total) * 100);
   };
 
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editPrompt.trim() || !activeWeek || !activeDay) return;
+
+    setIsModifying(true);
+    try {
+      const updatedDay = await modifyWorkoutDay(activeDay, editPrompt, user);
+      updateDayInPlan(activeWeek.id, updatedDay);
+      setIsEditModalOpen(false);
+      setEditPrompt('');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to modify workout. Please try again.');
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
   const progress = calculateProgress();
   const isRestDay = activeDay.isRestDay;
 
   return (
-    <div className="min-h-full bg-gray-50 md:bg-white animate-fade-in flex flex-col h-full">
+    <div className="min-h-full bg-gray-50 md:bg-white animate-fade-in flex flex-col h-full relative">
       
+      {/* Edit Modal Overlay */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl scale-100 animate-pop-in">
+             <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2 text-brand-600 font-bold text-lg">
+                   <Sparkles size={20} /> AI Coach
+                </div>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
+                </button>
+             </div>
+             <p className="text-gray-600 text-sm mb-4">
+               How should I adjust <strong>{activeDay.title}</strong> for you?
+             </p>
+             <form onSubmit={handleEditSubmit}>
+                <textarea
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-brand-500 outline-none mb-4 resize-none"
+                  rows={4}
+                  placeholder="e.g. 'My knees hurt, swap Squats for something easier' or 'I only have 30 mins today, make it shorter.'"
+                  value={editPrompt}
+                  onChange={(e) => setEditPrompt(e.target.value)}
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={isModifying || !editPrompt.trim()}
+                  className="w-full bg-brand-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-brand-700 disabled:opacity-50 transition-all"
+                >
+                  {isModifying ? 'Adjusting Plan...' : <><Send size={18} /> Update Workout</>}
+                </button>
+             </form>
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="bg-brand-600 text-white p-6 md:p-8 rounded-b-3xl md:rounded-none shadow-lg relative overflow-hidden shrink-0 transition-all">
         <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -154,7 +214,7 @@ const WorkoutDashboard = () => {
           <div className="md:col-span-8 flex flex-col h-full overflow-hidden">
              
             {isRestDay ? (
-               <div className="flex-1 flex flex-col items-center justify-center p-8 bg-blue-50/50 rounded-3xl border border-blue-100 text-center animate-fade-in">
+               <div className="flex-1 flex flex-col items-center justify-center p-8 bg-blue-50/50 rounded-3xl border border-blue-100 text-center animate-fade-in relative">
                   <div className="bg-white p-6 rounded-full shadow-sm mb-4">
                     <Clock size={48} className="text-blue-400" />
                   </div>
@@ -162,13 +222,29 @@ const WorkoutDashboard = () => {
                   <p className="text-blue-700 max-w-md">
                     Take today to recover. Light stretching, hydration, and good sleep are key to muscle growth.
                   </p>
+                  
+                  {/* Option to change rest day */}
+                  <button 
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="mt-6 flex items-center gap-2 text-blue-600 bg-white px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:bg-blue-50"
+                  >
+                     <Sparkles size={16} /> Want to workout anyway?
+                  </button>
                </div>
             ) : (
               <div className="space-y-4 pb-20 md:pb-0 overflow-y-auto pr-1 custom-scrollbar">
-                <div className="hidden md:flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                        {activeDay.title} <span className="text-gray-300 font-normal">/</span> {activeDay.exercises.length} Exercises
                     </h3>
+                    
+                    {/* Magic Edit Button */}
+                    <button 
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all active:scale-95"
+                    >
+                      <Sparkles size={16} /> <span className="hidden sm:inline">AI Edit</span>
+                    </button>
                 </div>
 
                 {activeDay.exercises.map((exercise) => (
