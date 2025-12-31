@@ -1,15 +1,34 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { modifyWorkoutDay, swapExercise, analyzeWorkoutSession, adjustPlanProgressively } from '../services/geminiService';
-import { WorkoutAnalysis } from '../types';
+import { WorkoutAnalysis, SessionState } from '../types';
 import { CheckCircle2, Circle, Clock, Flame, RefreshCcw, Trophy, Activity, Dumbbell, Calendar, ChevronRight, ChevronLeft, Sparkles, X, Send, History as HistoryIcon, ClipboardList, Info, ArrowUp, ArrowDown, ArrowUpDown, Shuffle, Loader2, BrainCircuit, Zap, Utensils, Star } from 'lucide-react';
 import WorkoutHistory from './WorkoutHistory';
 import ExerciseDetailModal from './ExerciseDetailModal';
 import RestTimer from './RestTimer';
 import NutritionGenie from './NutritionGenie';
+import WeeklyProgressCalendar from './WeeklyProgressCalendar';
 
 const WorkoutDashboard = () => {
-  const { currentPlan, toggleExercise, user, resetApp, updateDayInPlan, logWorkout, moveExercise, replaceExerciseInPlan, equipment, setPlan, sessionStartTime, exerciseTimestamps } = useApp();
+  const { 
+    currentPlan, 
+    toggleExercise, 
+    user, 
+    resetApp, 
+    updateDayInPlan, 
+    logWorkout, 
+    moveExercise, 
+    replaceExerciseInPlan, 
+    equipment, 
+    setPlan, 
+    sessionStartTime, 
+    exerciseTimestamps,
+    // Session management properties
+    sessionManager,
+    currentSession,
+    isWorkoutReadOnly,
+    getSessionState
+  } = useApp();
   const [activeTab, setActiveTab] = useState<'workout' | 'nutrition'>('workout');
   
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
@@ -44,6 +63,66 @@ const WorkoutDashboard = () => {
   // Reset day selection when week changes
   const activeWeek = useMemo(() => currentPlan?.weeks[selectedWeekIndex], [currentPlan, selectedWeekIndex]);
   const activeDay = useMemo(() => activeWeek?.days[selectedDayIndex], [activeWeek, selectedDayIndex]);
+
+  // Session state detection for current day
+  const currentDaySessionState = useMemo(() => {
+    if (!activeWeek || !activeDay) return 'inactive';
+    return getSessionState(activeWeek.id, activeDay.id);
+  }, [activeWeek, activeDay, getSessionState]);
+
+  const isCurrentDayReadOnly = useMemo(() => {
+    if (!activeWeek || !activeDay) return false;
+    return isWorkoutReadOnly(activeWeek.id, activeDay.id);
+  }, [activeWeek, activeDay, isWorkoutReadOnly]);
+
+  // Handle session conflicts when starting new workouts
+  const handleSessionConflict = (newWeekId: string, newDayId: string): boolean => {
+    // Check if there's already an active session for a different day
+    if (currentSession && 
+        currentSession.state === SessionState.ACTIVE && 
+        (currentSession.weekId !== newWeekId || currentSession.dayId !== newDayId)) {
+      
+      const currentWeek = currentPlan?.weeks.find(w => w.id === currentSession.weekId);
+      const currentDay = currentWeek?.days.find(d => d.id === currentSession.dayId);
+      const currentDayName = currentDay ? `${currentDay.dayName} - ${currentDay.title}` : 'another workout';
+      
+      const shouldAbandon = confirm(
+        `You have an active session for ${currentDayName}. ` +
+        `Do you want to abandon that session and start a new one here?`
+      );
+      
+      if (shouldAbandon) {
+        try {
+          sessionManager.abandonSession();
+          return true; // Allow new session to start
+        } catch (error) {
+          console.error('Failed to abandon session:', error);
+          alert('Failed to abandon previous session. Please try again.');
+          return false; // Don't allow new session
+        }
+      } else {
+        return false; // Don't allow new session
+      }
+    }
+    
+    return true; // No conflict, allow session to start
+  };
+
+  // Enhanced exercise toggle handler
+  const handleExerciseToggle = (exerciseId: string) => {
+    if (!activeWeek || !activeDay) return;
+    
+    // Check for session conflicts before toggling
+    if (!sessionManager.isSessionActive(activeWeek.id, activeDay.id)) {
+      // This would start a new session, check for conflicts
+      if (!handleSessionConflict(activeWeek.id, activeDay.id)) {
+        return; // User cancelled or conflict couldn't be resolved
+      }
+    }
+    
+    // Proceed with normal toggle
+    toggleExercise(exerciseId);
+  };
 
   if (!currentPlan || !user || !activeWeek || !activeDay) return null;
 
@@ -102,6 +181,17 @@ const WorkoutDashboard = () => {
         alert("You haven't completed any exercises yet!");
         return;
     }
+
+    // Check if we have an active session and complete it before showing RPE modal
+    if (activeWeek && activeDay && sessionManager.isSessionActive(activeWeek.id, activeDay.id)) {
+      try {
+        sessionManager.completeSession();
+      } catch (error) {
+        console.error('Failed to complete session:', error);
+        // Continue with RPE modal even if session completion fails
+      }
+    }
+
     setIsRPEModalOpen(true);
   };
 
@@ -166,21 +256,57 @@ const WorkoutDashboard = () => {
         }
     }
 
-    // 4. Log
-    logWorkout(activeWeek.id, activeDay.id, rpeRating, analysis);
+    // 4. Log workout and handle session state transitions
+    try {
+      // First log the workout using the existing method
+      logWorkout(activeWeek.id, activeDay.id, rpeRating, analysis);
+      
+      // The logWorkout method in AppContext will handle session logging automatically
+      // No need to call sessionManager.logSession here as it's handled in AppContext.logWorkout
+    } catch (error) {
+      console.error("Failed to log workout:", error);
+      // Show user-friendly error message
+      alert("Failed to save workout. Please try again.");
+    }
+  };
+
+  // Enhanced navigation handler for history
+  const handleNavigateToWorkout = (weekId: string, dayId: string) => {
+    // Find the week and day indices
+    const weekIndex = currentPlan?.weeks.findIndex(w => w.id === weekId) ?? 0;
+    const week = currentPlan?.weeks[weekIndex];
+    const dayIndex = week?.days.findIndex(d => d.id === dayId) ?? 0;
+    
+    // Update selected indices
+    setSelectedWeekIndex(weekIndex);
+    setSelectedDayIndex(dayIndex);
+    
+    // Close history view
+    setShowHistory(false);
+  };
+
+  // Calendar navigation handlers
+  const handleCalendarWeekSelect = (weekIndex: number) => {
+    setSelectedWeekIndex(weekIndex);
+    setSelectedDayIndex(0); // Reset to first day of new week
+  };
+
+  const handleCalendarDaySelect = (weekIndex: number, dayIndex: number) => {
+    setSelectedWeekIndex(weekIndex);
+    setSelectedDayIndex(dayIndex);
   };
 
   const handleCloseAnalysis = () => {
      setAnalyzingResult(null);
      setShowHistory(true);
   };
-
   const progress = calculateProgress();
+
   const isRestDay = activeDay.isRestDay;
 
   // Render History View
   if (showHistory) {
-    return <WorkoutHistory onBack={() => setShowHistory(false)} />;
+    return <WorkoutHistory onBack={() => setShowHistory(false)} onNavigateToWorkout={handleNavigateToWorkout} />;
   }
 
   // --- Main Render Structure ---
@@ -346,6 +472,19 @@ const WorkoutDashboard = () => {
                         <div>
                           <p className="opacity-80 text-xs md:text-sm uppercase tracking-wider mb-1 font-semibold">4-Week Program</p>
                           <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-1">{currentPlan.title}</h1>
+                          {/* Session State Indicator */}
+                          {currentDaySessionState !== 'inactive' && (
+                            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mt-2 ${
+                              currentDaySessionState === 'active' ? 'bg-green-500/20 text-green-100 border border-green-400/30' :
+                              currentDaySessionState === 'completed' ? 'bg-yellow-500/20 text-yellow-100 border border-yellow-400/30' :
+                              currentDaySessionState === 'logged' ? 'bg-blue-500/20 text-blue-100 border border-blue-400/30' :
+                              'bg-gray-500/20 text-gray-100 border border-gray-400/30'
+                            }`}>
+                              {currentDaySessionState === 'active' && <><Activity size={12} /> Active Session</>}
+                              {currentDaySessionState === 'completed' && <><CheckCircle2 size={12} /> Session Completed</>}
+                              {currentDaySessionState === 'logged' && <><Trophy size={12} /> Workout Logged</>}
+                            </div>
+                          )}
                         </div>
                         {/* History Button (Mobile/Desktop) */}
                         <button 
@@ -409,34 +548,14 @@ const WorkoutDashboard = () => {
             <div className="flex-1 w-full max-w-6xl mx-auto p-4 md:p-8 flex flex-col md:block pb-24 md:pb-8">
               <div className="md:grid md:grid-cols-12 md:gap-8 h-full">
                 
-                {/* Left Sidebar: Day Selection & Stats */}
+                {/* Left Sidebar: Weekly Progress Calendar & Stats */}
                 <div className="md:col-span-4 flex flex-col gap-4 mb-4 md:mb-0">
-                  <div className="bg-white p-2 md:p-4 rounded-2xl border border-gray-100 shadow-sm">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 px-2 hidden md:block">Schedule - Week {activeWeek.weekNumber}</h3>
-                    <div className="flex md:flex-col overflow-x-auto md:overflow-visible gap-2 pb-2 md:pb-0 scrollbar-hide">
-                      {activeWeek.days.map((day, idx) => (
-                        <button
-                          key={day.id}
-                          onClick={() => setSelectedDayIndex(idx)}
-                          className={`flex-shrink-0 flex items-center gap-3 p-3 rounded-xl transition-all border text-left min-w-[100px] md:min-w-0 ${
-                            selectedDayIndex === idx 
-                              ? 'bg-brand-50 border-brand-200 shadow-sm ring-1 ring-brand-200' 
-                              : 'bg-white border-gray-100 hover:bg-gray-50'
-                          }`}
-                        >
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                              selectedDayIndex === idx ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-500'
-                            }`}>
-                              {idx + 1}
-                            </div>
-                            <div>
-                              <p className={`text-sm font-bold ${selectedDayIndex === idx ? 'text-brand-900' : 'text-gray-700'}`}>{day.dayName}</p>
-                              <p className="text-[10px] text-gray-400 truncate max-w-[80px] md:max-w-none">{day.isRestDay ? 'Rest Day' : day.title}</p>
-                            </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  {/* Weekly Progress Calendar */}
+                  <WeeklyProgressCalendar
+                    selectedWeekIndex={selectedWeekIndex}
+                    onWeekSelect={handleCalendarWeekSelect}
+                    onDaySelect={handleCalendarDaySelect}
+                  />
 
                   {/* Stats Cards */}
                   <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
@@ -485,12 +604,19 @@ const WorkoutDashboard = () => {
                       <div className="flex items-center justify-between mb-2 shrink-0 flex-wrap gap-2">
                           <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                             {activeDay.title} <span className="text-gray-300 font-normal">/</span> {activeDay.exercises.length} Exercises
+                            {isCurrentDayReadOnly && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full border border-blue-200">
+                                <Trophy size={12} />
+                                Logged
+                              </span>
+                            )}
                           </h3>
                           
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => setIsReordering(!isReordering)}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border transition-all active:scale-95 ${
+                              disabled={isCurrentDayReadOnly}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm border transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                                 isReordering 
                                 ? 'bg-gray-900 text-white border-gray-900' 
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
@@ -500,7 +626,8 @@ const WorkoutDashboard = () => {
                             </button>
                             <button 
                               onClick={() => setIsEditModalOpen(true)}
-                              className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all active:scale-95"
+                              disabled={isCurrentDayReadOnly}
+                              className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-400"
                             >
                               <Sparkles size={16} /> <span className="hidden sm:inline">AI Edit</span>
                             </button>
@@ -512,10 +639,12 @@ const WorkoutDashboard = () => {
                           <div 
                             key={exercise.id}
                             className={`group bg-white p-4 md:p-6 rounded-2xl border transition-all duration-200 relative overflow-hidden ${
-                              !isReordering && exercise.isCompleted 
-                                ? 'border-green-200 bg-green-50/50 shadow-none' 
-                                : 'border-gray-100 md:border-gray-200 shadow-sm hover:shadow-md'
-                            } ${!isReordering ? 'cursor-pointer active:scale-[0.99]' : ''}`}
+                              isCurrentDayReadOnly 
+                                ? 'border-gray-200 bg-gray-50/30 shadow-none opacity-80' 
+                                : !isReordering && exercise.isCompleted 
+                                  ? 'border-green-200 bg-green-50/50 shadow-none' 
+                                  : 'border-gray-100 md:border-gray-200 shadow-sm hover:shadow-md'
+                            } ${!isReordering && !isCurrentDayReadOnly ? 'cursor-pointer active:scale-[0.99]' : ''}`}
                           >
                             {swappingId === exercise.id && (
                               <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center backdrop-blur-sm">
@@ -543,8 +672,23 @@ const WorkoutDashboard = () => {
                                 </div>
                               ) : (
                                 <div 
-                                  onClick={(e) => { e.stopPropagation(); toggleExercise(exercise.id); }}
-                                  className={`mt-1 transition-colors cursor-pointer ${exercise.isCompleted ? 'text-green-500' : 'text-gray-300 group-hover:text-brand-300'}`}
+                                  onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    if (!isCurrentDayReadOnly) {
+                                      handleExerciseToggle(exercise.id); 
+                                    }
+                                  }}
+                                  className={`mt-1 transition-colors ${
+                                    isCurrentDayReadOnly 
+                                      ? 'cursor-not-allowed opacity-60' 
+                                      : 'cursor-pointer'
+                                  } ${
+                                    exercise.isCompleted 
+                                      ? 'text-green-500' 
+                                      : isCurrentDayReadOnly 
+                                        ? 'text-gray-300' 
+                                        : 'text-gray-300 group-hover:text-brand-300'
+                                  }`}
                                 >
                                   {exercise.isCompleted ? <CheckCircle2 size={28} className="fill-green-100" /> : <Circle size={28} />}
                                 </div>
@@ -553,8 +697,19 @@ const WorkoutDashboard = () => {
                               <div className="flex-1">
                                 <div className="flex justify-between items-start">
                                   <h3 
-                                      onClick={(e) => { if (!isReordering) { e.stopPropagation(); toggleExercise(exercise.id); }}}
-                                      className={`font-bold text-lg mb-2 ${!isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'} ${!isReordering ? 'cursor-pointer' : ''}`}
+                                      onClick={(e) => { 
+                                        if (!isReordering && !isCurrentDayReadOnly) { 
+                                          e.stopPropagation(); 
+                                          handleExerciseToggle(exercise.id); 
+                                        }
+                                      }}
+                                      className={`font-bold text-lg mb-2 ${
+                                        !isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'
+                                      } ${
+                                        !isReordering && !isCurrentDayReadOnly ? 'cursor-pointer' : ''
+                                      } ${
+                                        isCurrentDayReadOnly ? 'opacity-70' : ''
+                                      }`}
                                   >
                                       {exercise.name}
                                   </h3>
@@ -562,11 +717,13 @@ const WorkoutDashboard = () => {
                                       <button 
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleSwapExercise(exercise.id, exercise.name);
+                                          if (!isCurrentDayReadOnly) {
+                                            handleSwapExercise(exercise.id, exercise.name);
+                                          }
                                         }}
-                                        disabled={swappingId !== null}
-                                        className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all"
-                                        title="Swap for alternative"
+                                        disabled={swappingId !== null || isCurrentDayReadOnly}
+                                        className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title={isCurrentDayReadOnly ? "Cannot modify logged workout" : "Swap for alternative"}
                                       >
                                         <Shuffle size={18} />
                                       </button>
@@ -602,14 +759,21 @@ const WorkoutDashboard = () => {
                       </div>
 
                       <div className="pt-4 shrink-0 pb-20 md:pb-4">
-                        <button 
-                          onClick={onFinishClicked}
-                          disabled={isReordering || isAnalyzing}
-                          className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-50"
-                        >
-                          {isAnalyzing ? <Loader2 className="animate-spin" /> : <ClipboardList size={20} />} 
-                          {isAnalyzing ? "Analyzing Performance..." : "Finish & Log Workout"}
-                        </button>
+                        {isCurrentDayReadOnly ? (
+                          <div className="w-full bg-gray-100 text-gray-500 font-bold py-4 rounded-2xl shadow-sm flex items-center justify-center gap-2 border border-gray-200">
+                            <Trophy size={20} />
+                            Workout Already Logged
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={onFinishClicked}
+                            disabled={isReordering || isAnalyzing}
+                            className="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-50"
+                          >
+                            {isAnalyzing ? <Loader2 className="animate-spin" /> : <ClipboardList size={20} />} 
+                            {isAnalyzing ? "Analyzing Performance..." : "Finish & Log Workout"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}

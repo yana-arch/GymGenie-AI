@@ -3,6 +3,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import Onboarding from './components/Onboarding';
 import EquipmentScanner from './components/EquipmentScanner';
 import WorkoutDashboard from './components/WorkoutDashboard';
+import SessionErrorBoundary from './components/SessionErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
 const AppContent = () => {
@@ -41,9 +42,11 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <SessionErrorBoundary>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </SessionErrorBoundary>
   );
 };
 
