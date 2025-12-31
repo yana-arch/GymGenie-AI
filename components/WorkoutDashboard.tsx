@@ -8,6 +8,7 @@ import ExerciseDetailModal from './ExerciseDetailModal';
 import RestTimer from './RestTimer';
 import NutritionGenie from './NutritionGenie';
 import WeeklyProgressCalendar from './WeeklyProgressCalendar';
+import { ResponsiveWorkoutCardList } from './ResponsiveWorkoutCard';
 
 const WorkoutDashboard = () => {
   const { 
@@ -157,6 +158,20 @@ const WorkoutDashboard = () => {
     } finally {
       setIsModifying(false);
     }
+  };
+
+  const handleMoveUp = (exerciseId: string) => {
+    if (!activeWeek || !activeDay) return;
+    moveExercise(activeWeek.id, activeDay.id, exerciseId, 'up');
+  };
+
+  const handleMoveDown = (exerciseId: string) => {
+    if (!activeWeek || !activeDay) return;
+    moveExercise(activeWeek.id, activeDay.id, exerciseId, 'down');
+  };
+
+  const handleViewDetails = (exerciseName: string) => {
+    setDetailExerciseName(exerciseName);
   };
 
   const handleSwapExercise = async (exerciseId: string, exerciseName: string) => {
@@ -634,129 +649,17 @@ const WorkoutDashboard = () => {
                           </div>
                       </div>
 
-                      <div className="space-y-4 flex-1">
-                        {activeDay.exercises.map((exercise, index) => (
-                          <div 
-                            key={exercise.id}
-                            className={`group bg-white p-4 md:p-6 rounded-2xl border transition-all duration-200 relative overflow-hidden ${
-                              isCurrentDayReadOnly 
-                                ? 'border-gray-200 bg-gray-50/30 shadow-none opacity-80' 
-                                : !isReordering && exercise.isCompleted 
-                                  ? 'border-green-200 bg-green-50/50 shadow-none' 
-                                  : 'border-gray-100 md:border-gray-200 shadow-sm hover:shadow-md'
-                            } ${!isReordering && !isCurrentDayReadOnly ? 'cursor-pointer active:scale-[0.99]' : ''}`}
-                          >
-                            {swappingId === exercise.id && (
-                              <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center backdrop-blur-sm">
-                                <Loader2 className="animate-spin text-brand-600" size={24} />
-                              </div>
-                            )}
-
-                            <div className="flex items-start gap-4">
-                              {isReordering ? (
-                                <div className="flex flex-col gap-1 mt-1">
-                                  <button 
-                                      onClick={(e) => { e.stopPropagation(); moveExercise(activeWeek.id, activeDay.id, exercise.id, 'up'); }}
-                                      disabled={index === 0}
-                                      className="p-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100"
-                                  >
-                                      <ArrowUp size={20} />
-                                  </button>
-                                  <button 
-                                      onClick={(e) => { e.stopPropagation(); moveExercise(activeWeek.id, activeDay.id, exercise.id, 'down'); }}
-                                      disabled={index === activeDay.exercises.length - 1}
-                                      className="p-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100"
-                                  >
-                                      <ArrowDown size={20} />
-                                  </button>
-                                </div>
-                              ) : (
-                                <div 
-                                  onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    if (!isCurrentDayReadOnly) {
-                                      handleExerciseToggle(exercise.id); 
-                                    }
-                                  }}
-                                  className={`mt-1 transition-colors ${
-                                    isCurrentDayReadOnly 
-                                      ? 'cursor-not-allowed opacity-60' 
-                                      : 'cursor-pointer'
-                                  } ${
-                                    exercise.isCompleted 
-                                      ? 'text-green-500' 
-                                      : isCurrentDayReadOnly 
-                                        ? 'text-gray-300' 
-                                        : 'text-gray-300 group-hover:text-brand-300'
-                                  }`}
-                                >
-                                  {exercise.isCompleted ? <CheckCircle2 size={28} className="fill-green-100" /> : <Circle size={28} />}
-                                </div>
-                              )}
-                              
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                  <h3 
-                                      onClick={(e) => { 
-                                        if (!isReordering && !isCurrentDayReadOnly) { 
-                                          e.stopPropagation(); 
-                                          handleExerciseToggle(exercise.id); 
-                                        }
-                                      }}
-                                      className={`font-bold text-lg mb-2 ${
-                                        !isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'
-                                      } ${
-                                        !isReordering && !isCurrentDayReadOnly ? 'cursor-pointer' : ''
-                                      } ${
-                                        isCurrentDayReadOnly ? 'opacity-70' : ''
-                                      }`}
-                                  >
-                                      {exercise.name}
-                                  </h3>
-                                  <div className="flex items-center gap-1">
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (!isCurrentDayReadOnly) {
-                                            handleSwapExercise(exercise.id, exercise.name);
-                                          }
-                                        }}
-                                        disabled={swappingId !== null || isCurrentDayReadOnly}
-                                        className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                                        title={isCurrentDayReadOnly ? "Cannot modify logged workout" : "Swap for alternative"}
-                                      >
-                                        <Shuffle size={18} />
-                                      </button>
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setDetailExerciseName(exercise.name);
-                                        }}
-                                        className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all"
-                                        title="View instructions"
-                                      >
-                                        <Info size={18} />
-                                      </button>
-                                  </div>
-                                </div>
-                                
-                                <div className="flex flex-wrap gap-2 md:gap-3 text-sm text-gray-600 mb-3">
-                                  <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.sets} Sets</span>
-                                  <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.reps} Reps</span>
-                                  <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-medium border border-blue-100">
-                                    <Clock size={14} /> {exercise.restSeconds}s Rest
-                                  </span>
-                                </div>
-                                {exercise.notes && (
-                                  <p className="text-sm text-gray-500 italic border-l-2 border-brand-200 pl-3 py-1 bg-gray-50/50 rounded-r-lg">
-                                    {exercise.notes}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      <ResponsiveWorkoutCardList
+                        exercises={activeDay.exercises}
+                        isReordering={isReordering}
+                        isReadOnly={isCurrentDayReadOnly}
+                        swappingId={swappingId}
+                        onToggle={handleExerciseToggle}
+                        onMoveUp={handleMoveUp}
+                        onMoveDown={handleMoveDown}
+                        onSwap={handleSwapExercise}
+                        onViewDetails={handleViewDetails}
+                      />
 
                       <div className="pt-4 shrink-0 pb-20 md:pb-4">
                         {isCurrentDayReadOnly ? (
