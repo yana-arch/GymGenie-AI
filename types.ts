@@ -33,6 +33,13 @@ export interface Exercise {
   isCompleted: boolean;
 }
 
+export interface ExerciseDetails {
+  targetMuscles: string[];
+  instructions: string[];
+  commonMistakes: string[];
+  proTips: string[];
+}
+
 export interface WorkoutDay {
   id: string;
   dayName: string; // e.g., "Monday", "Day 1"
@@ -58,10 +65,13 @@ export interface WorkoutPlan {
 }
 
 export interface WorkoutAnalysis {
-  score: number; // 1-10
-  mood: string; // e.g. "Focused", "Distracted", "Beast Mode"
-  summary: string;
-  advice: string;
+  readonly score: number; // 1-10
+  readonly mood: string;
+  readonly summary: string;
+  readonly advice: string;
+  readonly strengths: string[];
+  readonly improvements: string[];
+  readonly nextWorkoutRecommendations: string[];
 }
 
 export interface WorkoutHistoryEntry {
@@ -83,28 +93,35 @@ export interface WorkoutHistoryEntry {
 export enum SessionState {
   INACTIVE = "inactive",
   ACTIVE = "active",
+  PAUSED = "paused",
   COMPLETED = "completed",
   LOGGED = "logged",
+  ABANDONED = "abandoned"
 }
 
 export interface WorkoutSession {
-  id: string;
-  weekId: string;
-  dayId: string;
-  state: SessionState;
-  startTime: number | null;
-  completedTime: number | null;
-  loggedTime: number | null;
-  exerciseTimestamps: Record<string, number>;
-  isReadOnly: boolean;
+  readonly id: string;
+  readonly weekId: string;
+  readonly dayId: string;
+  readonly state: SessionState;
+  readonly startTime: number;
+  readonly completedTime: number | null;
+  readonly loggedTime: number | null;
+  readonly exerciseTimestamps: Record<string, number>;
+  readonly isReadOnly: boolean;
+  readonly rpe?: number;
+  readonly analysis?: WorkoutAnalysis;
+  // This needs to be typed as Record<string, any> to avoid circular dependencies with enhanced.ts
+  // In enhanced.ts it is properly typed as Record<string, ExerciseSessionData>
+  readonly exerciseData?: Record<string, any>;
 }
 
 export interface SessionStateManager {
   currentSession: WorkoutSession | null;
-  startSession: (weekId: string, dayId: string) => void;
-  completeSession: () => void;
-  logSession: (rpe: number, analysis?: WorkoutAnalysis) => void;
-  abandonSession: () => void;
+  startSession: (weekId: string, dayId: string) => Promise<void>;
+  completeSession: () => Promise<void>;
+  logSession: (rpe: number, analysis?: WorkoutAnalysis) => Promise<void>;
+  abandonSession: () => Promise<void>;
   getSessionForDay: (weekId: string, dayId: string) => WorkoutSession | null;
   isSessionActive: (weekId: string, dayId: string) => boolean;
   isSessionReadOnly: (weekId: string, dayId: string) => boolean;
@@ -196,13 +213,15 @@ export interface Recipe {
   cookingTimeMinutes: number;
 }
 
-export type AppStep = 'onboarding' | 'scanning' | 'dashboard';
+export type AppStep = 'onboarding' | 'scanning' | 'dashboard' | 'session';
+export type ActiveView = 'workout' | 'kitchen' | 'progress' | 'profile';
 
 export interface AppState {
   user: UserProfile | null;
   equipment: string[];
   currentPlan: WorkoutPlan | null;
   step: AppStep;
+  activeView: ActiveView;
   isLoading: boolean;
   history: WorkoutHistoryEntry[];
 }
@@ -214,11 +233,12 @@ export interface AppContextType extends AppState {
   setEquipment: (equipment: string[]) => void;
   setPlan: (plan: WorkoutPlan) => void;
   setStep: (step: AppStep) => void;
+  setActiveView: (view: ActiveView) => void;
   setLoading: (loading: boolean) => void;
-  toggleExercise: (exerciseId: string) => boolean;
+  toggleExercise: (exerciseId: string) => Promise<boolean>;
   updateDayInPlan: (weekId: string, updatedDay: WorkoutDay) => void;
-  logWorkout: (weekId: string, dayId: string, rpe: number, analysis?: WorkoutAnalysis) => void;
-  resetApp: () => void;
+  logWorkout: (weekId: string, dayId: string, rpe: number, analysis?: WorkoutAnalysis) => Promise<void>;
+  resetApp: () => Promise<void>;
   
   // Timer related
   timerSeconds: number;
@@ -240,10 +260,10 @@ export interface AppContextType extends AppState {
   currentSession: WorkoutSession | null;
 
   // Enhanced session methods
-  startWorkoutSession: (weekId: string, dayId: string) => void;
-  completeWorkoutSession: () => void;
-  logWorkoutSession: (rpe: number, analysis?: WorkoutAnalysis) => void;
-  abandonWorkoutSession: () => void;
+  startWorkoutSession: (weekId: string, dayId: string) => Promise<void>;
+  completeWorkoutSession: () => Promise<void>;
+  logWorkoutSession: (rpe: number, analysis?: WorkoutAnalysis) => Promise<void>;
+  abandonWorkoutSession: () => Promise<void>;
 
   // Session query methods
   isWorkoutReadOnly: (weekId: string, dayId: string) => boolean;

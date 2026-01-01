@@ -1,5 +1,5 @@
-import { StorageService } from '../services/storageService';
-import { SessionStorageData, SessionState } from '../types';
+import { StorageService } from '@/services/storageService';
+import { SessionStorageData, SessionState } from '@/types';
 
 // Mock localStorage
 const localStorageMock = (() => {

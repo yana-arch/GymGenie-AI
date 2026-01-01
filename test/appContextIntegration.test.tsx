@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, act } from '@testing-library/react';
-import { AppProvider, useApp } from '../context/AppContext';
-import { SessionState, WorkoutPlan, WorkoutWeek, WorkoutDay, Exercise } from '../types';
+import { AppProvider, useApp } from '@/context/AppContext';
+import { SessionState, WorkoutPlan, WorkoutWeek, WorkoutDay, Exercise } from '@/types';
 
 // Mock localStorage
 const localStorageMock = (() => {
