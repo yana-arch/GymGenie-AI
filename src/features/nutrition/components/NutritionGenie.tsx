@@ -13,6 +13,8 @@ const NutritionGenie = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'scan'>('overview');
   const [mealSuggestions, setMealSuggestions] = useState<string[]>([]);
 
+  // Removed automatic AI meal suggestions based on feedback
+  /*
   useEffect(() => {
     if (activeTab === 'overview' && user && mealSuggestions.length === 0) {
       const fetchSuggestions = async () => {
@@ -22,6 +24,7 @@ const NutritionGenie = () => {
       fetchSuggestions();
     }
   }, [activeTab, user, mealSuggestions.length]);
+  */
 
   const processFile = (file: File) => {
     if (!user) return;
@@ -110,39 +113,67 @@ const NutritionGenie = () => {
   );
 
   const renderOverviewTab = () => (
-    <div className="space-y-6 max-w-3xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="max-w-7xl mx-auto w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column - Stats & Actions */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
-                <p className="text-sm text-gray-500">Calorie Goal</p>
-                <p className="text-2xl font-bold text-gray-800">{user?.tdee} <span className="text-sm font-normal text-gray-400">kcal</span></p>
+              <p className="text-sm text-gray-500">Calorie Goal</p>
+              <p className="text-2xl font-bold text-gray-800">{user?.tdee} <span className="text-sm font-normal text-gray-400">kcal</span></p>
             </div>
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
-                <p className="text-sm text-gray-500">Progress</p>
-                <p className="text-2xl font-bold text-gray-800">1,200 <span className="text-sm font-normal text-gray-400">/ {user?.tdee} kcal</span></p>
+              <p className="text-sm text-gray-500">Progress</p>
+              <p className="text-2xl font-bold text-gray-800">1,200 <span className="text-sm font-normal text-gray-400">/ {user?.tdee} kcal</span></p>
             </div>
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
-                <p className="text-sm text-gray-500">Macros (P/C/F)</p>
-                <p className="text-lg font-bold text-gray-800">80g / 150g / 40g</p>
+              <p className="text-sm text-gray-500">Macros (P/C/F)</p>
+              <p className="text-lg font-bold text-gray-800">80g / 150g / 40g</p>
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button className="w-full bg-brand-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-brand-700 transition-colors">
+              <PlusCircle size={20} /> Add Food
+            </button>
+            <button className="w-full bg-gray-800 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-gray-700 transition-colors">
+              <ChefHat size={20} /> Create Meal Plan
+            </button>
+          </div>
+
+          {/* Desktop Extra: Weekly Analysis placeholder */}
+          <div className="hidden lg:block bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><BarChart size={20} className="text-orange-500" /> Weekly Nutrition</h3>
+                <span className="text-xs text-gray-400">Last 7 Days</span>
+            </div>
+            <div className="h-40 flex items-center justify-center bg-gray-50 rounded-xl text-gray-400 text-sm">
+               Chart visualization available in Pro
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2"><Sparkles size={20} className="text-purple-500" /> AI Meal Ideas</h3>
-            <div className="space-y-2">
-                {mealSuggestions.map((suggestion, i) => (
-                    <p key={i} className="text-gray-600 p-3 bg-gray-50 rounded-lg">{suggestion}</p>
-                ))}
+        {/* Right Column - Meal Ideas Placeholder or Alternative Content */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-full max-h-[600px] flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mb-4">
+               <Sparkles size={32} className="text-purple-500" />
             </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button className="w-full bg-brand-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-brand-700">
-                <PlusCircle size={20} /> Add Food
+            <h3 className="text-lg font-bold text-gray-800 mb-2">
+              Need Inspiration?
+            </h3>
+            <p className="text-sm text-gray-500 mb-6 px-4">
+              Scan ingredients or use the Meal Planner to get personalized AI suggestions.
+            </p>
+            <button
+                onClick={() => setActiveTab('scan')}
+                className="bg-purple-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-purple-700 transition-colors"
+            >
+                Scan Ingredients
             </button>
-            <button className="w-full bg-gray-800 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-gray-700">
-                <ChefHat size={20} /> Create Meal Plan
-            </button>
+          </div>
         </div>
+      </div>
     </div>
   );
 

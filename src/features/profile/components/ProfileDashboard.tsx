@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { ArrowLeft, UserCircle } from 'lucide-react';
+import { ArrowLeft, UserCircle, X } from 'lucide-react';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 import ProfileHeader from './ProfileHeader';
@@ -9,16 +9,19 @@ import InjuriesManager from './InjuriesManager';
 import EquipmentList from './EquipmentList';
 import SettingsMenu from './SettingsMenu';
 import DataManagementSection from './DataManagementSection';
+import EquipmentScanner from './EquipmentScanner';
 
 interface ProfileDashboardProps {
   onBack: () => void;
-  onScanEquipment: () => void;
+  // onScanEquipment removed from props as we handle it internally now
+  onScanEquipment?: () => void; // Keeping optional for backward compat if needed temporarily
 }
 
-const ProfileDashboard: React.FC<ProfileDashboardProps> = ({ onBack, onScanEquipment }) => {
+const ProfileDashboard: React.FC<ProfileDashboardProps> = ({ onBack }) => {
   const { user } = useApp();
   const { isDesktop: isDesktopFn } = useBreakpoint();
   const isDesktop = isDesktopFn();
+  const [showScanner, setShowScanner] = useState(false);
 
   if (!user) return null;
 
@@ -50,7 +53,7 @@ const ProfileDashboard: React.FC<ProfileDashboardProps> = ({ onBack, onScanEquip
                  <InjuriesManager profile={user} />
             </div>
 
-            <EquipmentList onScanMore={onScanEquipment} />
+            <EquipmentList onScanMore={() => setShowScanner(true)} />
         </div>
 
         {/* Right Column (Settings & Data) */}
@@ -60,6 +63,23 @@ const ProfileDashboard: React.FC<ProfileDashboardProps> = ({ onBack, onScanEquip
         </div>
 
       </div>
+
+      {/* Equipment Scanner Overlay/Modal */}
+      {showScanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white w-full max-w-5xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col">
+            <button
+              onClick={() => setShowScanner(false)}
+              className="absolute top-4 right-4 z-50 p-2 bg-white/80 backdrop-blur rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X size={24} />
+            </button>
+            <div className="flex-1 overflow-hidden">
+              <EquipmentScanner />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

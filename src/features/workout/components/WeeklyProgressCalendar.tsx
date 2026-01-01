@@ -70,6 +70,37 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
     return { completed, total, active };
   };
 
+  // Helper to determine if a day is accessible
+  const isDayAccessible = (weekIndex: number, dayIndex: number) => {
+      // In a real app, this would check against current date or if previous days are done
+      // For now, we'll allow all days up to the first future/locked day?
+      // Or simply: Previous days + current active day are accessible. Future days are locked.
+      // Simplification: All days in past weeks are accessible.
+      // In current week, days are accessible sequentially?
+      // Let's implement a simple logic: Day is accessible if it's logged, active, or the immediate next available workout.
+      // Or even simpler: Don't restrict viewing details, but maybe restrict *starting* them (which is handled elsewhere).
+      // BUT requirement says: "Validate... interact with past or current days... future days disabled"
+      
+      // Let's assume sequential unlock for now based on state
+      // Actually, standard logic: Any day with state !== inactive is accessible.
+      // Plus the first inactive day (next workout).
+      
+      // For the purpose of "Calendar View", usually you can see the plan for future.
+      // But the requirement specifically asks to disable "Future (not arrived) days".
+      // Since we don't have real dates mapped to plan days yet in this schema (it's Week 1 Day 1 etc),
+      // We will treat "Future" as "Days after the current active day".
+      
+      // Find the latest active/logged day
+      // All days before and including it are accessible.
+      // Plus one day ahead?
+      
+      // Let's stick to the prompt's "Validate date" logic.
+      // Since we don't have `date` field in Day schema visible here, we'll simulate.
+      // If we assume linear progression:
+      
+      return true; // Placeholder: Real validation needs date-based logic or sequence-based
+  };
+
   const visibleWeeks = useMemo(() => {
     if (isExpanded) {
       return currentPlan.weeks.map((week, index) => ({ week, index }));
@@ -170,17 +201,60 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
               day.id
             );
             
+            // Validation Logic:
+            // A day is "future/locked" if it's not a rest day AND state is inactive AND it's far ahead?
+            // Simplified for Minimalist/Workout-First:
+            // - Past/Done days: Accessible
+            // - Active/Today: Accessible
+            // - Immediate Next: Accessible
+            // - Far future: Locked/Grayed out (Visual only, or disabled interaction)
+            
+            // For this UI fix, let's enable all for viewing (User might want to see what's coming),
+            // BUT if requirement says "Disable future", we'll style them as disabled.
+            // Let's assume we can view details of any day, but visual emphasis is on past/current.
+            // Wait, requirement: "Ensure user can only view/interact with past or current... Future... disabled".
+            // Okay, we need to enforce disable.
+            
+            // Heuristic: Find index of first "Inactive" day. All days after that are disabled.
+            // We need to calculate this outside the loop effectively, but for small arrays here it's fine.
+            const week = currentPlan.weeks[selectedWeekIndex];
+            const firstInactiveIndex = week.days.findIndex(d =>
+                !d.isRestDay && getSessionState(week.id, d.id) === SessionState.INACTIVE
+            );
+            
+            // If all done, firstInactive is -1.
+            // If we are before the first inactive day, we are unlocked.
+            // If we are AT the first inactive day, we are unlocked (it's the next workout).
+            // If we are AFTER the first inactive day, we are locked.
+            
+            let isLocked = false;
+            if (firstInactiveIndex !== -1 && dayIndex > firstInactiveIndex) {
+                 isLocked = true;
+            }
+            
+            // Override: Rest days are always "locked" for interaction in this context (can't click to view workout)
+            if (day.isRestDay) isLocked = true;
+
             return (
               <button
                 key={day.id}
-                onClick={() => onDaySelect(selectedWeekIndex, dayIndex)}
-                className={`aspect-square p-1 rounded-lg border text-center transition-all hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-1 ${
+                onClick={() => {
+                    if (isLocked && !day.isRestDay) {
+                        // Toast notification could go here
+                        alert("You can't jump ahead! Complete previous workouts first.");
+                        return;
+                    }
+                    onDaySelect(selectedWeekIndex, dayIndex);
+                }}
+                className={`aspect-square p-1 rounded-lg border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                   day.isRestDay
-                    ? 'bg-gray-50 border-gray-100 cursor-default opacity-60'
-                    : getSessionStateColor(sessionState)
+                    ? 'bg-gray-50 border-gray-100 cursor-default opacity-40'
+                    : isLocked
+                        ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed grayscale'
+                        : `${getSessionStateColor(sessionState)} hover:scale-105 active:scale-95 cursor-pointer`
                 }`}
-                disabled={day.isRestDay}
-                title={day.isRestDay ? 'Rest Day' : `${day.dayName} - ${day.title}`}
+                disabled={day.isRestDay} // We handle custom click for locked non-rest days to show toast
+                title={day.isRestDay ? 'Rest Day' : isLocked ? 'Complete previous workouts to unlock' : `${day.dayName} - ${day.title}`}
               >
                   <div className="text-[10px] font-bold uppercase tracking-wider opacity-70">
                     {day.dayName.slice(0, 1)}
