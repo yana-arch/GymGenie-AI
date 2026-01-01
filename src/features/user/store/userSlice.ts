@@ -1,0 +1,111 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { UserProfile, AppStep } from '@/types';
+
+interface UserSliceState {
+  profile: UserProfile | null;
+  equipment: string[];
+  currentStep: AppStep;
+  preferences: {
+    theme: 'light' | 'dark' | 'system';
+    notifications: boolean;
+    autoStartTimer: boolean;
+    defaultRestTime: number;
+    units: 'metric' | 'imperial';
+  };
+}
+
+const initialState: UserSliceState = {
+  profile: null,
+  equipment: [],
+  currentStep: 'onboarding',
+  preferences: {
+    theme: 'system',
+    notifications: true,
+    autoStartTimer: true,
+    defaultRestTime: 60,
+    units: 'metric',
+  },
+};
+
+const userSlice = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
+    setProfile: (state, action: PayloadAction<UserProfile>) => {
+      state.profile = action.payload;
+    },
+    
+    updateProfile: (state, action: PayloadAction<Partial<UserProfile>>) => {
+      if (state.profile) {
+        state.profile = { ...state.profile, ...action.payload };
+      }
+    },
+    
+    setEquipment: (state, action: PayloadAction<string[]>) => {
+      state.equipment = action.payload;
+    },
+    
+    addEquipment: (state, action: PayloadAction<string>) => {
+      if (!state.equipment.includes(action.payload)) {
+        state.equipment.push(action.payload);
+      }
+    },
+    
+    removeEquipment: (state, action: PayloadAction<string>) => {
+      state.equipment = state.equipment.filter(item => item !== action.payload);
+    },
+    
+    setCurrentStep: (state, action: PayloadAction<AppStep>) => {
+      state.currentStep = action.payload;
+    },
+    
+    updatePreferences: (state, action: PayloadAction<Partial<UserSliceState['preferences']>>) => {
+      state.preferences = { ...state.preferences, ...action.payload };
+    },
+    
+    setTheme: (state, action: PayloadAction<'light' | 'dark' | 'system'>) => {
+      state.preferences.theme = action.payload;
+    },
+    
+    toggleNotifications: (state) => {
+      state.preferences.notifications = !state.preferences.notifications;
+    },
+    
+    setDefaultRestTime: (state, action: PayloadAction<number>) => {
+      state.preferences.defaultRestTime = Math.max(10, Math.min(600, action.payload));
+    },
+    
+    setUnits: (state, action: PayloadAction<'metric' | 'imperial'>) => {
+      state.preferences.units = action.payload;
+    },
+    
+    clearUserData: (state) => {
+      state.profile = null;
+      state.equipment = [];
+      state.currentStep = 'onboarding';
+      // Keep preferences when clearing user data
+    },
+    
+    resetAllUserData: (state) => {
+      return initialState;
+    },
+  },
+});
+
+export const {
+  setProfile,
+  updateProfile,
+  setEquipment,
+  addEquipment,
+  removeEquipment,
+  setCurrentStep,
+  updatePreferences,
+  setTheme,
+  toggleNotifications,
+  setDefaultRestTime,
+  setUnits,
+  clearUserData,
+  resetAllUserData,
+} = userSlice.actions;
+
+export default userSlice.reducer;
