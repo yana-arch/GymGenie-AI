@@ -1,5 +1,5 @@
-import { SessionStateManager } from '../services/sessionStateManager';
-import { SessionState, SessionError } from '../types';
+import { SessionStateManager } from '@/src/features/session/services/sessionStateManager';
+import { SessionState, SessionError } from '@/types';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -69,26 +69,26 @@ describe('SessionStateManager', () => {
   });
 
   describe('Session State Validation', () => {
-    test('should throw error when trying to complete non-active session', () => {
-      expect(() => manager.completeSession()).toThrow(SessionError.SESSION_NOT_FOUND);
+    test('should throw error when trying to complete non-active session', async () => {
+      await expect(manager.completeSession()).rejects.toThrow(SessionError.SESSION_NOT_FOUND);
     });
 
-    test('should throw error when trying to log non-completed session', () => {
-      manager.startSession('week1', 'day1');
-      expect(() => manager.logSession(8)).toThrow(SessionError.INVALID_STATE_TRANSITION);
+    test('should throw error when trying to log non-completed session', async () => {
+      await manager.startSession('week1', 'day1');
+      await expect(manager.logSession(8)).rejects.toThrow('Cannot log session in state active');
     });
 
-    test('should throw error when trying to start multiple active sessions', () => {
-      manager.startSession('week1', 'day1');
-      expect(() => manager.startSession('week1', 'day2')).toThrow(SessionError.MULTIPLE_ACTIVE_SESSIONS);
+    test('should throw error when trying to start multiple active sessions', async () => {
+      await manager.startSession('week1', 'day1');
+      await expect(manager.startSession('week1', 'day2')).rejects.toThrow(SessionError.MULTIPLE_ACTIVE_SESSIONS);
     });
 
-    test('should throw error for invalid RPE values', () => {
-      manager.startSession('week1', 'day1');
-      manager.completeSession();
+    test('should throw error for invalid RPE values', async () => {
+      await manager.startSession('week1', 'day1');
+      await manager.completeSession();
       
-      expect(() => manager.logSession(0)).toThrow('RPE must be between 1 and 10');
-      expect(() => manager.logSession(11)).toThrow('RPE must be between 1 and 10');
+      await expect(manager.logSession(0)).rejects.toThrow('RPE must be between 1 and 10');
+      await expect(manager.logSession(11)).rejects.toThrow('RPE must be between 1 and 10');
     });
   });
 
@@ -144,10 +144,10 @@ describe('SessionStateManager', () => {
   });
 
   describe('Persistence', () => {
-    test('should save and load session data', () => {
+    test('should save and load session data', async () => {
       // Create a session
-      manager.startSession('week1', 'day1');
-      manager.updateExerciseTimestamp('exercise1', 12345);
+      await manager.startSession('week1', 'day1');
+      await manager.updateExerciseTimestamp('exercise1', 12345);
       
       // Create a new manager instance (simulates app restart)
       const newManager = new SessionStateManager();
@@ -160,10 +160,10 @@ describe('SessionStateManager', () => {
       expect(newManager.currentSession?.exerciseTimestamps['exercise1']).toBe(12345);
     });
 
-    test('should persist session state changes', () => {
-      manager.startSession('week1', 'day1');
-      manager.completeSession();
-      manager.logSession(8);
+    test('should persist session state changes', async () => {
+      await manager.startSession('week1', 'day1');
+      await manager.completeSession();
+      await manager.logSession(8);
       
       // Create new manager instance
       const newManager = new SessionStateManager();

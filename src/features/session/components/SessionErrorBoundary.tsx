@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { SessionError } from '../types';
+import { SessionError } from '@/types';
 import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
 
 interface Props {

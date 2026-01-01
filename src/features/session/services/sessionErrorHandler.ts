@@ -2,7 +2,7 @@ import {
   SessionError, 
   SessionState, 
   SessionErrorHandler as ISessionErrorHandler 
-} from '../types';
+} from '@/types';
 
 export class SessionErrorHandler implements ISessionErrorHandler {
   private errorLog: Array<{
