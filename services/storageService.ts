@@ -1,4 +1,4 @@
-import { AppState, UserProfile, WorkoutPlan, WorkoutHistoryEntry, SessionStorageData } from '../types';
+import { AppState, UserProfile, WorkoutPlan, WorkoutHistoryEntry, SessionStorageData } from '@/types';
 
 const KEYS = {
   USER_PROFILE: 'gymgenie_user',
