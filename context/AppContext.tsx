@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useEffect, useState, PropsWithChildren, useRef } from 'react';
-import { AppState, AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry, Exercise, WorkoutAnalysis, AppContextType, SessionStateManager as ISessionStateManager, WorkoutSession, SessionState, SessionStorageData } from '../types';
-import { StorageService } from '../services/storageService';
-import { SessionStateManager } from '../services/sessionStateManager';
-import StaleSessionModal from '../components/StaleSessionModal';
+import React, { createContext, useContext, useEffect, useState, PropsWithChildren, useRef, useMemo, useCallback } from 'react';
+import { AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry, Exercise, WorkoutAnalysis, AppContextType, SessionStateManager as ISessionStateManager, WorkoutSession, SessionState, SessionStorageData, ActiveView } from '@/types';
+import { StorageService } from '@/services/storageService';
+import { SessionStateManager } from '@/src/features/session/services/sessionStateManager';
+import StaleSessionModal from '@/src/features/session/components/modals/StaleSessionModal';
+import { SessionSequenceValidator } from '@/src/features/session/services/SessionSequenceValidator';
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -11,6 +12,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   const [equipment, setEquipmentState] = useState<string[]>([]);
   const [currentPlan, setPlanState] = useState<WorkoutPlan | null>(null);
   const [step, setStepState] = useState<AppStep>('onboarding');
+  const [activeView, setActiveViewState] = useState<ActiveView>('workout');
   const [history, setHistoryState] = useState<WorkoutHistoryEntry[]>([]);
   const [isLoading, setLoading] = useState(false);
 
@@ -75,9 +77,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     get currentSession() {
       return sessionManagerInstance.currentSession;
     },
-    startSession: (weekId: string, dayId: string) => {
+    startSession: async (weekId: string, dayId: string) => {
       try {
-        sessionManagerInstance.startSession(weekId, dayId);
+        await sessionManagerInstance.startSession(weekId, dayId);
         // Force immediate sync
         const newSession = sessionManagerInstance.currentSession;
         setCurrentSession(newSession);
@@ -90,9 +92,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
         throw error;
       }
     },
-    completeSession: () => {
+    completeSession: async () => {
       try {
-        sessionManagerInstance.completeSession();
+        await sessionManagerInstance.completeSession();
         // Force immediate sync
         const newSession = sessionManagerInstance.currentSession;
         setCurrentSession(newSession);
@@ -101,9 +103,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
         throw error;
       }
     },
-    logSession: (rpe: number, analysis?: WorkoutAnalysis) => {
+    logSession: async (rpe: number, analysis?: WorkoutAnalysis) => {
       try {
-        sessionManagerInstance.logSession(rpe, analysis);
+        await sessionManagerInstance.logSession(rpe, analysis);
         // Force immediate sync
         const newSession = sessionManagerInstance.currentSession;
         setCurrentSession(newSession);
@@ -117,9 +119,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
         throw error;
       }
     },
-    abandonSession: () => {
+    abandonSession: async () => {
       try {
-        sessionManagerInstance.abandonSession();
+        await sessionManagerInstance.abandonSession();
         // Force immediate sync
         const newSession = sessionManagerInstance.currentSession;
         setCurrentSession(newSession);
@@ -231,39 +233,23 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  const startRestTimer = (seconds: number) => {
+  // Memoized timer functions
+  const startRestTimer = useCallback((seconds: number) => {
     setTimerSeconds(seconds);
     setIsTimerRunning(true);
-  };
+  }, []);
 
-  const stopRestTimer = () => {
+  const stopRestTimer = useCallback(() => {
     setIsTimerRunning(false);
     setTimerSeconds(0);
-  };
+  }, []);
 
-  const addTimerSeconds = (seconds: number) => {
+  const addTimerSeconds = useCallback((seconds: number) => {
     setTimerSeconds(prev => prev + seconds);
-  };
+  }, []);
 
-  // Helper function to find current workout day
-  const getCurrentWorkoutDay = (): { weekId: string; dayId: string } | null => {
-    if (!currentPlan) return null;
-    
-    // For now, we'll use a simple approach - return the first non-rest day
-    // In a real app, this might be based on user selection or current date
-    for (const week of currentPlan.weeks) {
-      for (const day of week.days) {
-        if (!day.isRestDay) {
-          return { weekId: week.id, dayId: day.id };
-        }
-      }
-    }
-    
-    return null;
-  };
-
-  // Helper function to find the workout day for a specific exercise
-  const getWorkoutDayForExercise = (exerciseId: string): { weekId: string; dayId: string } | null => {
+  // Memoized helper functions
+  const getWorkoutDayForExercise = useCallback((exerciseId: string): { weekId: string; dayId: string } | null => {
     if (!currentPlan) return null;
     
     for (const week of currentPlan.weeks) {
@@ -275,10 +261,10 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     }
     
     return null;
-  };
+  }, [currentPlan]);
 
   // Helper function to check if we should start a session
-  const shouldStartSession = (exerciseId: string): boolean => {
+  const shouldStartSession = useCallback((exerciseId: string): boolean => {
     const exerciseDay = getWorkoutDayForExercise(exerciseId);
     if (!exerciseDay) return false;
     
@@ -293,29 +279,34 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     }
     
     return true;
-  };
-  const setUser = (u: UserProfile) => {
+  }, [getWorkoutDayForExercise, sessionManager]);
+  // Memoized callback functions to prevent unnecessary re-renders
+  const setUser = useCallback((u: UserProfile) => {
     setUserState(u);
     StorageService.saveUser(u);
-  };
+  }, []);
 
-  const setEquipment = (eq: string[]) => {
+  const setEquipment = useCallback((eq: string[]) => {
     setEquipmentState(eq);
     StorageService.saveEquipment(eq);
-  };
+  }, []);
 
-  const setPlan = (p: WorkoutPlan) => {
+  const setPlan = useCallback((p: WorkoutPlan) => {
     setPlanState(p);
     StorageService.savePlan(p);
-  };
+  }, []);
 
-  const setStep = (s: AppStep) => {
+  const setStep = useCallback((s: AppStep) => {
     setStepState(s);
     StorageService.saveStep(s);
-  };
+  }, []);
 
-  // Actions
-  const toggleExercise = (id: string): boolean => {
+  const setActiveView = useCallback((v: ActiveView) => {
+    setActiveViewState(v);
+  }, []);
+
+  // Memoized action functions
+  const toggleExercise = useCallback(async (id: string): Promise<boolean> => {
     if (!currentPlan) {
       console.warn('No workout plan available');
       return false;
@@ -339,7 +330,24 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     // Start session if this is the first exercise being checked and no active session
     if (shouldStartSession(id)) {
       try {
-        sessionManager.startSession(exerciseDay.weekId, exerciseDay.dayId);
+        // Validate sequence before auto-starting
+        if (currentPlan) {
+          const validation = SessionSequenceValidator.validateSequence(
+            currentPlan,
+            history,
+            exerciseDay.weekId,
+            exerciseDay.dayId
+          );
+          
+          if (!validation.allowed) {
+            console.warn('Cannot auto-start session: sequence validation failed', validation.reason);
+            // Don't auto-start, but allow toggling? Or block toggling?
+            // "No Day Skipping" implies we should block.
+            return false;
+          }
+        }
+
+        await sessionManager.startSession(exerciseDay.weekId, exerciseDay.dayId);
       } catch (error) {
         console.error('Failed to start session:', error);
         // Continue with exercise toggle even if session start fails
@@ -382,7 +390,11 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
         
         // Update session manager if there's an active session
         if (sessionManager.isSessionActive(weekId, dayId)) {
-          sessionManagerInstance.updateExerciseTimestamp(id, now);
+          try {
+            await sessionManagerInstance.updateExerciseTimestamp(id, now);
+          } catch (error) {
+            console.error('Failed to update exercise timestamp in session:', error);
+          }
         }
         
         startRestTimer(exerciseRef.restSeconds || 60);
@@ -396,7 +408,11 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
         
         // Update session manager if there's an active session
         if (sessionManager.isSessionActive(weekId, dayId)) {
-          sessionManagerInstance.removeExerciseTimestamp(id);
+          try {
+            await sessionManagerInstance.removeExerciseTimestamp(id);
+          } catch (error) {
+            console.error('Failed to remove exercise timestamp from session:', error);
+          }
         }
       }
       
@@ -404,9 +420,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     }
     
     return false;
-  };
+  }, [currentPlan, getWorkoutDayForExercise, sessionManager, shouldStartSession, setPlan, startRestTimer, sessionManagerInstance]);
 
-  const updateDayInPlan = (weekId: string, updatedDay: WorkoutDay) => {
+  const updateDayInPlan = useCallback((weekId: string, updatedDay: WorkoutDay) => {
     if (!currentPlan) return;
     const newPlan = { ...currentPlan };
 
@@ -418,9 +434,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
        newPlan.weeks[weekIndex].days[dayIndex] = updatedDay;
        setPlan(newPlan);
     }
-  };
+  }, [currentPlan, setPlan]);
 
-  const moveExercise = (weekId: string, dayId: string, exerciseId: string, direction: 'up' | 'down') => {
+  const moveExercise = useCallback((weekId: string, dayId: string, exerciseId: string, direction: 'up' | 'down') => {
     if (!currentPlan) return;
     const newPlan = { ...currentPlan };
 
@@ -445,9 +461,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       day.exercises[index + 1] = temp;
       setPlan(newPlan);
     }
-  };
+  }, [currentPlan, setPlan]);
 
-  const replaceExerciseInPlan = (weekId: string, dayId: string, oldExerciseId: string, newExerciseData: Omit<Exercise, 'id' | 'isCompleted'>) => {
+  const replaceExerciseInPlan = useCallback((weekId: string, dayId: string, oldExerciseId: string, newExerciseData: Omit<Exercise, 'id' | 'isCompleted'>) => {
     if (!currentPlan) return;
     const newPlan = { ...currentPlan };
 
@@ -467,9 +483,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
 
     day.exercises[index] = newExercise;
     setPlan(newPlan);
-  };
+  }, [currentPlan, setPlan]);
 
-  const logWorkout = (weekId: string, dayId: string, rpe: number, analysis?: WorkoutAnalysis) => {
+  const logWorkout = useCallback(async (weekId: string, dayId: string, rpe: number, analysis?: WorkoutAnalysis) => {
     if (!currentPlan) return;
     const week = currentPlan.weeks.find(w => w.id === weekId);
     const day = week?.days.find(d => d.id === dayId);
@@ -512,10 +528,10 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     // Complete and log the session if it exists
     try {
       if (session && session.state === SessionState.ACTIVE) {
-        sessionManager.completeSession();
-        sessionManager.logSession(rpe, analysis);
+        await sessionManager.completeSession();
+        await sessionManager.logSession(rpe, analysis);
       } else if (session && session.state === SessionState.COMPLETED) {
-        sessionManager.logSession(rpe, analysis);
+        await sessionManager.logSession(rpe, analysis);
       }
     } catch (error) {
       console.error('Failed to log session:', error);
@@ -525,12 +541,27 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     // Reset legacy session stats (will be synced by useEffect)
     setSessionStartTime(null);
     setExerciseTimestamps({});
-  };
+  }, [currentPlan, sessionStartTime, sessionManager, history, stopRestTimer]);
 
   // Enhanced session management methods
-  const startWorkoutSession = (weekId: string, dayId: string) => {
+  const startWorkoutSession = useCallback(async (weekId: string, dayId: string) => {
     try {
-      sessionManager.startSession(weekId, dayId);
+      if (currentPlan) {
+        const validation = SessionSequenceValidator.validateSequence(
+          currentPlan,
+          history,
+          weekId,
+          dayId
+        );
+
+        if (!validation.allowed) {
+          // You might want to show a modal or toast here instead of just warning
+          // For now, we'll throw an error that the UI can catch
+          throw new Error(`SEQUENCE_ERROR: ${validation.reason}`);
+        }
+      }
+
+      await sessionManager.startSession(weekId, dayId);
     } catch (error) {
       console.error('Failed to start workout session:', error);
       // Show user-friendly error message
@@ -543,11 +574,11 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       }
       throw error;
     }
-  };
+  }, [sessionManager]);
 
-  const completeWorkoutSession = () => {
+  const completeWorkoutSession = useCallback(async () => {
     try {
-      sessionManager.completeSession();
+      await sessionManager.completeSession();
     } catch (error) {
       console.error('Failed to complete workout session:', error);
       if (error instanceof Error) {
@@ -559,11 +590,11 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       }
       throw error;
     }
-  };
+  }, [sessionManager]);
 
-  const logWorkoutSession = (rpe: number, analysis?: WorkoutAnalysis) => {
+  const logWorkoutSession = useCallback(async (rpe: number, analysis?: WorkoutAnalysis) => {
     try {
-      sessionManager.logSession(rpe, analysis);
+      await sessionManager.logSession(rpe, analysis);
     } catch (error) {
       console.error('Failed to log workout session:', error);
       if (error instanceof Error) {
@@ -577,11 +608,11 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       }
       throw error;
     }
-  };
+  }, [sessionManager]);
 
-  const abandonWorkoutSession = () => {
+  const abandonWorkoutSession = useCallback(async () => {
     try {
-      sessionManager.abandonSession();
+      await sessionManager.abandonSession();
     } catch (error) {
       console.error('Failed to abandon workout session:', error);
       if (error instanceof Error) {
@@ -591,13 +622,13 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       }
       // Don't throw for abandon - it should be safe to call
     }
-  };
+  }, [sessionManager]);
 
-  const isWorkoutReadOnly = (weekId: string, dayId: string): boolean => {
+  const isWorkoutReadOnly = useCallback((weekId: string, dayId: string): boolean => {
     return sessionManager.isSessionReadOnly(weekId, dayId);
-  };
+  }, [sessionManager]);
 
-  const canModifyExercise = (exerciseId: string, weekId: string, dayId: string): boolean => {
+  const canModifyExercise = useCallback((exerciseId: string, weekId: string, dayId: string): boolean => {
     // Check if the workout is read-only
     if (sessionManager.isSessionReadOnly(weekId, dayId)) {
       return false;
@@ -605,33 +636,41 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     
     // Additional checks could be added here (e.g., user permissions, etc.)
     return true;
-  };
+  }, [sessionManager]);
 
-  const getSessionState = (weekId: string, dayId: string): SessionState => {
+  const getSessionState = useCallback((weekId: string, dayId: string): SessionState => {
     const session = sessionManager.getSessionForDay(weekId, dayId);
     return session?.state || SessionState.INACTIVE;
-  };
+  }, [sessionManager]);
 
   // Stale session handlers
-  const handleStaleSessionContinue = () => {
-    sessionManagerInstance.recoverStaleSession(true);
-    setShowStaleSessionModal(false);
-    setStaleSessionData(null);
-  };
+  const handleStaleSessionContinue = useCallback(async () => {
+    try {
+      await sessionManagerInstance.recoverStaleSession(true);
+      setShowStaleSessionModal(false);
+      setStaleSessionData(null);
+    } catch (error) {
+      console.error('Failed to continue stale session:', error);
+    }
+  }, [sessionManagerInstance]);
 
-  const handleStaleSessionReset = () => {
-    sessionManagerInstance.recoverStaleSession(false);
-    setShowStaleSessionModal(false);
-    setStaleSessionData(null);
-  };
+  const handleStaleSessionReset = useCallback(async () => {
+    try {
+      await sessionManagerInstance.recoverStaleSession(false);
+      setShowStaleSessionModal(false);
+      setStaleSessionData(null);
+    } catch (error) {
+      console.error('Failed to reset stale session:', error);
+    }
+  }, [sessionManagerInstance]);
 
-  const handleStaleSessionClose = () => {
+  const handleStaleSessionClose = useCallback(() => {
     // User chose to keep old data without continuing
     setShowStaleSessionModal(false);
     setStaleSessionData(null);
-  };
+  }, []);
 
-  const resetApp = () => {
+  const resetApp = useCallback(async () => {
     StorageService.clearAll();
     setUserState(null);
     setEquipmentState([]);
@@ -642,21 +681,37 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     setSessionStartTime(null);
     setExerciseTimestamps({});
     setCurrentSession(null);
-    sessionManagerInstance.clearAllSessions();
-  };
+    try {
+      await sessionManagerInstance.clearAllSessions();
+    } catch (error) {
+      console.error('Failed to clear sessions:', error);
+    }
+  }, [sessionManagerInstance, stopRestTimer]);
+
+  // Memoized context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    user, equipment, currentPlan, step, isLoading, history, activeView,
+    timerSeconds, isTimerRunning,
+    setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, logWorkout, resetApp, setActiveView,
+    startRestTimer, stopRestTimer, addTimerSeconds, moveExercise, replaceExerciseInPlan,
+    sessionStartTime, exerciseTimestamps,
+    // New session management properties
+    sessionManager, currentSession,
+    startWorkoutSession, completeWorkoutSession, logWorkoutSession, abandonWorkoutSession,
+    isWorkoutReadOnly, canModifyExercise, getSessionState
+  }), [
+    user, equipment, currentPlan, step, isLoading, history, activeView,
+    timerSeconds, isTimerRunning,
+    setUser, setEquipment, setPlan, setStep, toggleExercise, updateDayInPlan, logWorkout, resetApp, setActiveView,
+    startRestTimer, stopRestTimer, addTimerSeconds, moveExercise, replaceExerciseInPlan,
+    sessionStartTime, exerciseTimestamps,
+    sessionManager, currentSession,
+    startWorkoutSession, completeWorkoutSession, logWorkoutSession, abandonWorkoutSession,
+    isWorkoutReadOnly, canModifyExercise, getSessionState
+  ]);
 
   return (
-    <AppContext.Provider value={{
-      user, equipment, currentPlan, step, isLoading, history,
-      timerSeconds, isTimerRunning,
-      setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, logWorkout, resetApp,
-      startRestTimer, stopRestTimer, addTimerSeconds, moveExercise, replaceExerciseInPlan,
-      sessionStartTime, exerciseTimestamps,
-      // New session management properties
-      sessionManager, currentSession,
-      startWorkoutSession, completeWorkoutSession, logWorkoutSession, abandonWorkoutSession,
-      isWorkoutReadOnly, canModifyExercise, getSessionState
-    }}>
+    <AppContext.Provider value={contextValue}>
       {children}
       
       {/* Stale Session Modal */}

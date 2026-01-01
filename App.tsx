@@ -1,23 +1,32 @@
-import React from 'react';
+import React, { memo, useCallback, Suspense } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
-import Onboarding from './components/Onboarding';
-import EquipmentScanner from './components/EquipmentScanner';
-import WorkoutDashboard from './components/WorkoutDashboard';
-import SessionErrorBoundary from './components/SessionErrorBoundary';
+import { ReduxProvider } from './store/ReduxProvider';
+import SessionErrorBoundary from './src/features/session/components/SessionErrorBoundary';
 import { Loader2 } from 'lucide-react';
+import ResponsiveNavigation from './components/ResponsiveNavigation';
 
-const AppContent = () => {
-  const { step, isLoading } = useApp();
+const Onboarding = React.lazy(() => import('./src/features/onboarding/components/Onboarding'));
+const EquipmentScanner = React.lazy(() => import('./src/features/profile/components/EquipmentScanner'));
+const WorkoutDashboard = React.lazy(() => import('./src/features/workout/components/WorkoutDashboard'));
+const ProgressDashboard = React.lazy(() => import('./src/features/workout/components/ProgressDashboard'));
+const ProfileDashboard = React.lazy(() => import('./src/features/profile/components/ProfileDashboard'));
+const NutritionGenie = React.lazy(() => import('./src/features/nutrition/components/NutritionGenie'));
+const LiveWorkoutSession = React.lazy(() => import('./src/features/session/components/LiveWorkoutSession'));
+
+const AppContent = memo(() => {
+  const { step, isLoading, activeView, setActiveView, setStep } = useApp();
+
+  if (step === 'session') {
+    return (
+      <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin text-brand-600" size={32} /></div>}>
+        <LiveWorkoutSession />
+      </Suspense>
+    );
+  }
 
   return (
-    <div className="md:min-h-screen md:bg-gray-100 md:flex md:items-center md:justify-center md:p-4 lg:p-8 font-sans text-gray-900 transition-all">
-      {/* 
-        App Shell:
-        - Mobile: 100dvh (Dynamic Viewport Height).
-        - Desktop: Fixed height (85vh) or max-height (900px) card centered on screen.
-      */}
-      <div className="w-full h-[100dvh] md:h-[85vh] md:max-h-[900px] md:max-w-5xl bg-white md:rounded-[2rem] md:shadow-2xl md:border md:border-white/50 overflow-hidden relative flex flex-col transition-all duration-300">
-        
+    <div className="h-screen bg-gray-100 font-sans text-gray-900">
+      <ResponsiveNavigation>
         {/* Global Overlay Loader */}
         {isLoading && (
           <div className="absolute inset-0 bg-white/80 z-50 flex items-center justify-center backdrop-blur-sm animate-fade-in">
@@ -29,25 +38,44 @@ const AppContent = () => {
           </div>
         )}
 
-        {/* Scrollable Content Area */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth relative w-full bg-white">
+        {/* Page content */}
+        <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-brand-600" size={32} /></div>}>
           {step === 'onboarding' && <Onboarding />}
           {step === 'scanning' && <EquipmentScanner />}
-          {step === 'dashboard' && <WorkoutDashboard />}
-        </main>
-      </div>
+          {step === 'dashboard' && activeView === 'workout' && <WorkoutDashboard />}
+          {step === 'dashboard' && activeView === 'progress' && (
+            <ProgressDashboard
+              onBack={() => setActiveView('workout')}
+              onNavigateToWorkout={(weekId, dayId) => {
+                 setActiveView('workout');
+              }}
+            />
+          )}
+          {step === 'dashboard' && activeView === 'profile' && (
+            <ProfileDashboard
+              onBack={() => setActiveView('workout')}
+              onScanEquipment={() => setStep('scanning')}
+            />
+          )}
+          {step === 'dashboard' && activeView === 'kitchen' && <NutritionGenie />}
+        </Suspense>
+      </ResponsiveNavigation>
     </div>
   );
-};
+});
 
-const App = () => {
+const App = memo(() => {
   return (
     <SessionErrorBoundary>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
+      <ReduxProvider>
+        <AppProvider>
+          <AppContent />
+        </AppProvider>
+      </ReduxProvider>
     </SessionErrorBoundary>
   );
-};
+});
+
+App.displayName = 'App';
 
 export default App;
