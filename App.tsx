@@ -43,20 +43,8 @@ const AppContent = memo(() => {
           {step === 'onboarding' && <Onboarding />}
           {step === 'scanning' && <EquipmentScanner />}
           {step === 'dashboard' && activeView === 'workout' && <WorkoutDashboard />}
-          {step === 'dashboard' && activeView === 'progress' && (
-            <ProgressDashboard
-              onBack={() => setActiveView('workout')}
-              onNavigateToWorkout={(weekId, dayId) => {
-                 setActiveView('workout');
-              }}
-            />
-          )}
-          {step === 'dashboard' && activeView === 'profile' && (
-            <ProfileDashboard
-              onBack={() => setActiveView('workout')}
-              onScanEquipment={() => setStep('scanning')}
-            />
-          )}
+          {step === 'dashboard' && activeView === 'progress' && <ProgressDashboard />}
+          {step === 'dashboard' && activeView === 'profile' && <ProfileDashboard />}
           {step === 'dashboard' && activeView === 'kitchen' && <NutritionGenie />}
         </Suspense>
       </ResponsiveNavigation>

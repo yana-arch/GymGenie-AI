@@ -3,7 +3,10 @@ import { AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry, Exe
 import { StorageService } from '@/services/storageService';
 import { SessionStateManager } from '@/src/features/session/services/sessionStateManager';
 import StaleSessionModal from '@/src/features/session/components/modals/StaleSessionModal';
+import SessionConflictModal from '@/src/features/session/components/modals/SessionConflictModal';
 import { SessionSequenceValidator } from '@/src/features/session/services/SessionSequenceValidator';
+import { SessionConflict } from '@/src/features/session/services/SessionConflictDetector';
+import { UserPromptConfig } from '@/src/features/session/services/SessionConflictResolver';
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -32,6 +35,10 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   const [staleSessionData, setStaleSessionData] = useState<SessionStorageData | null>(null);
   const [showStaleSessionModal, setShowStaleSessionModal] = useState(false);
   
+  // Conflict handling
+  const [conflictData, setConflictData] = useState<{conflict: SessionConflict, promptConfig: UserPromptConfig} | null>(null);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+
   // Keep currentSession in sync with sessionManager
   const [currentSession, setCurrentSession] = useState<WorkoutSession | null>(() => 
     sessionManagerInstance.currentSession
@@ -66,9 +73,17 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
       setShowStaleSessionModal(true);
     });
     
+    // Set up conflict listener
+    const unsubscribeConflict = sessionManagerInstance.onConflictResolution((conflict, promptConfig) => {
+        console.log('Session conflict detected, showing modal');
+        setConflictData({ conflict, promptConfig });
+        setShowConflictModal(true);
+    });
+
     return () => {
       clearInterval(interval);
       unsubscribeStaleSession();
+      unsubscribeConflict();
     };
   }, [sessionManagerInstance]);
   
@@ -670,6 +685,26 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     setStaleSessionData(null);
   }, []);
 
+  const handleConflictResolve = useCallback(async (resolutionId: string) => {
+    if (conflictData) {
+      try {
+        await sessionManagerInstance.resolveSessionConflictWithUserChoice(
+          conflictData.conflict,
+          resolutionId
+        );
+        setShowConflictModal(false);
+        setConflictData(null);
+      } catch (error) {
+        console.error('Failed to resolve conflict:', error);
+      }
+    }
+  }, [conflictData, sessionManagerInstance]);
+
+  const handleConflictCancel = useCallback(() => {
+      setShowConflictModal(false);
+      setConflictData(null);
+  }, []);
+
   const resetApp = useCallback(async () => {
     StorageService.clearAll();
     setUserState(null);
@@ -726,6 +761,17 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
           onContinue={handleStaleSessionContinue}
           onReset={handleStaleSessionReset}
           onClose={handleStaleSessionClose}
+        />
+      )}
+
+      {/* Conflict Modal */}
+      {showConflictModal && conflictData && (
+        <SessionConflictModal
+            isOpen={showConflictModal}
+            conflict={conflictData.conflict}
+            promptConfig={conflictData.promptConfig}
+            onResolve={handleConflictResolve}
+            onCancel={handleConflictCancel}
         />
       )}
     </AppContext.Provider>

@@ -11,13 +11,9 @@ import SettingsMenu from './SettingsMenu';
 import DataManagementSection from './DataManagementSection';
 import EquipmentScanner from './EquipmentScanner';
 
-interface ProfileDashboardProps {
-  onBack: () => void;
-  // onScanEquipment removed from props as we handle it internally now
-  onScanEquipment?: () => void; // Keeping optional for backward compat if needed temporarily
-}
+interface ProfileDashboardProps {}
 
-const ProfileDashboard: React.FC<ProfileDashboardProps> = ({ onBack }) => {
+const ProfileDashboard: React.FC<ProfileDashboardProps> = () => {
   const { user } = useApp();
   const { isDesktop: isDesktopFn } = useBreakpoint();
   const isDesktop = isDesktopFn();
@@ -26,13 +22,10 @@ const ProfileDashboard: React.FC<ProfileDashboardProps> = ({ onBack }) => {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 md:bg-white animate-fade-in absolute inset-0 z-20 overflow-y-auto pb-24">
+    <div className="flex flex-col h-full bg-gray-50 md:bg-white animate-fade-in pb-24">
       {/* Header */}
       <div className="bg-white p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
-            <ArrowLeft size={24} className="text-gray-600" />
-          </button>
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
               <UserCircle className="text-brand-600" /> My Profile

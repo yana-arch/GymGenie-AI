@@ -13,18 +13,18 @@ const NutritionGenie = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'scan'>('overview');
   const [mealSuggestions, setMealSuggestions] = useState<string[]>([]);
 
-  // Removed automatic AI meal suggestions based on feedback
-  /*
-  useEffect(() => {
-    if (activeTab === 'overview' && user && mealSuggestions.length === 0) {
-      const fetchSuggestions = async () => {
-        const suggestions = await getMealSuggestions(user);
-        setMealSuggestions(suggestions);
-      };
-      fetchSuggestions();
+  const handleCreateMealPlan = async () => {
+    if (!user) return;
+    setAnalyzing(true);
+    try {
+      const suggestions = await getMealSuggestions(user);
+      setMealSuggestions(suggestions);
+    } catch (error) {
+      console.error("Failed to get meal suggestions", error);
+    } finally {
+      setAnalyzing(false);
     }
-  }, [activeTab, user, mealSuggestions.length]);
-  */
+  };
 
   const processFile = (file: File) => {
     if (!user) return;
@@ -133,11 +133,19 @@ const NutritionGenie = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button className="w-full bg-brand-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-brand-700 transition-colors">
+            <button
+              onClick={() => setActiveTab('scan')}
+              className="w-full bg-brand-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-brand-700 transition-colors"
+            >
               <PlusCircle size={20} /> Add Food
             </button>
-            <button className="w-full bg-gray-800 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-gray-700 transition-colors">
-              <ChefHat size={20} /> Create Meal Plan
+            <button
+              onClick={handleCreateMealPlan}
+              disabled={analyzing}
+              className="w-full bg-gray-800 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-gray-700 transition-colors disabled:opacity-70"
+            >
+              {analyzing ? <Loader2 className="animate-spin" size={20} /> : <ChefHat size={20} />}
+              {analyzing ? 'Generating...' : 'Create Meal Plan'}
             </button>
           </div>
 
@@ -153,24 +161,36 @@ const NutritionGenie = () => {
           </div>
         </div>
 
-        {/* Right Column - Meal Ideas Placeholder or Alternative Content */}
+        {/* Right Column - Meal Ideas */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-full max-h-[600px] flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mb-4">
-               <Sparkles size={32} className="text-purple-500" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">
-              Need Inspiration?
-            </h3>
-            <p className="text-sm text-gray-500 mb-6 px-4">
-              Scan ingredients or use the Meal Planner to get personalized AI suggestions.
-            </p>
-            <button
-                onClick={() => setActiveTab('scan')}
-                className="bg-purple-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-purple-700 transition-colors"
-            >
-                Scan Ingredients
-            </button>
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-full max-h-[600px] overflow-y-auto">
+             <div className="flex items-center gap-2 mb-4">
+               <Sparkles size={20} className="text-purple-500" />
+               <h3 className="text-lg font-bold text-gray-800">Meal Suggestions</h3>
+             </div>
+             
+             {mealSuggestions.length > 0 ? (
+               <div className="space-y-3">
+                 {mealSuggestions.map((meal, idx) => (
+                   <div key={idx} className="p-3 bg-purple-50 rounded-xl border border-purple-100 text-sm text-gray-700 flex items-start gap-2">
+                     <span className="mt-0.5 text-purple-500">•</span>
+                     {meal}
+                   </div>
+                 ))}
+               </div>
+             ) : (
+                <div className="flex flex-col items-center justify-center text-center py-10">
+                    <p className="text-sm text-gray-500 mb-6 px-4">
+                    Scan ingredients or use the Meal Planner to get personalized AI suggestions.
+                    </p>
+                    <button
+                        onClick={() => setActiveTab('scan')}
+                        className="bg-purple-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-purple-700 transition-colors"
+                    >
+                        Scan Ingredients
+                    </button>
+                </div>
+             )}
           </div>
         </div>
       </div>
@@ -179,12 +199,15 @@ const NutritionGenie = () => {
 
   return (
     <div className="h-full flex flex-col bg-gray-50 md:bg-white animate-fade-in pb-20 md:pb-0">
-      <div className="bg-orange-500 text-white p-6 md:p-8 rounded-b-3xl md:rounded-none shadow-lg shrink-0 relative overflow-hidden">
-         <div className="absolute top-0 right-0 p-4 opacity-10"><ChefHat size={120} /></div>
-         <div className="relative z-10">
-           <h1 className="text-2xl md:text-3xl font-bold mb-1">GymGenie Kitchen</h1>
-           <p className="text-orange-100 text-sm">Analyze, track, and plan your nutrition.</p>
-         </div>
+      {/* Header */}
+      <div className="bg-white p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
+              <Utensils className="text-brand-600" /> Kitchen
+            </h2>
+          </div>
+        </div>
       </div>
 
       <div className="p-4 border-b border-gray-200">

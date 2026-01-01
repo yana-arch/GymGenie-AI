@@ -7,12 +7,9 @@ import WorkoutHistoryList from './WorkoutHistoryList';
 import { SessionState, Exercise } from '@/types';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 
-interface ProgressDashboardProps {
-  onBack: () => void;
-  onNavigateToWorkout?: (weekId: string, dayId: string) => void;
-}
+interface ProgressDashboardProps {}
 
-const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onBack, onNavigateToWorkout }) => {
+const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
   const { history, currentPlan, getSessionState } = useApp();
   const { isDesktop: isDesktopFn } = useBreakpoint();
   const isDesktop = isDesktopFn();
@@ -69,18 +66,31 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onBack, onNavigat
   const totalWorkouts = history.length;
   const totalMinutes = useMemo(() => history.reduce((acc, curr) => acc + curr.durationMinutes, 0), [history]);
 
+  // Consistency Score Calculation (Last 4 weeks)
+  const consistencyScore = useMemo(() => {
+    if (history.length === 0) return 0;
+    
+    const now = new Date();
+    const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
+    
+    const workoutsLast4Weeks = history.filter(h => new Date(h.completedAt) >= fourWeeksAgo);
+    
+    // Ideal: 3 workouts/week * 4 weeks = 12 workouts
+    const targetWorkouts = 12;
+    const score = Math.min(100, Math.round((workoutsLast4Weeks.length / targetWorkouts) * 100));
+    
+    return score;
+  }, [history]);
+
   if (!currentPlan) {
       return null; // Or loading state
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 md:bg-white animate-fade-in absolute inset-0 z-20 overflow-y-auto pb-24">
+    <div className="flex flex-col h-full bg-gray-50 md:bg-white animate-fade-in pb-24">
       {/* Header */}
       <div className="bg-white p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
-            <ArrowLeft size={24} className="text-gray-600" />
-          </button>
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
               <TrendingUp className="text-brand-600" /> Progress
@@ -113,6 +123,9 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onBack, onNavigat
                     <div className="flex items-center gap-2">
                         <BarChart2 size={20} className="text-brand-600" />
                         <h3 className="text-lg font-bold text-gray-900">Training Volume</h3>
+                    </div>
+                    <div className="bg-brand-50 text-brand-700 px-3 py-1 rounded-full text-xs font-bold">
+                        Consistency: {consistencyScore}%
                     </div>
                 </div>
                 <TrainingVolumeChart history={history} />
@@ -165,14 +178,7 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onBack, onNavigat
                              ))}
                         </div>
                          
-                         {onNavigateToWorkout && (
-                             <button
-                                onClick={() => onNavigateToWorkout(selectedDayDetails.weekId, selectedDayDetails.dayId)}
-                                className="w-full mt-4 bg-brand-600 text-white font-bold py-3 rounded-xl hover:bg-brand-700 transition-colors shadow-sm"
-                             >
-                                 Go to Workout
-                             </button>
-                         )}
+                         
                     </div>
                 )}
 
@@ -227,17 +233,7 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ onBack, onNavigat
                   </div>
                   
                   <div className="p-4 border-t border-gray-100 bg-gray-50">
-                       {onNavigateToWorkout && (
-                             <button
-                                onClick={() => {
-                                    onNavigateToWorkout(selectedDayDetails.weekId, selectedDayDetails.dayId);
-                                    closeDayDetails();
-                                }}
-                                className="w-full bg-brand-600 text-white font-bold py-3.5 rounded-xl hover:bg-brand-700 transition-colors shadow-lg active:scale-95"
-                             >
-                                 Start Workout
-                             </button>
-                         )}
+                       
                   </div>
               </div>
           </div>
