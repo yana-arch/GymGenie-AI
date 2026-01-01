@@ -4,11 +4,10 @@ import {
   generateWorkoutPlanWithValidation,
   modifyWorkoutDayWithValidation,
   getExerciseDetailsWithValidation,
-  swapExerciseWithValidation
+  swapExerciseWithValidation,
+  getAiClient,
+  getModelName
 } from "@/services/enhanced-gemini-service";
-
-// Note: In a real production app, never expose API keys on the client side.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
  * Uses Gemini Pro to generate a structured 4-week workout plan.
@@ -113,8 +112,11 @@ export const adjustPlanProgressively = async (
         required: ["weeks"]
       };
 
+    const ai = getAiClient();
+    const model = getModelName();
+    
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: model,
       contents: {
           parts: [
               { text: prompt },

@@ -1,4 +1,4 @@
-import { AppState, UserProfile, WorkoutPlan, WorkoutHistoryEntry, SessionStorageData } from '@/types';
+import { AppState, UserProfile, WorkoutPlan, WorkoutHistoryEntry, SessionStorageData, AiProviderConfig } from '@/types';
 
 const KEYS = {
   USER_PROFILE: 'gymgenie_user',
@@ -6,6 +6,7 @@ const KEYS = {
   WORKOUT_PLAN: 'gymgenie_plan',
   APP_STEP: 'gymgenie_step',
   WORKOUT_HISTORY: 'gymgenie_history',
+  AI_CONFIG: 'gymgenie_ai_config',
   // Session management keys
   WORKOUT_SESSIONS: 'gymgenie_sessions',
   ACTIVE_SESSION: 'gymgenie_active_session',
@@ -67,6 +68,23 @@ export const StorageService = {
 
   clearAll: (): void => {
     localStorage.clear();
+  },
+
+  saveAiConfig: (config: AiProviderConfig): void => {
+    try {
+      localStorage.setItem(KEYS.AI_CONFIG, JSON.stringify(config));
+    } catch (e) {
+      console.error('Failed to save AI config', e);
+    }
+  },
+
+  getAiConfig: (): AiProviderConfig | null => {
+    try {
+      const data = localStorage.getItem(KEYS.AI_CONFIG);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
   },
 
   // Session management methods

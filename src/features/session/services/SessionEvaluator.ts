@@ -1,8 +1,6 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { WorkoutAnalysis } from "@/types";
-
-// Note: In a real production app, never expose API keys on the client side.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { getAiClient, getModelName } from "@/services/enhanced-gemini-service";
 
 export const analyzeWorkoutSession = async (
   durationMinutes: number,
@@ -45,8 +43,11 @@ export const analyzeWorkoutSession = async (
       required: ["score", "mood", "summary", "advice"]
     };
 
+    const ai = getAiClient();
+    const model = getModelName();
+    
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: model,
       contents: prompt,
       config: {
         responseMimeType: 'application/json',

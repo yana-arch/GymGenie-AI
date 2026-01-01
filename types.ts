@@ -23,6 +23,16 @@ export interface UserProfile {
   tdee: number;
 }
 
+export type AiProvider = 'google';
+
+export interface AiProviderConfig {
+  provider: AiProvider;
+  apiKey: string;
+  useCustomUrl: boolean;
+  customUrl: string;
+  model: string;
+}
+
 export interface Exercise {
   id: string;
   name: string;

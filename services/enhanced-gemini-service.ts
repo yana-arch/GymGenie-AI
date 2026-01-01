@@ -1,23 +1,53 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { z } from 'zod';
 import { UserProfile, WorkoutPlan, WorkoutDay, Exercise, WorkoutAnalysis, Recipe } from "../types";
-import { 
-  ApiResponseValidator, 
+import {
+  ApiResponseValidator,
   ValidatedApiHandlers,
   ApiValidationErrorHandler,
-  ValidationError 
+  ValidationError
 } from "./api-validation";
+import { StorageService } from "./storageService";
 
-// Note: In a real production app, never expose API keys on the client side.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const getAiClient = () => {
+  const config = StorageService.getAiConfig();
+  
+  // Use custom config if available and valid
+  if (config && config.apiKey) {
+    const clientOptions: any = { apiKey: config.apiKey };
+    
+    // Handle Custom Base URL (Proxy)
+    if (config.useCustomUrl && config.customUrl) {
+      // The @google/genai SDK uses 'httpOptions' for base URL configuration
+      // We need to set baseUrl inside httpOptions, and also ensure apiVersion is set if needed
+      clientOptions.httpOptions = {
+        baseUrl: config.customUrl.replace(/\/+$/, ""), // Remove trailing slash
+        apiVersion: 'v1beta' // Default version, can be made configurable if needed
+      };
+    }
+    
+    return new GoogleGenAI(clientOptions);
+  }
+  
+  // Fallback to env var
+  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+};
+
+export const getModelName = () => {
+  const config = StorageService.getAiConfig();
+  return config && config.model ? config.model : 'gemini-3-flash-preview';
+};
 
 /**
- * Enhanced version of identifyEquipment with API response validation
+ * Enhanced version of identifyEquipmentWithValidation
  */
 export const identifyEquipmentWithValidation = async (base64Image: string): Promise<string[]> => {
   try {
+    const ai = getAiClient();
+    const model = getModelName();
+    
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: model,
       contents: {
         parts: [
           {
@@ -94,8 +124,11 @@ export const generateRecipesFromImageWithValidation = async (base64Image: string
       }
     };
 
+    const ai = getAiClient();
+    const model = getModelName();
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview', 
+      model: model,
       contents: {
         parts: [
           { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
@@ -201,8 +234,11 @@ export const generateWorkoutPlanWithValidation = async (user: UserProfile, equip
       required: ["title", "description", "weeks"]
     };
 
+    const ai = getAiClient();
+    const model = getModelName();
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview', 
+      model: model,
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -303,8 +339,11 @@ export const modifyWorkoutDayWithValidation = async (
       required: ["id", "dayName", "title", "isRestDay", "exercises"]
     };
 
+    const ai = getAiClient();
+    const model = getModelName();
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: model,
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -366,8 +405,11 @@ export const getExerciseDetailsWithValidation = async (exerciseName: string): Pr
       required: ["targetMuscles", "instructions", "commonMistakes", "proTips"]
     };
 
+    const ai = getAiClient();
+    const model = getModelName();
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: model,
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -420,8 +462,11 @@ export const swapExerciseWithValidation = async (
       required: ["name", "sets", "reps", "restSeconds", "notes"]
     };
 
+    const ai = getAiClient();
+    const model = getModelName();
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: model,
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -490,8 +535,11 @@ export const analyzeWorkoutSessionWithValidation = async (
       required: ["score", "mood", "summary", "advice"]
     };
 
+    const ai = getAiClient();
+    const model = getModelName();
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: model,
       contents: prompt,
       config: {
         responseMimeType: 'application/json',

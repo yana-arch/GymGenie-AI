@@ -1,9 +1,10 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { UserProfile, Recipe } from "@/types";
-import { generateRecipesFromImageWithValidation } from "@/services/enhanced-gemini-service";
-
-// Note: In a real production app, never expose API keys on the client side.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import {
+  generateRecipesFromImageWithValidation,
+  getAiClient,
+  getModelName
+} from "@/services/enhanced-gemini-service";
 
 /**
  * Uses Gemini Vision to identify food ingredients and suggest recipes.
@@ -26,8 +27,11 @@ export const getMealSuggestions = async (user: UserProfile): Promise<string[]> =
       type: Type.ARRAY,
       items: { type: Type.STRING }
     };
+    const ai = getAiClient();
+    const model = getModelName();
+    
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: model,
       contents: prompt,
       config: {
         responseMimeType: 'application/json',

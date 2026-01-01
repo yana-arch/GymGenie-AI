@@ -1,10 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { UserProfile, AppStep } from '@/types';
+import { UserProfile, AppStep, AiProviderConfig } from '@/types';
+import { StorageService } from '@/services/storageService';
 
 interface UserSliceState {
   profile: UserProfile | null;
   equipment: string[];
   currentStep: AppStep;
+  aiConfig: AiProviderConfig;
   preferences: {
     theme: 'light' | 'dark' | 'system';
     notifications: boolean;
@@ -18,6 +20,13 @@ const initialState: UserSliceState = {
   profile: null,
   equipment: [],
   currentStep: 'onboarding',
+  aiConfig: StorageService.getAiConfig() || {
+    provider: 'google',
+    apiKey: '',
+    useCustomUrl: false,
+    customUrl: '',
+    model: 'gemini-1.5-flash'
+  },
   preferences: {
     theme: 'system',
     notifications: true,
@@ -57,6 +66,16 @@ const userSlice = createSlice({
     
     setCurrentStep: (state, action: PayloadAction<AppStep>) => {
       state.currentStep = action.payload;
+    },
+
+    setAiConfig: (state, action: PayloadAction<AiProviderConfig>) => {
+      state.aiConfig = action.payload;
+      StorageService.saveAiConfig(action.payload);
+    },
+
+    updateAiConfig: (state, action: PayloadAction<Partial<AiProviderConfig>>) => {
+      state.aiConfig = { ...state.aiConfig, ...action.payload };
+      StorageService.saveAiConfig(state.aiConfig);
     },
     
     updatePreferences: (state, action: PayloadAction<Partial<UserSliceState['preferences']>>) => {
@@ -99,6 +118,8 @@ export const {
   addEquipment,
   removeEquipment,
   setCurrentStep,
+  setAiConfig,
+  updateAiConfig,
   updatePreferences,
   setTheme,
   toggleNotifications,
