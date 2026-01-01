@@ -1,15 +1,14 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useBreakpoint, Breakpoint } from './useBreakpoint';
-import { ComponentLayoutConfig, LayoutConfig, layoutManager } from '../utils/layoutManager';
+import { ComponentLayoutConfig, LayoutConfig, layoutManager } from '@/utils/layoutManager';
 
 // Hook for integrating Layout Manager with React components
-export function useLayoutManager(
+export function useLayoutManager<T extends HTMLElement = HTMLElement>(
   componentName: string,
   config?: ComponentLayoutConfig
 ) {
-  const elementRef = useRef<HTMLElement>(null);
-  const { getCurrentBreakpoint } = useBreakpoint();
-  const currentBreakpoint = getCurrentBreakpoint();
+  const elementRef = useRef<T>(null);
+  const { currentBreakpoint } = useBreakpoint();
 
   // Register component configuration on mount
   useEffect(() => {
@@ -59,7 +58,7 @@ export function useLayoutManager(
 }
 
 // Hook for responsive component registration
-export function useResponsiveComponent(
+export function useResponsiveComponent<T extends HTMLElement = HTMLElement>(
   componentName: string,
   layouts: ComponentLayoutConfig['layouts'],
   options?: {
@@ -81,7 +80,7 @@ export function useResponsiveComponent(
     currentBreakpoint,
     updateLayout,
     getLayoutConfig
-  } = useLayoutManager(componentName, config);
+  } = useLayoutManager<T>(componentName, config);
 
   // Auto-apply layout if enabled
   useEffect(() => {
@@ -127,8 +126,7 @@ export function useBreakpointRender<T>(
   renderMap: Partial<Record<Breakpoint, T>>,
   fallback?: T
 ): T | undefined {
-  const { getCurrentBreakpoint } = useBreakpoint();
-  const currentBreakpoint = getCurrentBreakpoint();
+  const { currentBreakpoint } = useBreakpoint();
 
   return renderMap[currentBreakpoint] || fallback;
 }
@@ -138,8 +136,7 @@ export function useResponsiveClasses(
   classMap: Partial<Record<Breakpoint, string>>,
   baseClasses: string = ''
 ): string {
-  const { getCurrentBreakpoint } = useBreakpoint();
-  const currentBreakpoint = getCurrentBreakpoint();
+  const { currentBreakpoint } = useBreakpoint();
 
   const responsiveClass = classMap[currentBreakpoint] || '';
   return `${baseClasses} ${responsiveClass}`.trim();
@@ -150,8 +147,7 @@ export function useResponsiveStyles(
   styleMap: Partial<Record<Breakpoint, React.CSSProperties>>,
   baseStyles: React.CSSProperties = {}
 ): React.CSSProperties {
-  const { getCurrentBreakpoint } = useBreakpoint();
-  const currentBreakpoint = getCurrentBreakpoint();
+  const { currentBreakpoint } = useBreakpoint();
 
   const responsiveStyles = styleMap[currentBreakpoint] || {};
   return { ...baseStyles, ...responsiveStyles };
@@ -159,8 +155,7 @@ export function useResponsiveStyles(
 
 // Hook for layout debugging (development only)
 export function useLayoutDebug(componentName: string, enabled: boolean = process.env.NODE_ENV === 'development') {
-  const { getCurrentBreakpoint } = useBreakpoint();
-  const currentBreakpoint = getCurrentBreakpoint();
+  const { currentBreakpoint } = useBreakpoint();
 
   useEffect(() => {
     if (!enabled) return;

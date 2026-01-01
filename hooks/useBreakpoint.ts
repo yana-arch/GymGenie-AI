@@ -1,214 +1,71 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
-// Breakpoint type definitions matching our Tailwind configuration
-export type Breakpoint = 'mobile' | 'tablet' | 'desktop' | 'large-desktop';
-
-// Breakpoint configuration matching our CSS custom properties
 export const BREAKPOINT_CONFIG = {
-  mobile: { minWidth: 320, maxWidth: 767 },
-  tablet: { minWidth: 768, maxWidth: 1023 },
-  desktop: { minWidth: 1024, maxWidth: 1439 },
-  'large-desktop': { minWidth: 1440, maxWidth: Infinity },
-} as const;
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+};
 
-// Interface for breakpoint manager functionality
-export interface BreakpointManager {
-  getCurrentBreakpoint(): Breakpoint;
-  onBreakpointChange(callback: (breakpoint: Breakpoint) => void): () => void;
-  isBreakpoint(breakpoint: Breakpoint): boolean;
-  getBreakpointRange(): { min: number; max: number };
-  isMobile(): boolean;
-  isTablet(): boolean;
-  isDesktop(): boolean;
-  isLargeDesktop(): boolean;
-  isTouchDevice(): boolean;
-}
+export type Breakpoint = keyof typeof BREAKPOINT_CONFIG;
 
-// Utility function to determine current breakpoint based on window width
-export function getCurrentBreakpoint(width: number = window.innerWidth): Breakpoint {
-  if (width >= BREAKPOINT_CONFIG['large-desktop'].minWidth) {
-    return 'large-desktop';
-  }
-  if (width >= BREAKPOINT_CONFIG.desktop.minWidth) {
-    return 'desktop';
-  }
-  if (width >= BREAKPOINT_CONFIG.tablet.minWidth) {
-    return 'tablet';
-  }
-  return 'mobile';
-}
-
-// Utility function to detect touch device capability
-export function isTouchDevice(): boolean {
-  if (typeof window === 'undefined') return false;
-  
-  return (
-    'ontouchstart' in window ||
-    navigator.maxTouchPoints > 0 ||
-    // @ts-ignore - for older browsers
-    navigator.msMaxTouchPoints > 0
-  );
-}
-
-// Custom hook for breakpoint management
-export function useBreakpoint(): BreakpointManager {
-  const [currentBreakpoint, setCurrentBreakpoint] = useState<Breakpoint>(() => {
-    // Handle SSR case
-    if (typeof window === 'undefined') return 'mobile';
-    return getCurrentBreakpoint();
-  });
-
-  const [windowWidth, setWindowWidth] = useState<number>(() => {
-    if (typeof window === 'undefined') return 320;
-    return window.innerWidth;
-  });
-
-  // Handle window resize with debouncing for performance
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const newWidth = window.innerWidth;
-        const newBreakpoint = getCurrentBreakpoint(newWidth);
-        
-        setWindowWidth(newWidth);
-        if (newBreakpoint !== currentBreakpoint) {
-          setCurrentBreakpoint(newBreakpoint);
-        }
-      }, 100); // 100ms debounce for performance
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-    };
-  }, [currentBreakpoint]);
-
-  // Breakpoint manager implementation
-  const breakpointManager: BreakpointManager = {
-    getCurrentBreakpoint: useCallback(() => currentBreakpoint, [currentBreakpoint]),
-
-    onBreakpointChange: useCallback((callback: (breakpoint: Breakpoint) => void) => {
-      let previousBreakpoint = currentBreakpoint;
-      
-      const handleResize = () => {
-        const newBreakpoint = getCurrentBreakpoint();
-        if (newBreakpoint !== previousBreakpoint) {
-          previousBreakpoint = newBreakpoint;
-          callback(newBreakpoint);
-        }
-      };
-
-      window.addEventListener('resize', handleResize);
-      window.addEventListener('orientationchange', handleResize);
-
-      // Return cleanup function
-      return () => {
-        window.removeEventListener('resize', handleResize);
-        window.removeEventListener('orientationchange', handleResize);
-      };
-    }, [currentBreakpoint]),
-
-    isBreakpoint: useCallback((breakpoint: Breakpoint) => {
-      return currentBreakpoint === breakpoint;
-    }, [currentBreakpoint]),
-
-    getBreakpointRange: useCallback(() => {
-      const config = BREAKPOINT_CONFIG[currentBreakpoint];
-      return {
-        min: config.minWidth,
-        max: config.maxWidth === Infinity ? Number.MAX_SAFE_INTEGER : config.maxWidth,
-      };
-    }, [currentBreakpoint]),
-
-    isMobile: useCallback(() => currentBreakpoint === 'mobile', [currentBreakpoint]),
-    isTablet: useCallback(() => currentBreakpoint === 'tablet', [currentBreakpoint]),
-    isDesktop: useCallback(() => currentBreakpoint === 'desktop', [currentBreakpoint]),
-    isLargeDesktop: useCallback(() => currentBreakpoint === 'large-desktop', [currentBreakpoint]),
-    isTouchDevice: useCallback(() => isTouchDevice(), []),
-  };
-
-  return breakpointManager;
-}
-
-// Hook for specific breakpoint queries (more performant for single checks)
-export function useBreakpointQuery(breakpoint: Breakpoint): boolean {
-  const [matches, setMatches] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return breakpoint === 'mobile';
-    return getCurrentBreakpoint() === breakpoint;
-  });
-
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const currentBp = getCurrentBreakpoint();
-        setMatches(currentBp === breakpoint);
-      }, 100);
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-    };
-  }, [breakpoint]);
-
-  return matches;
-}
-
-// Hook for media query-like functionality
-export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia(query).matches;
+const useWindowSize = () => {
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
   });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const mediaQuery = window.matchMedia(query);
-    const handleChange = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
     };
 
-    mediaQuery.addEventListener('change', handleChange);
-    setMatches(mediaQuery.matches);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
-  }, [query]);
+  return windowSize;
+};
 
-  return matches;
-}
+export const useBreakpoint = () => {
+  const { width } = useWindowSize();
 
-// Utility hook for responsive values
-export function useResponsiveValue<T>(values: {
-  mobile?: T;
-  tablet?: T;
-  desktop?: T;
-  'large-desktop'?: T;
-}): T | undefined {
-  const { getCurrentBreakpoint } = useBreakpoint();
-  const currentBp = getCurrentBreakpoint();
+  const currentBreakpoint = useMemo((): Breakpoint => {
+    if (width < BREAKPOINT_CONFIG.sm) return 'sm';
+    if (width < BREAKPOINT_CONFIG.md) return 'md';
+    if (width < BREAKPOINT_CONFIG.lg) return 'lg';
+    return 'xl';
+  }, [width]);
 
-  // Return the value for current breakpoint, with fallback logic
+  const isMobile = () => width < BREAKPOINT_CONFIG.md;
+  const isTablet = () => width >= BREAKPOINT_CONFIG.md && width < BREAKPOINT_CONFIG.lg;
+  const isDesktop = () => width >= BREAKPOINT_CONFIG.lg;
+  const isLargeDesktop = () => width >= BREAKPOINT_CONFIG.xl;
+
+  return {
+    width,
+    currentBreakpoint,
+    isMobile,
+    isTablet,
+    isDesktop,
+    isLargeDesktop,
+    getCurrentBreakpoint: () => currentBreakpoint,
+  };
+};
+
+export const useIsDesktop = () => {
+    const { width } = useWindowSize();
+    return width >= BREAKPOINT_CONFIG.lg;
+};
+
+export const isTouchDevice = () => {
   return (
-    values[currentBp] ||
-    values.desktop ||
-    values.tablet ||
-    values.mobile
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0
   );
-}
+};

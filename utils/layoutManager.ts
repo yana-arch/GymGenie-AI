@@ -1,4 +1,4 @@
-import { Breakpoint } from '../hooks/useBreakpoint';
+import { Breakpoint } from '@/hooks/useBreakpoint';
 
 // Layout configuration interfaces
 export interface GridConfig {
@@ -192,13 +192,13 @@ export class LayoutManager {
    * Get current breakpoint (fallback implementation)
    */
   private getCurrentBreakpoint(): Breakpoint {
-    if (typeof window === 'undefined') return 'mobile';
+    if (typeof window === 'undefined') return 'sm';
     
     const width = window.innerWidth;
-    if (width >= 1440) return 'large-desktop';
-    if (width >= 1024) return 'desktop';
-    if (width >= 768) return 'tablet';
-    return 'mobile';
+    if (width >= 1280) return 'xl';
+    if (width >= 1024) return 'lg';
+    if (width >= 768) return 'md';
+    return 'sm';
   }
 
   /**
@@ -243,10 +243,10 @@ export class LayoutManager {
    * Get breakpoint based on container width
    */
   private getBreakpointFromWidth(width: number): Breakpoint {
-    if (width >= 1440) return 'large-desktop';
-    if (width >= 1024) return 'desktop';
-    if (width >= 768) return 'tablet';
-    return 'mobile';
+    if (width >= 1280) return 'xl';
+    if (width >= 1024) return 'lg';
+    if (width >= 768) return 'md';
+    return 'sm';
   }
 
   /**
@@ -292,22 +292,22 @@ export const layoutManager = new LayoutManager();
 export const LayoutPatterns = {
   // Mobile-first vertical stack
   mobileStack: (gap: string = '1rem'): ComponentLayoutConfig['layouts'] => ({
-    mobile: {
+    sm: {
       flexbox: { direction: 'column', wrap: 'nowrap', justify: 'flex-start', align: 'stretch', gap },
       spacing: { padding: '1rem', margin: '0' },
       visibility: { display: 'flex' }
     },
-    tablet: {
+    md: {
       flexbox: { direction: 'column', wrap: 'nowrap', justify: 'flex-start', align: 'stretch', gap },
       spacing: { padding: '1.5rem', margin: '0' },
       visibility: { display: 'flex' }
     },
-    desktop: {
+    lg: {
       flexbox: { direction: 'column', wrap: 'nowrap', justify: 'flex-start', align: 'stretch', gap },
       spacing: { padding: '2rem', margin: '0' },
       visibility: { display: 'flex' }
     },
-    'large-desktop': {
+    xl: {
       flexbox: { direction: 'column', wrap: 'nowrap', justify: 'flex-start', align: 'stretch', gap },
       spacing: { padding: '2.5rem', margin: '0' },
       visibility: { display: 'flex' }
@@ -316,22 +316,22 @@ export const LayoutPatterns = {
 
   // Responsive grid layout
   responsiveGrid: (mobileColumns: number = 1, tabletColumns: number = 2, desktopColumns: number = 3): ComponentLayoutConfig['layouts'] => ({
-    mobile: {
+    sm: {
       grid: { columns: mobileColumns, gap: '1rem' },
       spacing: { padding: '1rem', margin: '0' },
       visibility: { display: 'grid' }
     },
-    tablet: {
+    md: {
       grid: { columns: tabletColumns, gap: '1.5rem' },
       spacing: { padding: '1.5rem', margin: '0' },
       visibility: { display: 'grid' }
     },
-    desktop: {
+    lg: {
       grid: { columns: desktopColumns, gap: '2rem' },
       spacing: { padding: '2rem', margin: '0' },
       visibility: { display: 'grid' }
     },
-    'large-desktop': {
+    xl: {
       grid: { columns: desktopColumns + 1, gap: '2.5rem' },
       spacing: { padding: '2.5rem', margin: '0' },
       visibility: { display: 'grid' }
@@ -340,22 +340,22 @@ export const LayoutPatterns = {
 
   // Sidebar layout for desktop
   sidebarLayout: (): ComponentLayoutConfig['layouts'] => ({
-    mobile: {
+    sm: {
       flexbox: { direction: 'column', wrap: 'nowrap', justify: 'flex-start', align: 'stretch' },
       spacing: { padding: '1rem', margin: '0' },
       visibility: { display: 'flex' }
     },
-    tablet: {
+    md: {
       flexbox: { direction: 'column', wrap: 'nowrap', justify: 'flex-start', align: 'stretch' },
       spacing: { padding: '1.5rem', margin: '0' },
       visibility: { display: 'flex' }
     },
-    desktop: {
+    lg: {
       grid: { columns: '250px 1fr', gap: '2rem' },
       spacing: { padding: '2rem', margin: '0' },
       visibility: { display: 'grid' }
     },
-    'large-desktop': {
+    xl: {
       grid: { columns: '300px 1fr', gap: '2.5rem' },
       spacing: { padding: '2.5rem', margin: '0' },
       visibility: { display: 'grid' }

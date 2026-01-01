@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getCurrentBreakpoint, isTouchDevice, BREAKPOINT_CONFIG } from '../hooks/useBreakpoint';
-import { LayoutManager, LayoutPatterns } from '../utils/layoutManager';
+import { useBreakpoint, isTouchDevice, BREAKPOINT_CONFIG } from '@/hooks/useBreakpoint';
+import { LayoutManager, LayoutPatterns } from '@/utils/layoutManager';
 
 // Mock window object for testing
 const mockWindow = {
@@ -38,30 +38,48 @@ describe('Breakpoint Manager', () => {
     vi.clearAllMocks();
   });
 
-  describe('getCurrentBreakpoint', () => {
-    it('should return mobile for widths below 768px', () => {
-      expect(getCurrentBreakpoint(320)).toBe('mobile');
-      expect(getCurrentBreakpoint(767)).toBe('mobile');
+  // Note: `getCurrentBreakpoint` is now an internal implementation detail of `useBreakpoint`.
+  // We will test the behavior via the LayoutManager's internal method, which mirrors the logic.
+  describe('LayoutManager breakpoint detection', () => {
+    let layoutManager: LayoutManager;
+    beforeEach(() => {
+      layoutManager = new LayoutManager();
+    });
+    
+    it('should return sm for widths below 768px', () => {
+      mockWindow.innerWidth = 320;
+      // @ts-ignore - testing private method
+      expect(layoutManager.getCurrentBreakpoint()).toBe('sm');
+      mockWindow.innerWidth = 767;
+      // @ts-ignore
+      expect(layoutManager.getCurrentBreakpoint()).toBe('sm');
     });
 
-    it('should return tablet for widths between 768px and 1023px', () => {
-      expect(getCurrentBreakpoint(768)).toBe('tablet');
-      expect(getCurrentBreakpoint(1023)).toBe('tablet');
+    it('should return md for widths between 768px and 1023px', () => {
+      mockWindow.innerWidth = 768;
+      // @ts-ignore
+      expect(layoutManager.getCurrentBreakpoint()).toBe('md');
+      mockWindow.innerWidth = 1023;
+      // @ts-ignore
+      expect(layoutManager.getCurrentBreakpoint()).toBe('md');
     });
 
-    it('should return desktop for widths between 1024px and 1439px', () => {
-      expect(getCurrentBreakpoint(1024)).toBe('desktop');
-      expect(getCurrentBreakpoint(1439)).toBe('desktop');
+    it('should return lg for widths between 1024px and 1279px', () => {
+        mockWindow.innerWidth = 1024;
+        // @ts-ignore
+        expect(layoutManager.getCurrentBreakpoint()).toBe('lg');
+        mockWindow.innerWidth = 1279;
+        // @ts-ignore
+        expect(layoutManager.getCurrentBreakpoint()).toBe('lg');
     });
 
-    it('should return large-desktop for widths 1440px and above', () => {
-      expect(getCurrentBreakpoint(1440)).toBe('large-desktop');
-      expect(getCurrentBreakpoint(2560)).toBe('large-desktop');
-    });
-
-    it('should use window.innerWidth when no width provided', () => {
-      mockWindow.innerWidth = 800;
-      expect(getCurrentBreakpoint()).toBe('tablet');
+    it('should return xl for widths 1280px and above', () => {
+        mockWindow.innerWidth = 1280;
+        // @ts-ignore
+        expect(layoutManager.getCurrentBreakpoint()).toBe('xl');
+        mockWindow.innerWidth = 2560;
+        // @ts-ignore
+        expect(layoutManager.getCurrentBreakpoint()).toBe('xl');
     });
   });
 
@@ -86,11 +104,11 @@ describe('Breakpoint Manager', () => {
   });
 
   describe('BREAKPOINT_CONFIG', () => {
-    it('should have correct breakpoint ranges', () => {
-      expect(BREAKPOINT_CONFIG.mobile).toEqual({ minWidth: 320, maxWidth: 767 });
-      expect(BREAKPOINT_CONFIG.tablet).toEqual({ minWidth: 768, maxWidth: 1023 });
-      expect(BREAKPOINT_CONFIG.desktop).toEqual({ minWidth: 1024, maxWidth: 1439 });
-      expect(BREAKPOINT_CONFIG['large-desktop']).toEqual({ minWidth: 1440, maxWidth: Infinity });
+    it('should have correct breakpoint values', () => {
+      expect(BREAKPOINT_CONFIG.sm).toEqual(640);
+      expect(BREAKPOINT_CONFIG.md).toEqual(768);
+      expect(BREAKPOINT_CONFIG.lg).toEqual(1024);
+      expect(BREAKPOINT_CONFIG.xl).toEqual(1280);
     });
   });
 });
@@ -130,19 +148,19 @@ describe('Layout Manager', () => {
       const config = {
         component: 'test-component',
         layouts: {
-          mobile: {
+          sm: {
             spacing: { padding: '1rem', margin: '0' },
             visibility: { display: 'block' as const }
           },
-          tablet: {
+          md: {
             spacing: { padding: '1.5rem', margin: '0' },
             visibility: { display: 'block' as const }
           },
-          desktop: {
+          lg: {
             spacing: { padding: '2rem', margin: '0' },
             visibility: { display: 'block' as const }
           },
-          'large-desktop': {
+          xl: {
             spacing: { padding: '2.5rem', margin: '0' },
             visibility: { display: 'block' as const }
           }
@@ -159,19 +177,19 @@ describe('Layout Manager', () => {
       const config = {
         component: 'test-component',
         layouts: {
-          mobile: {
+          sm: {
             spacing: { padding: '1rem', margin: '0' },
             visibility: { display: 'block' as const }
           },
-          tablet: {
+          md: {
             spacing: { padding: '1.5rem', margin: '0' },
             visibility: { display: 'block' as const }
           },
-          desktop: {
+          lg: {
             spacing: { padding: '2rem', margin: '0' },
             visibility: { display: 'block' as const }
           },
-          'large-desktop': {
+          xl: {
             spacing: { padding: '2.5rem', margin: '0' },
             visibility: { display: 'block' as const }
           }
@@ -191,22 +209,22 @@ describe('Layout Manager', () => {
       const config = {
         component: 'test-component',
         layouts: {
-          mobile: {
+          sm: {
             flexbox: { direction: 'column' as const, wrap: 'nowrap' as const, justify: 'flex-start' as const, align: 'stretch' as const },
             spacing: { padding: '1rem', margin: '0' },
             visibility: { display: 'flex' as const }
           },
-          tablet: {
+          md: {
             grid: { columns: 2, gap: '1.5rem' },
             spacing: { padding: '1.5rem', margin: '0' },
             visibility: { display: 'grid' as const }
           },
-          desktop: {
+          lg: {
             grid: { columns: 3, gap: '2rem' },
             spacing: { padding: '2rem', margin: '0' },
             visibility: { display: 'grid' as const }
           },
-          'large-desktop': {
+          xl: {
             grid: { columns: 4, gap: '2.5rem' },
             spacing: { padding: '2.5rem', margin: '0' },
             visibility: { display: 'grid' as const }
@@ -218,21 +236,21 @@ describe('Layout Manager', () => {
     });
 
     it('should get layout configuration for mobile breakpoint', () => {
-      const config = layoutManager.getLayoutConfig('test-component', 'mobile');
+      const config = layoutManager.getLayoutConfig('test-component', 'sm');
       expect(config).toBeTruthy();
       expect(config?.flexbox?.direction).toBe('column');
       expect(config?.spacing.padding).toBe('1rem');
     });
 
     it('should get layout configuration for tablet breakpoint', () => {
-      const config = layoutManager.getLayoutConfig('test-component', 'tablet');
+      const config = layoutManager.getLayoutConfig('test-component', 'md');
       expect(config).toBeTruthy();
       expect(config?.grid?.columns).toBe(2);
       expect(config?.spacing.padding).toBe('1.5rem');
     });
 
     it('should return null for unregistered component', () => {
-      const config = layoutManager.getLayoutConfig('nonexistent-component', 'mobile');
+      const config = layoutManager.getLayoutConfig('nonexistent-component', 'sm');
       expect(config).toBeNull();
     });
   });
@@ -242,25 +260,25 @@ describe('Layout Manager', () => {
       const config = {
         component: 'test-component',
         layouts: {
-          mobile: {
+          sm: {
             flexbox: { direction: 'column' as const, wrap: 'nowrap' as const, justify: 'flex-start' as const, align: 'stretch' as const },
             spacing: { padding: '1rem', margin: '0' },
             visibility: { display: 'flex' as const },
             className: 'mobile-layout'
           },
-          tablet: {
+          md: {
             grid: { columns: 2, gap: '1.5rem' },
             spacing: { padding: '1.5rem', margin: '0' },
             visibility: { display: 'grid' as const },
             className: 'tablet-layout'
           },
-          desktop: {
+          lg: {
             grid: { columns: 3, gap: '2rem' },
             spacing: { padding: '2rem', margin: '0' },
             visibility: { display: 'grid' as const },
             className: 'desktop-layout'
           },
-          'large-desktop': {
+          xl: {
             grid: { columns: 4, gap: '2.5rem' },
             spacing: { padding: '2.5rem', margin: '0' },
             visibility: { display: 'grid' as const },
@@ -273,7 +291,7 @@ describe('Layout Manager', () => {
     });
 
     it('should apply mobile layout styles', () => {
-      layoutManager.applyLayout('mobile', 'test-component', mockElement);
+      layoutManager.applyLayout('sm', 'test-component', mockElement);
       
       expect(mockElement.style.display).toBe('flex');
       expect(mockElement.style.flexDirection).toBe('column');
@@ -282,7 +300,7 @@ describe('Layout Manager', () => {
     });
 
     it('should apply tablet grid layout styles', () => {
-      layoutManager.applyLayout('tablet', 'test-component', mockElement);
+      layoutManager.applyLayout('md', 'test-component', mockElement);
       
       expect(mockElement.style.display).toBe('grid');
       expect(mockElement.style.gridTemplateColumns).toBe('repeat(2, 1fr)');
@@ -292,14 +310,14 @@ describe('Layout Manager', () => {
     });
 
     it('should emit layout change event', () => {
-      layoutManager.applyLayout('desktop', 'test-component', mockElement);
+      layoutManager.applyLayout('lg', 'test-component', mockElement);
       
       expect(mockWindow.dispatchEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'layoutChange',
           detail: expect.objectContaining({
             component: 'test-component',
-            breakpoint: 'desktop'
+            breakpoint: 'lg'
           })
         })
       );
@@ -311,26 +329,26 @@ describe('Layout Patterns', () => {
   it('should generate mobile stack pattern', () => {
     const pattern = LayoutPatterns.mobileStack('1.5rem');
     
-    expect(pattern.mobile.flexbox?.direction).toBe('column');
-    expect(pattern.mobile.flexbox?.gap).toBe('1.5rem');
-    expect(pattern.mobile.spacing.padding).toBe('1rem');
+    expect(pattern.sm.flexbox?.direction).toBe('column');
+    expect(pattern.sm.flexbox?.gap).toBe('1.5rem');
+    expect(pattern.sm.spacing.padding).toBe('1rem');
   });
 
   it('should generate responsive grid pattern', () => {
     const pattern = LayoutPatterns.responsiveGrid(1, 2, 3);
     
-    expect(pattern.mobile.grid?.columns).toBe(1);
-    expect(pattern.tablet.grid?.columns).toBe(2);
-    expect(pattern.desktop.grid?.columns).toBe(3);
-    expect(pattern['large-desktop'].grid?.columns).toBe(4);
+    expect(pattern.sm.grid?.columns).toBe(1);
+    expect(pattern.md.grid?.columns).toBe(2);
+    expect(pattern.lg.grid?.columns).toBe(3);
+    expect(pattern.xl.grid?.columns).toBe(4);
   });
 
   it('should generate sidebar layout pattern', () => {
     const pattern = LayoutPatterns.sidebarLayout();
     
-    expect(pattern.mobile.flexbox?.direction).toBe('column');
-    expect(pattern.tablet.flexbox?.direction).toBe('column');
-    expect(pattern.desktop.grid?.columns).toBe('250px 1fr');
-    expect(pattern['large-desktop'].grid?.columns).toBe('300px 1fr');
+    expect(pattern.sm.flexbox?.direction).toBe('column');
+    expect(pattern.md.flexbox?.direction).toBe('column');
+    expect(pattern.lg.grid?.columns).toBe('250px 1fr');
+    expect(pattern.xl.grid?.columns).toBe('300px 1fr');
   });
 });
