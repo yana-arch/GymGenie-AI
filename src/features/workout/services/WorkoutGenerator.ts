@@ -1,109 +1,8 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { UserProfile, WorkoutPlan, WorkoutDay, Exercise, WorkoutAnalysis, Recipe } from "../types";
+import { UserProfile, WorkoutPlan, WorkoutDay, Exercise, ExerciseDetails } from "@/types";
 
 // Note: In a real production app, never expose API keys on the client side.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-/**
- * Uses Gemini Vision (Flash) to identify gym equipment from an image.
- */
-export const identifyEquipment = async (base64Image: string): Promise<string[]> => {
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              mimeType: 'image/jpeg',
-              data: base64Image
-            }
-          },
-          {
-            text: "Analyze this image and list all visible gym equipment. Return ONLY a JSON array of strings, e.g., [\"Dumbbells\", \"Treadmill\"]. If no equipment is found, return an empty array."
-          }
-        ]
-      },
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING }
-        }
-      }
-    });
-
-    if (response.text) {
-      return JSON.parse(response.text) as string[];
-    }
-    return [];
-  } catch (error) {
-    console.error("Vision API Error:", error);
-    throw new Error("Failed to identify equipment.");
-  }
-};
-
-/**
- * Uses Gemini Vision to identify food ingredients and suggest recipes.
- */
-export const generateRecipesFromImage = async (base64Image: string, user: UserProfile): Promise<Recipe[]> => {
-  try {
-    const prompt = `
-      Analyze the food ingredients in this image.
-      Based on the ingredients found AND the user's profile below, suggest 3 healthy recipes.
-      
-      User Profile:
-      - TDEE: ${user.tdee} calories
-      - Goal: ${user.goal}
-      
-      Requirements:
-      1. Recipes must use the detected ingredients as main components.
-      2. Provide approximate macros (Protein, Carbs, Fat) and Calories.
-      3. Keep cooking time under 45 minutes.
-    `;
-
-    const schema: Schema = {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          name: { type: Type.STRING },
-          calories: { type: Type.INTEGER },
-          protein: { type: Type.INTEGER },
-          carbs: { type: Type.INTEGER },
-          fats: { type: Type.INTEGER },
-          ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
-          instructions: { type: Type.ARRAY, items: { type: Type.STRING } },
-          cookingTimeMinutes: { type: Type.INTEGER }
-        },
-        required: ["name", "calories", "protein", "carbs", "fats", "ingredients", "instructions", "cookingTimeMinutes"]
-      }
-    };
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview', 
-      contents: {
-        parts: [
-          { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
-          { text: prompt }
-        ]
-      },
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: schema
-      }
-    });
-
-    if (response.text) {
-      const recipes = JSON.parse(response.text);
-      return recipes.map((r: any) => ({ ...r, id: crypto.randomUUID() }));
-    }
-    return [];
-  } catch (error) {
-    console.error("Recipe API Error:", error);
-    throw new Error("Failed to generate recipes.");
-  }
-};
 
 /**
  * Uses Gemini Pro to generate a structured 4-week workout plan.
@@ -458,13 +357,6 @@ export const modifyWorkoutDay = async (
   }
 };
 
-export interface ExerciseDetails {
-  targetMuscles: string[];
-  instructions: string[];
-  commonMistakes: string[];
-  proTips: string[];
-}
-
 /**
  * Fetches detailed instructions for a specific exercise.
  */
@@ -547,76 +439,5 @@ export const swapExercise = async (
   } catch (error) {
     console.error("Swap Exercise API Error:", error);
     throw new Error("Failed to swap exercise.");
-  }
-};
-
-export const analyzeWorkoutSession = async (
-  durationMinutes: number,
-  completedCount: number,
-  totalCount: number,
-  averageGapSeconds: number
-): Promise<WorkoutAnalysis> => {
-  try {
-    const prompt = `
-      Analyze this workout session based on the metrics.
-      
-      Metrics:
-      - Duration: ${durationMinutes} minutes
-      - Exercises Completed: ${completedCount}/${totalCount}
-      - Avg Rest/Gap between completion: ${averageGapSeconds} seconds
-      
-      Infer the user's "Mood" and "Attitude":
-      - Very short gaps (<45s) might mean "Rushing" or "High Intensity".
-      - Long gaps (>4 mins) might mean "Distracted" or "Powerlifting Rest".
-      - Consistent medium gaps mean "In the Zone".
-      - Low completion rate means "Giving Up".
-      
-      Return JSON:
-      {
-        "score": number (1-10 performance score),
-        "mood": string (e.g., "Laser Focused", "Distracted", "Rushing", "Beast Mode"),
-        "summary": string (1 sentence observation),
-        "advice": string (1 sentence constructive advice for next time)
-      }
-    `;
-
-    const schema: Schema = {
-      type: Type.OBJECT,
-      properties: {
-        score: { type: Type.INTEGER },
-        mood: { type: Type.STRING },
-        summary: { type: Type.STRING },
-        advice: { type: Type.STRING }
-      },
-      required: ["score", "mood", "summary", "advice"]
-    };
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: schema
-      }
-    });
-
-    if (response.text) {
-        return JSON.parse(response.text);
-    }
-    return {
-        score: 7,
-        mood: "Balanced",
-        summary: "Good effort overall.",
-        advice: "Keep consistent pace."
-    };
-
-  } catch (e) {
-      console.error(e);
-      return {
-          score: 5,
-          mood: "Unknown",
-          summary: "Workout completed.",
-          advice: "Great job showing up."
-      };
   }
 };

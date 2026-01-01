@@ -1,7 +1,7 @@
-import React from 'react';
-import { useBreakpoint } from '../hooks/useBreakpoint';
-import { useResponsiveComponent } from '../hooks/useLayoutManager';
-import { LayoutPatterns } from '../utils/layoutManager';
+import React, { memo, useCallback } from 'react';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { useResponsiveComponent } from '@/hooks/useLayoutManager';
+import { LayoutPatterns } from '@/utils/layoutManager';
 import { 
   CheckCircle2, 
   Circle, 
@@ -41,7 +41,7 @@ export interface ResponsiveWorkoutCardProps {
 }
 
 // Mobile vertical layout component
-const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
+const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = memo(({
   exercise,
   index,
   totalExercises,
@@ -55,6 +55,42 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
   onViewDetails,
   className = ''
 }) => {
+  // Memoized event handlers
+  const handleToggleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isReadOnly) {
+      onToggle?.(exercise.id);
+    }
+  }, [isReadOnly, onToggle, exercise.id]);
+
+  const handleMoveUpClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMoveUp?.(exercise.id);
+  }, [onMoveUp, exercise.id]);
+
+  const handleMoveDownClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMoveDown?.(exercise.id);
+  }, [onMoveDown, exercise.id]);
+
+  const handleSwapClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isReadOnly) {
+      onSwap?.(exercise.id, exercise.name);
+    }
+  }, [isReadOnly, onSwap, exercise.id, exercise.name]);
+
+  const handleDetailsClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onViewDetails?.(exercise.name);
+  }, [onViewDetails, exercise.name]);
+
+  const handleExerciseNameClick = useCallback((e: React.MouseEvent) => {
+    if (!isReordering && !isReadOnly) {
+      e.stopPropagation();
+      onToggle?.(exercise.id);
+    }
+  }, [isReordering, isReadOnly, onToggle, exercise.id]);
   return (
     <div 
       className={`group bg-white p-4 rounded-2xl border transition-all duration-200 relative overflow-hidden touch-target ${
@@ -79,10 +115,7 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
           {isReordering ? (
             <div className="flex flex-col gap-1">
               <button 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  onMoveUp?.(exercise.id); 
-                }}
+                onClick={handleMoveUpClick}
                 disabled={index === 0}
                 className="p-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100 touch-target"
                 aria-label="Move exercise up"
@@ -90,10 +123,7 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                 <ArrowUp size={16} />
               </button>
               <button 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  onMoveDown?.(exercise.id); 
-                }}
+                onClick={handleMoveDownClick}
                 disabled={index === totalExercises - 1}
                 className="p-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100 touch-target"
                 aria-label="Move exercise down"
@@ -103,12 +133,7 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
             </div>
           ) : (
             <button 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                if (!isReadOnly) {
-                  onToggle?.(exercise.id); 
-                }
-              }}
+              onClick={handleToggleClick}
               disabled={isReadOnly}
               className={`mt-1 transition-colors touch-target ${
                 isReadOnly 
@@ -128,12 +153,7 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
           
           {/* Exercise Name */}
           <h3 
-            onClick={(e) => { 
-              if (!isReordering && !isReadOnly) { 
-                e.stopPropagation(); 
-                onToggle?.(exercise.id); 
-              }
-            }}
+            onClick={handleExerciseNameClick}
             className={`font-bold text-lg flex-1 ${
               !isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'
             } ${
@@ -148,12 +168,7 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
           {/* Action Buttons */}
           <div className="flex items-center gap-1">
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isReadOnly) {
-                  onSwap?.(exercise.id, exercise.name);
-                }
-              }}
+              onClick={handleSwapClick}
               disabled={isSwapping || isReadOnly}
               className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed touch-target"
               title={isReadOnly ? "Cannot modify logged workout" : "Swap for alternative"}
@@ -161,10 +176,7 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
               <Shuffle size={18} />
             </button>
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetails?.(exercise.name);
-              }}
+              onClick={handleDetailsClick}
               className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-2 rounded-lg transition-all touch-target"
               title="View instructions"
             >
@@ -191,7 +203,9 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+MobileWorkoutCard.displayName = 'MobileWorkoutCard';
 
 // Tablet grid layout component
 const TabletWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
@@ -502,11 +516,11 @@ const DesktopWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
 };
 
 // Main responsive workout card component
-const ResponsiveWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = (props) => {
+const ResponsiveWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = memo((props) => {
   const { isMobile, isTablet, isDesktop, isLargeDesktop } = useBreakpoint();
 
   // Register responsive component
-  const { ref } = useResponsiveComponent(
+  const { ref } = useResponsiveComponent<HTMLDivElement>(
     'workout-card',
     LayoutPatterns.mobileStack('1rem'),
     { priority: 2 }
@@ -543,7 +557,9 @@ const ResponsiveWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = (props) => {
       <MobileWorkoutCard {...props} />
     </div>
   );
-};
+});
+
+ResponsiveWorkoutCard.displayName = 'ResponsiveWorkoutCard';
 
 // Container component for workout card lists
 export const ResponsiveWorkoutCardList: React.FC<{
@@ -557,7 +573,7 @@ export const ResponsiveWorkoutCardList: React.FC<{
   onSwap?: (exerciseId: string, exerciseName: string) => void;
   onViewDetails?: (exerciseName: string) => void;
   className?: string;
-}> = ({
+}> = memo(({
   exercises,
   isReordering = false,
   isReadOnly = false,
@@ -569,28 +585,28 @@ export const ResponsiveWorkoutCardList: React.FC<{
   onViewDetails,
   className = ''
 }) => {
-  const { isMobile, isTablet, isDesktop, isLargeDesktop } = useBreakpoint();
+  const { isMobile, isTablet } = useBreakpoint();
 
   // Register responsive component for the list container
-  const { ref } = useResponsiveComponent(
+  const { ref } = useResponsiveComponent<HTMLDivElement>(
     'workout-card-list',
     {
-      mobile: {
+      sm: {
         flexbox: { direction: 'column', wrap: 'nowrap', justify: 'flex-start', align: 'stretch', gap: '1rem' },
         spacing: { padding: '0', margin: '0' },
         visibility: { display: 'flex' }
       },
-      tablet: {
+      md: {
         grid: { columns: 2, gap: '1.5rem' },
         spacing: { padding: '0', margin: '0' },
         visibility: { display: 'grid' }
       },
-      desktop: {
+      lg: {
         grid: { columns: 1, gap: '1rem' },
         spacing: { padding: '0', margin: '0' },
         visibility: { display: 'grid' }
       },
-      'large-desktop': {
+      xl: {
         grid: { columns: 1, gap: '1rem' },
         spacing: { padding: '0', margin: '0' },
         visibility: { display: 'grid' }
@@ -600,7 +616,7 @@ export const ResponsiveWorkoutCardList: React.FC<{
   );
 
   // Determine container classes based on breakpoint
-  const getContainerClasses = () => {
+  const getContainerClasses = useCallback(() => {
     if (isMobile()) {
       return 'space-y-4 flex-1';
     }
@@ -608,7 +624,7 @@ export const ResponsiveWorkoutCardList: React.FC<{
       return 'grid grid-cols-2 gap-6 flex-1';
     }
     return 'space-y-4 flex-1'; // Desktop uses single column
-  };
+  }, [isMobile, isTablet]);
 
   return (
     <div 
@@ -634,6 +650,8 @@ export const ResponsiveWorkoutCardList: React.FC<{
       ))}
     </div>
   );
-};
+});
+
+ResponsiveWorkoutCardList.displayName = 'ResponsiveWorkoutCardList';
 
 export default ResponsiveWorkoutCard;

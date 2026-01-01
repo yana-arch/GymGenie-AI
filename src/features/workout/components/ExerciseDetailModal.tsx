@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { getExerciseDetails, ExerciseDetails } from '../services/geminiService';
+import { getExerciseDetails } from '@/src/features/workout/services/WorkoutGenerator';
+import { ExerciseDetails } from '@/types';
 import { X, Loader2, Target, ListOrdered, AlertTriangle, Lightbulb, Youtube } from 'lucide-react';
 
 interface ExerciseDetailModalProps {

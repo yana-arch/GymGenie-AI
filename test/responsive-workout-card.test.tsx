@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ResponsiveWorkoutCard, { ResponsiveWorkoutCardList, Exercise } from '../components/ResponsiveWorkoutCard';
+import ResponsiveWorkoutCard, { ResponsiveWorkoutCardList, Exercise } from '@/components/ResponsiveWorkoutCard';
 
 // Mock the breakpoint hook
 const mockBreakpoint = {
@@ -13,12 +13,12 @@ const mockBreakpoint = {
   getCurrentBreakpoint: vi.fn(() => 'mobile'),
 };
 
-vi.mock('../hooks/useBreakpoint', () => ({
+vi.mock('@/hooks/useBreakpoint', () => ({
   useBreakpoint: () => mockBreakpoint,
 }));
 
 // Mock the layout manager hook
-vi.mock('../hooks/useLayoutManager', () => ({
+vi.mock('@/hooks/useLayoutManager', () => ({
   useResponsiveComponent: () => ({
     ref: { current: null },
     currentBreakpoint: 'mobile',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '@/context/AppContext';
 import { X, Plus, Timer } from 'lucide-react';
 
 const RestTimer = () => {
