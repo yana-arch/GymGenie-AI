@@ -13,3 +13,4 @@ export * from './base';
 // Analyzers
 export * from './dead-code';
 export * from './unused-imports';
+export * from './duplicate-code';
