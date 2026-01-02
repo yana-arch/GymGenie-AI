@@ -1,0 +1,27 @@
+{
+  "deadCode": {
+    "enabled": true
+  },
+  "unusedImports": {
+    "enabled": true,
+    "autoFix": true
+  },
+  "duplicates": {
+    "enabled": false
+  },
+  "orphanedFiles": {
+    "enabled": true
+  },
+  "typeOptimization": {
+    "enabled": false
+  },
+  "serviceAnalysis": {
+    "enabled": false
+  },
+  "flowValidation": {
+    "enabled": false
+  },
+  "dependencies": {
+    "enabled": false
+  }
+}

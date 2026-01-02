@@ -1,0 +1,69 @@
+{
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ],
+  "entryPoints": [
+    "index.tsx",
+    "App.tsx",
+    "vite.config.ts"
+  ],
+  "deadCode": {
+    "enabled": true,
+    "checkDynamicImports": true,
+    "confidenceThreshold": "medium"
+  },
+  "unusedImports": {
+    "enabled": true,
+    "autoFix": false,
+    "preserveTypeImports": true
+  },
+  "duplicates": {
+    "enabled": true,
+    "minLines": 5,
+    "minTokens": 50,
+    "similarityThreshold": 0.85
+  },
+  "orphanedFiles": {
+    "enabled": true,
+    "excludePatterns": [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "**/vite.config.ts",
+      "**/vitest.config.ts",
+      "**/tailwind.config.js",
+      "**/postcss.config.js"
+    ]
+  },
+  "typeOptimization": {
+    "enabled": true,
+    "suggestCentralization": true
+  },
+  "serviceAnalysis": {
+    "enabled": true,
+    "checkIntegration": true
+  },
+  "flowValidation": {
+    "enabled": true,
+    "enforceReduxPatterns": true,
+    "enforceServiceLayer": true
+  },
+  "dependencies": {
+    "enabled": true,
+    "detectCircular": true,
+    "visualize": false
+  }
+}

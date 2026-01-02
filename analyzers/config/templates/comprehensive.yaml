@@ -1,0 +1,65 @@
+include:
+  - "src/**/*.ts"
+  - "src/**/*.tsx"
+  - "**/*.ts"
+  - "**/*.tsx"
+
+exclude:
+  - "node_modules/**"
+  - "dist/**"
+  - "build/**"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+
+entryPoints:
+  - "index.tsx"
+  - "App.tsx"
+  - "vite.config.ts"
+
+deadCode:
+  enabled: true
+  checkDynamicImports: true
+  confidenceThreshold: "high"
+
+unusedImports:
+  enabled: true
+  autoFix: true
+  preserveTypeImports: true
+
+duplicates:
+  enabled: true
+  minLines: 3
+  minTokens: 30
+  similarityThreshold: 0.9
+
+orphanedFiles:
+  enabled: true
+  excludePatterns:
+    - "**/*.test.ts"
+    - "**/*.test.tsx"
+    - "**/*.spec.ts"
+    - "**/*.spec.tsx"
+    - "**/vite.config.ts"
+    - "**/vitest.config.ts"
+    - "**/tailwind.config.js"
+    - "**/postcss.config.js"
+
+typeOptimization:
+  enabled: true
+  suggestCentralization: true
+
+serviceAnalysis:
+  enabled: true
+  checkIntegration: true
+
+flowValidation:
+  enabled: true
+  enforceReduxPatterns: true
+  enforceServiceLayer: true
+
+dependencies:
+  enabled: true
+  detectCircular: true
+  visualize: true
