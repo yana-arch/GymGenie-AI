@@ -14,3 +14,4 @@ export * from './base';
 export * from './dead-code';
 export * from './unused-imports';
 export * from './duplicate-code';
+export * from './orphaned-files';
