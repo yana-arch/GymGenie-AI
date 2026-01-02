@@ -15,3 +15,7 @@ export * from './dead-code';
 export * from './unused-imports';
 export * from './duplicate-code';
 export * from './orphaned-files';
+export * from './type-system';
+export * from './service-integration';
+export * from './code-flow';
+export * from './dependency-graph';
