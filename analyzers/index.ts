@@ -40,3 +40,9 @@ export * from './bundle-size';
 
 // Pipeline
 export * from './pipeline';
+
+// Documentation
+export * from './documentation';
+
+// Cache
+export * from './cache';

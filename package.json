@@ -9,7 +9,16 @@
     "preview": "vite preview",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "cleanup": "tsx analyzers/cli/index.ts",
+    "cleanup:analyze": "tsx analyzers/cli/index.ts analyze",
+    "cleanup:execute": "tsx analyzers/cli/index.ts cleanup",
+    "cleanup:report": "tsx analyzers/cli/index.ts report",
+    "cleanup:rollback": "tsx analyzers/cli/index.ts rollback",
+    "cleanup:metrics": "tsx analyzers/cli/index.ts metrics",
+    "setup:hooks": "./scripts/setup-git-hooks.sh",
+    "scheduled:cleanup": "./scripts/scheduled-cleanup.sh",
+    "analysis:full": "tsx scripts/run-full-analysis.ts"
   },
   "dependencies": {
     "@google/genai": "^1.34.0",

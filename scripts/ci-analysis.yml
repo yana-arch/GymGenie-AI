@@ -1,0 +1,97 @@
+# GitHub Actions workflow for automated code analysis
+# Place this in .github/workflows/code-analysis.yml
+
+name: Code Analysis
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run weekly on Monday at 9 AM
+    - cron: "0 9 * * 1"
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run dead code analysis
+        run: npx knip --reporter json > reports/dead-code.json
+        continue-on-error: true
+
+      - name: Run duplicate code detection
+        run: npx jscpd --reporters json --output reports/
+        continue-on-error: true
+
+      - name: Run full analysis
+        run: npm run cleanup:analyze
+        continue-on-error: true
+
+      - name: Generate report
+        run: npm run cleanup:report
+        continue-on-error: true
+
+      - name: Upload analysis reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: analysis-reports
+          path: reports/
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('reports/analysis-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Code Analysis Results\n\n${report}`
+            });
+
+  quality-metrics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Calculate quality metrics
+        run: npm run cleanup:metrics
+
+      - name: Upload metrics
+        uses: actions/upload-artifact@v3
+        with:
+          name: quality-metrics
+          path: reports/metrics.json
+          retention-days: 90
