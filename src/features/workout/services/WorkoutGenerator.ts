@@ -1,5 +1,7 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { UserProfile, WorkoutPlan, WorkoutDay, Exercise, ExerciseDetails } from "@/types";
+import { z } from 'zod';
+import { UserProfile, WorkoutPlan, WorkoutDay, Exercise, ExerciseDetails, WorkoutExercise } from "@/types";
+import exerciseRegistry from "@/src/data/ExerciseRegistry.json";
 import {
   generateWorkoutPlanWithValidation,
   modifyWorkoutDayWithValidation,
@@ -8,13 +10,62 @@ import {
   getAiClient,
   getModelName
 } from "@/services/enhanced-gemini-service";
+import { ExerciseSwapResponseSchema } from "@/services/api-validation";
 
 /**
  * Uses Gemini Pro to generate a structured 4-week workout plan.
  * Delegates to the enhanced service with validation.
  */
+/**
+ * Helper to match AI generated exercise names with our static registry
+ * to enrich with metadata (images, IDs)
+ */
+const enrichPlanWithRegistry = (plan: WorkoutPlan): WorkoutPlan => {
+    // Helper for fuzzy matching (very simple substring match for now)
+    const findRegistryMatch = (name: string) => {
+        const lowerName = name.toLowerCase();
+        return exerciseRegistry.find(ex =>
+            ex.name.toLowerCase() === lowerName ||
+            ex.aliases.some(alias => alias.toLowerCase() === lowerName) ||
+            ex.name.toLowerCase().includes(lowerName) ||
+            lowerName.includes(ex.name.toLowerCase())
+        );
+    };
+
+    return {
+        ...plan,
+        weeks: plan.weeks.map(week => ({
+            ...week,
+            days: week.days.map(day => ({
+                ...day,
+                exercises: day.exercises.map(exercise => {
+                    const match = findRegistryMatch(exercise.name);
+                    // We don't overwrite the ID if it's already a UUID from generation,
+                    // but we might want to store the registry ID for reference.
+                    // For now, let's keep the name from AI but maybe standardise it if matched?
+                    // Actually, let's append the image URL if matched.
+                    // Since Exercise type doesn't have image field yet, we rely on UI to look it up by name,
+                    // OR we modify the Exercise type.
+                    // Given we can't easily change types.ts globally right this second without reading it again,
+                    // we will rely on the UI component (LiveWorkoutSession) to look up the registry based on name.
+                    // However, we can at least standardise the NAME to match our registry if found.
+                    
+                    if (match) {
+                        return {
+                            ...exercise,
+                            name: match.name // Standardise name
+                        };
+                    }
+                    return exercise;
+                })
+            }))
+        }))
+    };
+};
+
 export const generateWorkoutPlan = async (user: UserProfile, equipment: string[]): Promise<WorkoutPlan> => {
-  return generateWorkoutPlanWithValidation(user, equipment);
+  const plan = await generateWorkoutPlanWithValidation(user, equipment);
+  return enrichPlanWithRegistry(plan);
 };
 
 /**
@@ -206,6 +257,89 @@ export const getExerciseDetails = async (exerciseName: string): Promise<Exercise
 export const swapExercise = async (
   currentExerciseName: string,
   availableEquipment: string[]
-): Promise<Omit<Exercise, 'id' | 'isCompleted'>> => {
+): Promise<z.infer<typeof ExerciseSwapResponseSchema>> => {
   return swapExerciseWithValidation(currentExerciseName, availableEquipment);
+};
+
+/**
+ * Generates suggested sets, reps, and rest times for a list of exercises using AI.
+ */
+export const generateSetsForExercises = async (
+  user: UserProfile,
+  exercises: Exercise[]
+): Promise<WorkoutExercise[]> => {
+  if (exercises.length === 0) return [];
+
+  const ai = getAiClient();
+  const model = getModelName();
+
+  const prompt = `
+    Based on the user's profile and the provided list of exercises, suggest appropriate sets, reps, and rest times for a single workout day.
+    
+    User Profile:
+    - Age: ${user.age}
+    - Gender: ${user.gender}
+    - Weight: ${user.weightKg}kg
+    - Height: ${user.heightCm}cm
+    - Goal: ${user.goal}
+    - Equipment: ${user.equipment?.join(', ') || 'None'}
+    ${user.injuries ? `- Injuries: ${user.injuries}` : ''}
+
+    Exercises for the day:
+    ${exercises.map(ex => `- ${ex.name} (Primary Muscle: ${ex.primaryMuscle.join('/')}, Equipment: ${ex.equipment.join('/')})`).join('\n')}
+
+    Provide the output as a JSON array of exercises, each with suggested sets, reps, and restSeconds.
+    Ensure 'id', 'name', 'sets', 'reps', 'restSeconds', 'notes' and 'isCompleted' are present.
+    For 'notes', provide concise progressive overload suggestions (e.g., "Increase weight next time").
+    Do NOT include any additional text or markdown outside the JSON array.
+  `;
+
+  const schema: Schema = {
+    type: Type.ARRAY,
+    items: {
+      type: Type.OBJECT,
+      properties: {
+        id: { type: Type.STRING },
+        name: { type: Type.STRING },
+        sets: { type: Type.INTEGER },
+        reps: { type: Type.STRING },
+        restSeconds: { type: Type.INTEGER },
+        notes: { type: Type.STRING },
+        isCompleted: { type: Type.BOOLEAN },
+      },
+      required: ["id", "name", "sets", "reps", "restSeconds", "notes", "isCompleted"]
+    }
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: schema
+      }
+    });
+
+    const parsedResponse = JSON.parse(response.text);
+    return parsedResponse.map((item: any) => ({
+      ...item,
+      id: exercises.find(ex => ex.name === item.name)?.id || crypto.randomUUID(), // Preserve original ID if possible
+      isCompleted: false // Ensure it's false initially
+    }));
+  } catch (error) {
+    console.error("AI Generate Sets API Error:", error);
+    // Fallback: return exercises with default sets/reps
+    return exercises.map(ex => ({
+      id: ex.id,
+      name: ex.name,
+      sets: 3,
+      reps: '8-12',
+      restSeconds: 60,
+      notes: 'AI suggestion failed, default values.',
+      isCompleted: false,
+    }));
+  }
 };

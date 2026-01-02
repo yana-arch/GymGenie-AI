@@ -14,12 +14,22 @@ interface UserSliceState {
     defaultRestTime: number;
     units: 'metric' | 'imperial';
   };
+  streak: {
+    currentStreak: number;
+    longestStreak: number;
+    lastWorkoutDate: string | null;
+  };
 }
 
 const initialState: UserSliceState = {
   profile: null,
   equipment: [],
   currentStep: 'onboarding',
+  streak: {
+    currentStreak: 0,
+    longestStreak: 0,
+    lastWorkoutDate: null
+  },
   aiConfig: StorageService.getAiConfig() || {
     provider: 'google',
     apiKey: '',
@@ -97,11 +107,45 @@ const userSlice = createSlice({
     setUnits: (state, action: PayloadAction<'metric' | 'imperial'>) => {
       state.preferences.units = action.payload;
     },
+
+    updateStreak: (state) => {
+      const today = new Date().toISOString().split('T')[0];
+      const lastWorkout = state.streak.lastWorkoutDate;
+
+      if (lastWorkout === today) {
+        return; // Already updated today
+      }
+
+      if (lastWorkout) {
+        const lastDate = new Date(lastWorkout);
+        const currentDate = new Date(today);
+        const diffTime = Math.abs(currentDate.getTime() - lastDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          state.streak.currentStreak += 1;
+        } else {
+          state.streak.currentStreak = 1;
+        }
+      } else {
+        state.streak.currentStreak = 1;
+      }
+
+      if (state.streak.currentStreak > state.streak.longestStreak) {
+        state.streak.longestStreak = state.streak.currentStreak;
+      }
+      state.streak.lastWorkoutDate = today;
+    },
     
     clearUserData: (state) => {
       state.profile = null;
       state.equipment = [];
       state.currentStep = 'onboarding';
+      state.streak = {
+        currentStreak: 0,
+        longestStreak: 0,
+        lastWorkoutDate: null
+      };
       // Keep preferences when clearing user data
     },
     
@@ -125,6 +169,7 @@ export const {
   toggleNotifications,
   setDefaultRestTime,
   setUnits,
+  updateStreak,
   clearUserData,
   resetAllUserData,
 } = userSlice.actions;

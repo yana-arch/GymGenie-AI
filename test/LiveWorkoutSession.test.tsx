@@ -1,13 +1,17 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from './test-utils';
 import LiveWorkoutSession from '../src/features/session/components/LiveWorkoutSession';
 import { useApp } from '../context/AppContext';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock context
-vi.mock('../context/AppContext', () => ({
-  useApp: vi.fn(),
-}));
+vi.mock('../context/AppContext', async (importOriginal) => {
+  const actual = await vi.importActual('../context/AppContext');
+  return {
+    ...actual,
+    useApp: vi.fn(),
+  };
+});
 
 // Mock child components
 vi.mock('@/src/features/workout/components/RestTimer', () => ({
@@ -47,10 +51,24 @@ describe('LiveWorkoutSession', () => {
   };
 
   const mockCurrentSession = {
+    id: 'session1',
     weekId: 'week1',
     dayId: 'day1',
     startTime: Date.now() - 600000, // 10 mins ago
-    state: 'active', // Ensure state is active for the completion check
+    state: 'active',
+    exerciseData: {},
+    completedExercises: 0,
+    totalExercises: 1,
+    isReadOnly: false,
+    updatedAt: Date.now(),
+    createdAt: Date.now(),
+    timestamp: Date.now(),
+    completedTime: null,
+    loggedTime: null,
+    exerciseTimestamps: {},
+    estimatedDuration: 30,
+    actualDuration: null,
+    environment: {},
   };
 
   beforeEach(() => {
@@ -109,7 +127,7 @@ describe('LiveWorkoutSession', () => {
 
     // Verify logWorkout called with correct params
     await waitFor(() => {
-      expect(mockLogWorkout).toHaveBeenCalledWith('week1', 'day1', 8);
+      expect(mockLogWorkout).toHaveBeenCalledWith('week1', 'day1', 8, expect.any(Object));
     });
 
     // Verify navigation

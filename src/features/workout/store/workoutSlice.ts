@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { WorkoutPlan, WorkoutDay, Exercise, WorkoutHistoryEntry } from '@/types';
+import { WorkoutPlan, WorkoutDay, Exercise, WorkoutExercise, WorkoutHistoryEntry } from '@/types';
 
 interface WorkoutSliceState {
   currentPlan: WorkoutPlan | null;
@@ -37,33 +37,27 @@ const workoutSlice = createSlice({
     
     toggleExercise: (state, action: PayloadAction<{ exerciseId: string; timestamp?: number }>) => {
       const { exerciseId, timestamp } = action.payload;
-      
+
       if (!state.currentPlan) return;
-      
+
       let found = false;
-      let exercise: Exercise | null = null;
-      
+
       // Find and toggle the exercise
       for (const week of state.currentPlan.weeks) {
         for (const day of week.days) {
           const foundExercise = day.exercises.find(e => e.id === exerciseId);
           if (foundExercise) {
             foundExercise.isCompleted = !foundExercise.isCompleted;
-            exercise = foundExercise;
             found = true;
+            if (foundExercise.isCompleted && timestamp) {
+              state.exerciseTimestamps[exerciseId] = timestamp;
+            } else {
+              delete state.exerciseTimestamps[exerciseId];
+            }
             break;
           }
         }
         if (found) break;
-      }
-      
-      // Update exercise timestamps
-      if (found && exercise) {
-        if (exercise.isCompleted && timestamp) {
-          state.exerciseTimestamps[exerciseId] = timestamp;
-        } else {
-          delete state.exerciseTimestamps[exerciseId];
-        }
       }
     },
     
@@ -119,23 +113,27 @@ const workoutSlice = createSlice({
       newExerciseData: Omit<Exercise, 'id' | 'isCompleted'>;
     }>) => {
       const { weekId, dayId, oldExerciseId, newExerciseData } = action.payload;
-      
+
       if (!state.currentPlan) return;
-      
+
       const week = state.currentPlan.weeks.find(w => w.id === weekId);
       const day = week?.days.find(d => d.id === dayId);
-      
+
       if (!day) return;
-      
+
       const index = day.exercises.findIndex(e => e.id === oldExerciseId);
       if (index === -1) return;
-      
-      const newExercise: Exercise = {
-        ...newExerciseData,
+
+      const newExercise: WorkoutExercise = {
         id: crypto.randomUUID(),
+        name: newExerciseData.name,
+        sets: 3, // Default sets
+        reps: '10', // Default reps
+        restSeconds: 60, // Default rest
+        notes: '', // Default notes
         isCompleted: false
       };
-      
+
       day.exercises[index] = newExercise;
     },
     

@@ -1,0 +1,140 @@
+[
+  {
+    "id": "c4704d6a-350b-5cf6-b795-a29668cdea6e",
+    "slug": "cable-squatting-curl",
+    "name": "cable squatting curl",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "equipment": [
+      "cable"
+    ],
+    "instructions": [
+      "Step:1 Attach a cable handle to the lowest setting on a cable machine.",
+      "Step:2 Stand facing the machine with your feet shoulder-width apart.",
+      "Step:3 Hold the cable handle with an underhand grip, palms facing up, and arms fully extended.",
+      "Step:4 Lower your body into a squat position, keeping your back straight and knees behind your toes.",
+      "Step:5 As you squat down, curl the cable handle towards your shoulders, keeping your elbows close to your sides.",
+      "Step:6 Pause for a moment at the top of the curl, squeezing your biceps.",
+      "Step:7 Slowly lower the cable handle back to the starting position, fully extending your arms.",
+      "Step:8 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/3XFdb1Z.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "74a02614-6001-562f-aeb6-29422446b9c3",
+    "slug": "cable-decline-fly",
+    "name": "cable decline fly",
+    "bodyPart": [
+      "chest"
+    ],
+    "primaryMuscle": [
+      "pectorals"
+    ],
+    "secondaryMuscles": [
+      "shoulders",
+      "triceps"
+    ],
+    "equipment": [
+      "cable"
+    ],
+    "instructions": [
+      "Step:1 Adjust the cable machine to a decline position.",
+      "Step:2 Stand facing away from the machine with your feet shoulder-width apart.",
+      "Step:3 Hold the handles with your palms facing forward and your arms extended straight out in front of you.",
+      "Step:4 Keeping a slight bend in your elbows, open your arms out to the sides in a controlled motion.",
+      "Step:5 Pause for a moment at the fully extended position, then slowly return to the starting position.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/7saC5zz.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "98cefc4a-6c12-55c1-b123-0f6ce426e884",
+    "slug": "cable-seated-curl",
+    "name": "cable seated curl",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "equipment": [
+      "cable"
+    ],
+    "instructions": [
+      "Step:1 Sit on a cable machine with your feet flat on the ground and your back straight.",
+      "Step:2 Grasp the cable attachment with an underhand grip, palms facing up, and your arms fully extended.",
+      "Step:3 Keeping your upper arms stationary, exhale and curl the cable attachment towards your shoulders, contracting your biceps.",
+      "Step:4 Pause for a moment at the top of the movement, squeezing your biceps.",
+      "Step:5 Inhale and slowly lower the cable attachment back to the starting position, fully extending your arms.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/8oYqOt9.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "5003f09f-3246-5ea6-b850-f583b2f13fc9",
+    "slug": "cable-seated-crunch",
+    "name": "cable seated crunch",
+    "bodyPart": [
+      "waist"
+    ],
+    "primaryMuscle": [
+      "abs"
+    ],
+    "secondaryMuscles": [
+      "obliques"
+    ],
+    "equipment": [
+      "cable"
+    ],
+    "instructions": [
+      "Step:1 Sit on a cable machine with your feet flat on the ground and your knees bent.",
+      "Step:2 Hold the cable handle with both hands and position it behind your head.",
+      "Step:3 Engage your abs and slowly curl your upper body forward, bringing your chest towards your knees.",
+      "Step:4 Pause for a moment at the top, then slowly return to the starting position.",
+      "Step:5 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/8xUv4J7.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

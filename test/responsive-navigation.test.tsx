@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from './test-utils';
 import '@testing-library/jest-dom';
 import ResponsiveNavigation from '@/components/ResponsiveNavigation';
 import { Dumbbell, Utensils, History, Calendar } from 'lucide-react';
@@ -16,6 +16,7 @@ const mockBreakpoint = {
 
 vi.mock('@/hooks/useBreakpoint', () => ({
   useBreakpoint: () => mockBreakpoint,
+  useIsDesktop: () => mockBreakpoint.isDesktop(),
 }));
 
 // Mock the layout manager hook

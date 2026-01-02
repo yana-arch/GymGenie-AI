@@ -1,0 +1,75 @@
+[
+  {
+    "id": "9b542acc-9300-52ce-9658-8c6446a3f402",
+    "slug": "lever-front-pulldown",
+    "name": "lever front pulldown",
+    "bodyPart": [
+      "back"
+    ],
+    "primaryMuscle": [
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "rhomboids",
+      "rear deltoids"
+    ],
+    "equipment": [
+      "leverage machine"
+    ],
+    "instructions": [
+      "Step:1 Adjust the seat height and position yourself on the machine with your knees under the pads and your feet flat on the ground.",
+      "Step:2 Grasp the handles with an overhand grip, slightly wider than shoulder-width apart.",
+      "Step:3 Sit upright with your chest lifted and your shoulders back, maintaining a slight arch in your lower back.",
+      "Step:4 Engage your lats and pull the handles down towards your chest, squeezing your shoulder blades together.",
+      "Step:5 Pause for a moment at the bottom of the movement, then slowly release the handles back to the starting position.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/7F1DVzn.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "8f24db2b-16a1-5294-b21c-b2b0cc42cbd0",
+    "slug": "lever-seated-row",
+    "name": "lever seated row",
+    "bodyPart": [
+      "back"
+    ],
+    "primaryMuscle": [
+      "upper back"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "forearms"
+    ],
+    "equipment": [
+      "leverage machine"
+    ],
+    "instructions": [
+      "Step:1 Adjust the seat height and footrests to a comfortable position.",
+      "Step:2 Sit on the machine with your chest against the pad and your feet on the footrests.",
+      "Step:3 Grasp the handles with an overhand grip, shoulder-width apart.",
+      "Step:4 Keep your back straight and your core engaged.",
+      "Step:5 Pull the handles towards your body, squeezing your shoulder blades together.",
+      "Step:6 Pause for a moment at the peak of the movement.",
+      "Step:7 Slowly release the handles and return to the starting position.",
+      "Step:8 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/7I6LNUG.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

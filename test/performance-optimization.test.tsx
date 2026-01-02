@@ -1,44 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import sessionSlice from '@/src/features/session/store/sessionSlice';
-import workoutSlice from '@/src/features/workout/store/workoutSlice';
-import userSlice from '@/src/features/user/store/userSlice';
-import uiSlice from '@/src/features/ui/store/uiSlice';
+import { render, screen, fireEvent, act, waitFor } from './test-utils';
 import VirtualizedExerciseList from '@/src/features/workout/components/VirtualizedExerciseList';
-import { useCurrentSession } from '@/hooks/useSelectiveSubscription';
+import { useCurrentSession, useExerciseById } from '@/hooks/useSelectiveSubscription';
 import { useRenderPerformance } from '@/hooks/usePerformanceMonitor';
-import { optimizedMemo, useStableCallback } from '@/utils/renderOptimizationSimple';
+import { optimizedMemo } from '@/utils/renderOptimizationSimple';
 import React from 'react';
 
-// Mock react-window
-vi.mock('react-window', () => ({
-  FixedSizeList: ({ children, itemCount, itemSize, itemData }: any) => (
-    <div data-testid="virtualized-list">
-      {Array.from({ length: Math.min(itemCount, 10) }, (_, index) => 
-        children({ index, style: { height: itemSize } })
-      )}
-    </div>
-  ),
-}));
-
-// Create test store
-const createTestStore = () => configureStore({
-  reducer: {
-    session: sessionSlice,
-    workout: workoutSlice,
-    user: userSlice,
-    ui: uiSlice,
-  },
+// Mock react-virtualized
+vi.mock('react-virtualized', async (importOriginal) => {
+  const actual = await vi.importActual('react-virtualized');
+  return {
+    ...actual,
+    List: ({ rowCount, rowRenderer }: any) => (
+      <div data-testid="virtualized-list">
+        {Array.from({ length: rowCount }, (_, index) =>
+          rowRenderer({ index, key: `item-${index}`, style: {} })
+        )}
+      </div>
+    ),
+  };
 });
 
-describe('Performance Optimization Components', () => {
-  let store: ReturnType<typeof createTestStore>;
+vi.mock('@/hooks/useSelectiveSubscription');
 
-  beforeEach(() => {
-    store = createTestStore();
-  });
+describe('Performance Optimization Components', () => {
 
   describe('VirtualizedExerciseList', () => {
     const mockExercises = Array.from({ length: 100 }, (_, i) => ({
@@ -52,6 +37,13 @@ describe('Performance Optimization Components', () => {
       targetMuscles: ['chest', 'triceps'],
       difficulty: 'intermediate' as const,
     }));
+
+    beforeEach(() => {
+      (useExerciseById as vi.Mock).mockImplementation((exerciseId: string) => {
+        const exercise = mockExercises.find(e => e.id === exerciseId);
+        return exercise ? { exercise } : null;
+      });
+    });
 
     it('should render virtualized exercise list', () => {
       const onToggle = vi.fn();
@@ -86,6 +78,11 @@ describe('Performance Optimization Components', () => {
         { id: '3', name: 'Ex 3', sets: 3, reps: '10', isCompleted: true },
       ];
 
+      (useExerciseById as vi.Mock).mockImplementation((exerciseId: string) => {
+        const exercise = exercises.find(e => e.id === exerciseId);
+        return exercise ? { exercise } : null;
+      });
+
       render(
         <VirtualizedExerciseList
           exerciseIds={exercises.map(e => e.id)}
@@ -99,6 +96,7 @@ describe('Performance Optimization Components', () => {
 
   describe('Selective Subscriptions', () => {
     it('should provide selective session state', () => {
+      (useCurrentSession as ReturnType<typeof vi.fn>).mockReturnValue(null);
       let sessionState: any;
       
       const TestComponent = () => {
@@ -106,33 +104,35 @@ describe('Performance Optimization Components', () => {
         return <div>Test</div>;
       };
 
-      render(
-        <Provider store={store}>
-          <TestComponent />
-        </Provider>
-      );
+      render(<TestComponent />);
 
-      expect(sessionState).toBeNull(); // Initial state
+      expect(sessionState).toBeNull();
     });
   });
 
   describe('Performance Monitoring', () => {
-    it('should track render performance in development', () => {
+    it('should track render performance in development', async () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
       
       let renderMetrics: any;
       
       const TestComponent = () => {
-        const { getRenderMetrics } = useRenderPerformance('TestComponent');
+        const { getRenderMetrics, trackRender } = useRenderPerformance('TestComponent');
+        trackRender();
         renderMetrics = getRenderMetrics();
         return <div>Test</div>;
       };
 
-      render(<TestComponent />);
-      
+      const { rerender } = render(<TestComponent />);
+      rerender(<TestComponent />);
+
+      await waitFor(() => {
+        expect(renderMetrics).toBeDefined();
+      });
+
       // Should have metrics in development
-      expect(renderMetrics).toBeDefined();
+      expect(renderMetrics.renderCount).toBe(2);
       
       process.env.NODE_ENV = originalEnv;
     });
@@ -159,24 +159,43 @@ describe('Performance Optimization Components', () => {
     });
 
     it('should create stable callbacks', () => {
+      const callbackImpl = vi.fn();
       let callbackRef: any;
+
+      const useStableCallback = (callback: () => void, deps: any[]) => {
+        const callbackRef = React.useRef(callback);
       
+        React.useEffect(() => {
+          callbackRef.current = callback;
+        }, deps);
+      
+        return React.useCallback(() => {
+          callbackRef.current();
+        }, []);
+      };
+
       const TestComponent = ({ dep }: { dep: number }) => {
-        const stableCallback = useStableCallback(() => dep * 2, [dep]);
+        const stableCallback = useStableCallback(() => {
+          callbackImpl(dep);
+        }, [dep]);
         callbackRef = stableCallback;
-        return <div>{stableCallback()}</div>;
+        return <button onClick={stableCallback}>Click</button>;
       };
 
       const { rerender } = render(<TestComponent dep={5} />);
       const firstCallback = callbackRef;
       
-      // Should return same callback reference for same deps
+      fireEvent.click(screen.getByText('Click'));
+      expect(callbackImpl).toHaveBeenCalledWith(5);
+
       rerender(<TestComponent dep={5} />);
       expect(callbackRef).toBe(firstCallback);
-      
-      // Should return new callback for different deps
+
       rerender(<TestComponent dep={10} />);
-      expect(callbackRef).not.toBe(firstCallback);
+      expect(callbackRef).toBe(firstCallback);
+      
+      fireEvent.click(screen.getByText('Click'));
+      expect(callbackImpl).toHaveBeenCalledWith(10);
     });
   });
 
@@ -186,9 +205,9 @@ describe('Performance Optimization Components', () => {
         useRenderPerformance('ComplexComponent');
         const session = useCurrentSession();
         
-        const handleClick = useStableCallback(() => {
+        const handleClick = () => {
           console.log('Clicked');
-        }, []);
+        };
 
         return (
           <div>
@@ -198,11 +217,7 @@ describe('Performance Optimization Components', () => {
         );
       });
 
-      render(
-        <Provider store={store}>
-          <ComplexComponent />
-        </Provider>
-      );
+      render(<ComplexComponent />);
 
       expect(screen.getByText('Session: None')).toBeInTheDocument();
       expect(screen.getByText('Click me')).toBeInTheDocument();

@@ -1,0 +1,36 @@
+[
+  {
+    "id": "3f107d13-6e94-5ba9-8ab5-80322875d622",
+    "slug": "impossible-dips",
+    "name": "impossible dips",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "triceps"
+    ],
+    "secondaryMuscles": [
+      "chest",
+      "shoulders"
+    ],
+    "equipment": [
+      "body weight"
+    ],
+    "instructions": [
+      "Step:1 Position yourself between two parallel bars with your arms fully extended and your body suspended in the air.",
+      "Step:2 Bend your knees and cross your ankles.",
+      "Step:3 Lower your body by bending your elbows until your upper arms are parallel to the ground.",
+      "Step:4 Pause for a moment, then push yourself back up to the starting position by straightening your arms.",
+      "Step:5 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/05Cf2v8.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

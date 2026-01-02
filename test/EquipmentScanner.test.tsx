@@ -1,18 +1,26 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import EquipmentScanner from '../components/EquipmentScanner';
-import { useApp } from '../context/AppContext';
-import { identifyEquipment, generateWorkoutPlan } from '../services/geminiService';
+import EquipmentScanner from '@/src/features/profile/components/EquipmentScanner';
+import { useApp } from '@/context/AppContext';
+import { identifyEquipment } from '@/src/features/profile/services/EquipmentIdentifier';
+import { generateWorkoutPlanWithValidation as generateWorkoutPlan } from '@/services/enhanced-gemini-service';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock dependencies
-vi.mock('../context/AppContext', () => ({
-  useApp: vi.fn(),
+vi.mock('@/context/AppContext', async (importOriginal) => {
+  const actual = await vi.importActual('@/context/AppContext');
+  return {
+    ...actual,
+    useApp: vi.fn(),
+  };
+});
+
+vi.mock('@/src/features/profile/services/EquipmentIdentifier', () => ({
+  identifyEquipment: vi.fn(),
 }));
 
-vi.mock('../services/geminiService', () => ({
-  identifyEquipment: vi.fn(),
-  generateWorkoutPlan: vi.fn(),
+vi.mock('@/services/enhanced-gemini-service', () => ({
+  generateWorkoutPlanWithValidation: vi.fn(),
 }));
 
 describe('EquipmentScanner', () => {
@@ -60,7 +68,23 @@ describe('EquipmentScanner', () => {
   });
 
   it('clears error when trying again', async () => {
-    (generateWorkoutPlan as any).mockRejectedValueOnce(new Error('Fail')).mockResolvedValueOnce({});
+    const mockValidPlan = {
+      weeks: [{
+        id: 'week1',
+        days: [{
+          id: 'day1',
+          title: 'Full Body Strength',
+          exercises: [{
+            id: 'ex1',
+            name: 'Squats',
+            sets: 3,
+            reps: '8-12',
+            restSeconds: 60
+          }]
+        }]
+      }]
+    };
+    (generateWorkoutPlan as any).mockRejectedValueOnce(new Error('Fail')).mockResolvedValueOnce(mockValidPlan);
     
     render(<EquipmentScanner />);
     

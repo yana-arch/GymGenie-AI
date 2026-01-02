@@ -5,7 +5,8 @@ import {
   ApiResponseValidator,
   ValidatedApiHandlers,
   ApiValidationErrorHandler,
-  ValidationError
+  ValidationError,
+  ExerciseSwapResponseSchema
 } from "./api-validation";
 import { StorageService } from "./storageService";
 
@@ -438,9 +439,9 @@ export const getExerciseDetailsWithValidation = async (exerciseName: string): Pr
  * Enhanced version of swapExercise with API response validation
  */
 export const swapExerciseWithValidation = async (
-  currentExerciseName: string, 
+  currentExerciseName: string,
   availableEquipment: string[]
-): Promise<Omit<Exercise, 'id' | 'isCompleted'>> => {
+): Promise<z.infer<typeof ExerciseSwapResponseSchema>> => {
   try {
     const prompt = `
       The user wants to SWAP the exercise "${currentExerciseName}" for something else.

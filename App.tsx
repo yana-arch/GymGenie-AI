@@ -12,6 +12,7 @@ const ProgressDashboard = React.lazy(() => import('./src/features/workout/compon
 const ProfileDashboard = React.lazy(() => import('./src/features/profile/components/ProfileDashboard'));
 const NutritionGenie = React.lazy(() => import('./src/features/nutrition/components/NutritionGenie'));
 const LiveWorkoutSession = React.lazy(() => import('./src/features/session/components/LiveWorkoutSession'));
+const CreateWorkoutDay = React.lazy(() => import('./src/features/workout/components/CreateWorkoutDay')); // New import
 
 const AppContent = memo(() => {
   const { step, isLoading, activeView, setActiveView, setStep } = useApp();
@@ -46,6 +47,7 @@ const AppContent = memo(() => {
           {step === 'dashboard' && activeView === 'progress' && <ProgressDashboard />}
           {step === 'dashboard' && activeView === 'profile' && <ProfileDashboard />}
           {step === 'dashboard' && activeView === 'kitchen' && <NutritionGenie />}
+          {step === 'dashboard' && activeView === 'createWorkoutDay' && <CreateWorkoutDay />} {/* New render condition */}
         </Suspense>
       </ResponsiveNavigation>
     </div>

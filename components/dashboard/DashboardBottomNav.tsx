@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
 import { ActiveView } from '@/types';
-import { Dumbbell, Utensils, TrendingUp, User } from 'lucide-react';
+import { Dumbbell, Utensils, TrendingUp, User, Plus } from 'lucide-react'; // Added Plus icon
 
 const DashboardBottomNav: React.FC = () => {
   const { activeView, setActiveView } = useApp();
@@ -20,6 +20,13 @@ const DashboardBottomNav: React.FC = () => {
         >
           <Dumbbell size={24} />
           <span className="text-[10px] mt-1 font-medium">Workout</span>
+        </button>
+        <button
+          onClick={() => setActiveView('createWorkoutDay')} // New button
+          className={getButtonClass('createWorkoutDay')}
+        >
+          <Plus size={24} />
+          <span className="text-[10px] mt-1 font-medium">Add Exercise</span>
         </button>
         <button
           onClick={() => setActiveView('kitchen')}

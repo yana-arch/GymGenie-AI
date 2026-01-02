@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, PropsWithChildren, useRef, useMemo, useCallback } from 'react';
-import { AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry, Exercise, WorkoutAnalysis, AppContextType, SessionStateManager as ISessionStateManager, WorkoutSession, SessionState, SessionStorageData, ActiveView } from '@/types';
+import { AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry, Exercise, WorkoutExercise, WorkoutAnalysis, AppContextType, SessionStateManager as ISessionStateManager, WorkoutSession, SessionState, SessionStorageData, ActiveView } from '@/types';
 import { StorageService } from '@/services/storageService';
 import { SessionStateManager } from '@/src/features/session/services/sessionStateManager';
 import StaleSessionModal from '@/src/features/session/components/modals/StaleSessionModal';
@@ -484,15 +484,19 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
 
     const week = newPlan.weeks.find(w => w.id === weekId);
     const day = week?.days.find(d => d.id === dayId);
-    
+
     if (!day) return;
 
     const index = day.exercises.findIndex(e => e.id === oldExerciseId);
     if (index === -1) return;
 
-    const newExercise: Exercise = {
-      ...newExerciseData,
+    const newExercise: WorkoutExercise = {
       id: crypto.randomUUID(),
+      name: newExerciseData.name,
+      sets: 3, // Default sets
+      reps: '10', // Default reps
+      restSeconds: 60, // Default rest
+      notes: '', // Default notes
       isCompleted: false
     };
 

@@ -1,0 +1,274 @@
+[
+  {
+    "id": "3851cbbf-9744-5e7e-8a23-0a828fb760b4",
+    "slug": "dumbbell-front-raise",
+    "name": "dumbbell front raise",
+    "bodyPart": [
+      "shoulders"
+    ],
+    "primaryMuscle": [
+      "delts"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "trapezius"
+    ],
+    "equipment": [
+      "dumbbell"
+    ],
+    "instructions": [
+      "Step:1 Stand with your feet shoulder-width apart, holding a dumbbell in each hand with your palms facing your thighs.",
+      "Step:2 Keeping your arms straight, exhale and lift the dumbbells in front of you until they are at shoulder level.",
+      "Step:3 Pause for a moment at the top, then inhale and slowly lower the dumbbells back down to the starting position.",
+      "Step:4 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/3eGE2JC.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "fce0fde3-1f86-5e93-a10b-c8cdcb0f30fc",
+    "slug": "dumbbell-over-bench-revers-wrist-curl",
+    "name": "dumbbell over bench revers wrist curl",
+    "bodyPart": [
+      "lower arms"
+    ],
+    "primaryMuscle": [
+      "forearms"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "brachialis"
+    ],
+    "equipment": [
+      "dumbbell"
+    ],
+    "instructions": [
+      "Step:1 Sit on a bench with your feet flat on the ground and hold a dumbbell in each hand, palms facing down.",
+      "Step:2 Rest your forearms on the bench, allowing your wrists to hang off the edge.",
+      "Step:3 Slowly curl your wrists upward, bringing the dumbbells towards your body.",
+      "Step:4 Pause for a moment at the top, then slowly lower the dumbbells back down to the starting position.",
+      "Step:5 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/3tAXPQ6.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "f2572ca9-e124-51df-a01e-cc8c9d4344d7",
+    "slug": "dumbbell-one-arm-hammer-preacher-curl",
+    "name": "dumbbell one arm hammer preacher curl",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "equipment": [
+      "dumbbell"
+    ],
+    "instructions": [
+      "Step:1 Sit on a preacher bench with a dumbbell in one hand and your upper arm resting on the pad.",
+      "Step:2 Hold the dumbbell with a neutral grip (palms facing your body).",
+      "Step:3 Keeping your upper arm stationary, exhale and curl the dumbbell up towards your shoulder.",
+      "Step:4 Pause for a moment at the top, squeezing your biceps.",
+      "Step:5 Inhale and slowly lower the dumbbell back to the starting position.",
+      "Step:6 Repeat for the desired number of repetitions, then switch arms."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/4dF3maG.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "652621d1-6a05-5eae-9eb9-ec3863dfedd0",
+    "slug": "dumbbell-one-arm-upright-row",
+    "name": "dumbbell one arm upright row",
+    "bodyPart": [
+      "shoulders"
+    ],
+    "primaryMuscle": [
+      "delts"
+    ],
+    "secondaryMuscles": [
+      "traps",
+      "biceps"
+    ],
+    "equipment": [
+      "dumbbell"
+    ],
+    "instructions": [
+      "Step:1 Stand with your feet shoulder-width apart, holding a dumbbell in one hand with an overhand grip.",
+      "Step:2 Let the dumbbell hang at arm's length in front of your thighs, with your palm facing your body.",
+      "Step:3 Keeping your back straight and your core engaged, exhale and lift the dumbbell straight up towards your chin, leading with your elbow.",
+      "Step:4 Pause for a moment at the top, then inhale and slowly lower the dumbbell back down to the starting position.",
+      "Step:5 Repeat for the desired number of repetitions, then switch to the other arm."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/6cKQC5E.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "5189d924-244a-5177-aa4c-a753ca165bff",
+    "slug": "dumbbell-lying-single-extension",
+    "name": "dumbbell lying single extension",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "triceps"
+    ],
+    "secondaryMuscles": [
+      "shoulders"
+    ],
+    "equipment": [
+      "dumbbell"
+    ],
+    "instructions": [
+      "Step:1 Lie flat on a bench with a dumbbell in one hand and your arm fully extended above your chest.",
+      "Step:2 Lower the dumbbell in a controlled manner towards your forehead, keeping your upper arm stationary.",
+      "Step:3 Pause briefly at the bottom of the movement, then extend your arm back to the starting position.",
+      "Step:4 Repeat for the desired number of repetitions, then switch arms."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/6MfS53i.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "9c169265-9a8c-5c1e-8689-943228600337",
+    "slug": "dumbbell-reverse-spider-curl",
+    "name": "dumbbell reverse spider curl",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "equipment": [
+      "dumbbell"
+    ],
+    "instructions": [
+      "Step:1 Stand up straight with a dumbbell in each hand, palms facing your body and arms fully extended.",
+      "Step:2 Keeping your upper arms stationary, exhale and curl the weights while contracting your biceps.",
+      "Step:3 Continue to raise the dumbbells until your biceps are fully contracted and the dumbbells are at shoulder level.",
+      "Step:4 Hold the contracted position for a brief pause as you squeeze your biceps.",
+      "Step:5 Inhale and slowly begin to lower the dumbbells back to the starting position.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/6sMAmNv.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "6cef32e0-74ad-58e0-8062-57c8c8409863",
+    "slug": "dumbbell-standing-concentration-curl",
+    "name": "dumbbell standing concentration curl",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "equipment": [
+      "dumbbell"
+    ],
+    "instructions": [
+      "Step:1 Stand with your feet shoulder-width apart and hold a dumbbell in one hand, with your arm fully extended and palm facing inwards.",
+      "Step:2 Place your opposite hand on your thigh for support.",
+      "Step:3 Keeping your upper arm stationary, exhale and curl the dumbbell towards your shoulder by contracting your biceps.",
+      "Step:4 Continue to raise the dumbbell until your biceps are fully contracted and the dumbbell is at shoulder level.",
+      "Step:5 Hold the contracted position for a brief pause as you squeeze your biceps.",
+      "Step:6 Inhale and slowly lower the dumbbell back to the starting position.",
+      "Step:7 Repeat for the desired number of repetitions, then switch arms."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/7inpWch.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "01689c33-df8a-58aa-9f59-a12e1ebd3e81",
+    "slug": "dumbbell-palms-in-incline-bench-press",
+    "name": "dumbbell palms in incline bench press",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "triceps"
+    ],
+    "secondaryMuscles": [
+      "chest",
+      "shoulders"
+    ],
+    "equipment": [
+      "dumbbell"
+    ],
+    "instructions": [
+      "Step:1 Set up an incline bench at a 45-degree angle.",
+      "Step:2 Sit on the bench with your back against the backrest and feet flat on the ground.",
+      "Step:3 Hold a dumbbell in each hand with an overhand grip, palms facing inwards.",
+      "Step:4 Extend your arms straight up above your chest, keeping a slight bend in your elbows.",
+      "Step:5 Lower the dumbbells slowly towards your shoulders, keeping your elbows close to your body.",
+      "Step:6 Pause for a moment at the bottom, then press the dumbbells back up to the starting position.",
+      "Step:7 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/8eqjhOl.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

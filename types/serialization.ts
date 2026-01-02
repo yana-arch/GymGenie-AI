@@ -9,7 +9,7 @@ import {
   EnhancedWorkoutDay,
   EnhancedWorkoutWeek
 } from './enhanced';
-import { Schemas } from './schemas';
+import { Schemas } from '../src/types/schemas';
 
 /**
  * Type-safe serialization utility class
@@ -123,11 +123,11 @@ export class DomainSerializers {
   }
 
   static deserializeWorkoutSession(jsonString: string): EnhancedWorkoutSession {
-    return TypeSafeSerializer.deserialize(jsonString, Schemas.EnhancedWorkoutSessionWithRefinements);
+    return TypeSafeSerializer.deserialize(jsonString, Schemas.EnhancedWorkoutSession);
   }
 
   static safeDeserializeWorkoutSession(jsonString: string): { success: true; data: EnhancedWorkoutSession } | { success: false; error: Error } {
-    return TypeSafeSerializer.safeDeserialize(jsonString, Schemas.EnhancedWorkoutSessionWithRefinements);
+    return TypeSafeSerializer.safeDeserialize(jsonString, Schemas.EnhancedWorkoutSession);
   }
 
   /**

@@ -1,0 +1,137 @@
+[
+  {
+    "id": "bench-press",
+    "name": "Barbell Bench Press",
+    "aliases": ["Bench Press", "Flat Bench"],
+    "muscle_group": "Chest",
+    "secondary_muscles": ["Triceps", "Shoulders"],
+    "equipment": "Barbell",
+    "image_url": "/assets/exercises/bench_press.png"
+  },
+  {
+    "id": "squat",
+    "name": "Barbell Squat",
+    "aliases": ["Squat", "Back Squat"],
+    "muscle_group": "Legs",
+    "secondary_muscles": ["Glutes", "Lower Back"],
+    "equipment": "Barbell",
+    "image_url": "/assets/exercises/squat.png"
+  },
+  {
+    "id": "deadlift",
+    "name": "Barbell Deadlift",
+    "aliases": ["Deadlift", "Conventional Deadlift"],
+    "muscle_group": "Back",
+    "secondary_muscles": ["Legs", "Glutes", "Forearms"],
+    "equipment": "Barbell",
+    "image_url": "/assets/exercises/deadlift.png"
+  },
+  {
+    "id": "overhead-press",
+    "name": "Overhead Press",
+    "aliases": ["Military Press", "Shoulder Press", "OHP"],
+    "muscle_group": "Shoulders",
+    "secondary_muscles": ["Triceps", "Upper Chest"],
+    "equipment": "Barbell",
+    "image_url": "/assets/exercises/overhead_press.png"
+  },
+  {
+    "id": "pull-up",
+    "name": "Pull Up",
+    "aliases": ["Pullup", "Chin Up"],
+    "muscle_group": "Back",
+    "secondary_muscles": ["Biceps"],
+    "equipment": "Bodyweight",
+    "image_url": "/assets/exercises/pull_up.png"
+  },
+  {
+    "id": "dumbbell-row",
+    "name": "Dumbbell Row",
+    "aliases": ["One Arm Dumbbell Row", "DB Row"],
+    "muscle_group": "Back",
+    "secondary_muscles": ["Biceps"],
+    "equipment": "Dumbbell",
+    "image_url": "/assets/exercises/dumbbell_row.png"
+  },
+  {
+    "id": "dumbbell-bench-press",
+    "name": "Dumbbell Bench Press",
+    "aliases": ["DB Bench Press", "Flat DB Press"],
+    "muscle_group": "Chest",
+    "secondary_muscles": ["Triceps", "Shoulders"],
+    "equipment": "Dumbbell",
+    "image_url": "/assets/exercises/dumbbell_bench_press.png"
+  },
+  {
+    "id": "dumbbell-shoulder-press",
+    "name": "Dumbbell Shoulder Press",
+    "aliases": ["DB Shoulder Press", "Seated Dumbbell Press"],
+    "muscle_group": "Shoulders",
+    "secondary_muscles": ["Triceps"],
+    "equipment": "Dumbbell",
+    "image_url": "/assets/exercises/dumbbell_shoulder_press.png"
+  },
+  {
+    "id": "lunge",
+    "name": "Walking Lunge",
+    "aliases": ["Lunge", "Dumbbell Lunge"],
+    "muscle_group": "Legs",
+    "secondary_muscles": ["Glutes"],
+    "equipment": "Dumbbell",
+    "image_url": "/assets/exercises/lunge.png"
+  },
+  {
+    "id": "plank",
+    "name": "Plank",
+    "aliases": ["Front Plank"],
+    "muscle_group": "Abs",
+    "secondary_muscles": ["Core"],
+    "equipment": "Bodyweight",
+    "image_url": "/assets/exercises/plank.png"
+  },
+  {
+    "id": "push-up",
+    "name": "Push Up",
+    "aliases": ["Pushup"],
+    "muscle_group": "Chest",
+    "secondary_muscles": ["Triceps", "Shoulders"],
+    "equipment": "Bodyweight",
+    "image_url": "/assets/exercises/push_up.png"
+  },
+  {
+    "id": "bicep-curl",
+    "name": "Dumbbell Bicep Curl",
+    "aliases": ["Bicep Curl", "DB Curl"],
+    "muscle_group": "Biceps",
+    "secondary_muscles": [],
+    "equipment": "Dumbbell",
+    "image_url": "/assets/exercises/bicep_curl.png"
+  },
+  {
+    "id": "tricep-extension",
+    "name": "Tricep Extension",
+    "aliases": ["Overhead Tricep Extension", "Skullcrusher"],
+    "muscle_group": "Triceps",
+    "secondary_muscles": [],
+    "equipment": "Dumbbell",
+    "image_url": "/assets/exercises/tricep_extension.png"
+  },
+  {
+    "id": "leg-press",
+    "name": "Leg Press",
+    "aliases": [],
+    "muscle_group": "Legs",
+    "secondary_muscles": ["Glutes"],
+    "equipment": "Machine",
+    "image_url": "/assets/exercises/leg_press.png"
+  },
+  {
+    "id": "lat-pulldown",
+    "name": "Lat Pulldown",
+    "aliases": [],
+    "muscle_group": "Back",
+    "secondary_muscles": ["Biceps"],
+    "equipment": "Cable",
+    "image_url": "/assets/exercises/lat_pulldown.png"
+  }
+]

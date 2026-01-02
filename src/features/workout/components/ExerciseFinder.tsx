@@ -1,0 +1,208 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, Filter, Dumbbell, X, ChevronRight } from 'lucide-react';
+
+import { exerciseCatalogService } from '../services/ExerciseCatalogService';
+import { Exercise, BodyPartEnum, EquipmentEnum } from '../../../types/schemas';
+import ExerciseDetailModal from './ExerciseDetailModal';
+
+interface ExerciseFinderProps {
+  onSelectExercise: (exercise: Exercise) => void;
+  onClose?: () => void;
+  isOpen: boolean;
+  userEquipment?: string[];
+}
+
+const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClose, isOpen, userEquipment = [] }) => {
+  const [query, setQuery] = useState('');
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  // Filters
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string>('');
+  const [selectedEquipment, setSelectedEquipment] = useState<string>('');
+  const [showFilters, setShowFilters] = useState(false);
+
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const performSearch = useCallback(async (searchQuery?: string) => {
+    const queryToUse = searchQuery ?? '';
+    setIsLoading(true);
+    try {
+      const results = await exerciseCatalogService.search(queryToUse, {
+        bodyPart: selectedBodyPart ? [selectedBodyPart] : undefined,
+        equipment: selectedEquipment ? [selectedEquipment] : undefined,
+      });
+      setExercises(results);
+    } catch (error) {
+      console.error('Search failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedBodyPart, selectedEquipment]);
+
+  useEffect(() => {
+    if (isOpen) {
+      performSearch(query);
+    }
+  }, [isOpen, selectedBodyPart, selectedEquipment, query]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setQuery(newQuery);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(newQuery);
+    }, 300);
+  };
+
+  const handleExerciseClick = async (exerciseId: string) => {
+    const fullExercise = await exerciseCatalogService.getById(exerciseId);
+    if (fullExercise) {
+      setSelectedExercise(fullExercise);
+      setIsDetailOpen(true);
+    }
+  };
+
+  const handleAddToWorkout = () => {
+    if (selectedExercise) {
+      onSelectExercise(selectedExercise);
+      setIsDetailOpen(false);
+      if (onClose) onClose();
+    }
+  };
+
+  const isAvailableWithUserEquipment = (exercise: Exercise) => {
+    return exercise.equipment.some(eq => userEquipment.includes(eq)) || exercise.equipment.includes('body weight');
+  };
+
+
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-40 bg-gray-50 flex flex-col animate-in slide-in-from-bottom-10 duration-200">
+      {/* Header */}
+      <div className="bg-white px-4 pt-4 pb-2 border-b border-gray-100 shadow-sm z-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Dumbbell className="text-brand-600" />
+            Exercise Library
+          </h2>
+          {onClose && (
+            <button 
+              onClick={onClose}
+              className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+            >
+              <X size={24} />
+            </button>
+          )}
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search exercises..."
+            value={query}
+            onChange={handleSearchChange}
+            className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:bg-white transition-all"
+            autoFocus
+          />
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${
+              showFilters || selectedBodyPart || selectedEquipment 
+                ? 'text-brand-600 bg-brand-50' 
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Filter size={18} />
+          </button>
+        </div>
+
+        {/* Filters */}
+        {showFilters && (
+          <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2">
+            <select
+              value={selectedBodyPart}
+              onChange={(e) => setSelectedBodyPart(e.target.value)}
+              className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-300"
+            >
+              <option value="">All Body Parts</option>
+              {BodyPartEnum.options.map(part => (
+                <option key={part} value={part}>{part}</option>
+              ))}
+            </select>
+            <select
+              value={selectedEquipment}
+              onChange={(e) => setSelectedEquipment(e.target.value)}
+              className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-300"
+            >
+              <option value="">All Equipment</option>
+              {EquipmentEnum.options.map(equip => (
+                <option key={equip} value={equip}>{equip}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* List */}
+      <div className="flex-1">
+        {isLoading && exercises.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">Loading library...</div>
+        ) : exercises.length === 0 ? (
+          <div className="p-8 text-center text-gray-500 flex flex-col items-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <Search size={24} className="text-gray-400" />
+            </div>
+            <p className="font-medium text-gray-900">No exercises found</p>
+            <p className="text-sm mt-1">Try adjusting your search or filters</p>
+          </div>
+        ) : (
+          <div className="overflow-y-auto h-full">
+            {exercises.map((exercise, index) => (
+              <div key={exercise.id} className="px-4 py-2">
+                <button
+                  onClick={() => handleExerciseClick(exercise.id)}
+                  className="w-full text-left bg-white p-3 rounded-xl border border-gray-100 hover:border-brand-200 hover:shadow-sm transition-all flex items-center justify-between group active:scale-[0.99]"
+                >
+                  <div className="flex-1 min-w-0 pr-4">
+                    <h4 className="font-bold text-gray-900 truncate group-hover:text-brand-700">
+                      {exercise.name}
+                    </h4>
+                    <div className="flex gap-2 mt-1 text-xs text-gray-500">
+                      <span className="capitalize bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                        {exercise.bodyPart}
+                      </span>
+                      <span className="capitalize bg-gray-50 px-2 py-0.5 rounded border border-gray-100 truncate max-w-[120px]">
+                        {exercise.equipment}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight size={18} className="text-gray-300 group-hover:text-brand-400" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Detail Modal */}
+      <ExerciseDetailModal
+        exercise={selectedExercise}
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        onAddToWorkout={handleAddToWorkout}
+      />
+    </div>
+  );
+};
+
+export default ExerciseFinder;

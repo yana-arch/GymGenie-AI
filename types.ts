@@ -11,6 +11,139 @@ export enum FitnessGoal {
   Flexibility = 'Flexibility'
 }
 
+export enum BodyPart {
+  Neck = 'neck',
+  LowerArms = 'lower arms',
+  Shoulders = 'shoulders',
+  Cardio = 'cardio',
+  UpperArms = 'upper arms',
+  Chest = 'chest',
+  LowerLegs = 'lower legs',
+  Back = 'back',
+  UpperLegs = 'upper legs',
+  Waist = 'waist'
+}
+
+export enum Muscle {
+  Shins = 'shins',
+  Hands = 'hands',
+  Sternocleidomastoid = 'sternocleidomastoid',
+  Soleus = 'soleus',
+  InnerThighs = 'inner thighs',
+  LowerAbs = 'lower abs',
+  GripMuscles = 'grip muscles',
+  Abdominals = 'abdominals',
+  WristExtensors = 'wrist extensors',
+  WristFlexors = 'wrist flexors',
+  LatissimusDorsi = 'latissimus dorsi',
+  UpperChest = 'upper chest',
+  RotatorCuff = 'rotator cuff',
+  Wrists = 'wrists',
+  Groin = 'groin',
+  Brachialis = 'brachialis',
+  Deltoids = 'deltoids',
+  Feet = 'feet',
+  Ankles = 'ankles',
+  Trapezius = 'trapezius',
+  RearDeltoids = 'rear deltoids',
+  Chest = 'chest',
+  Quadriceps = 'quadriceps',
+  Back = 'back',
+  Core = 'core',
+  Shoulders = 'shoulders',
+  AnkleStabilizers = 'ankle stabilizers',
+  Rhomboids = 'rhomboids',
+  Obliques = 'obliques',
+  LowerBack = 'lower back',
+  HipFlexors = 'hip flexors',
+  LevatorScapulae = 'levator scapulae',
+  Abductors = 'abductors',
+  SerratusAnterior = 'serratus anterior',
+  Traps = 'traps',
+  Forearms = 'forearms',
+  Delts = 'delts',
+  Biceps = 'biceps',
+  UpperBack = 'upper back',
+  Spine = 'spine',
+  CardiovascularSystem = 'cardiovascular system',
+  Triceps = 'triceps',
+  Adductors = 'adductors',
+  Hamstrings = 'hamstrings',
+  Glutes = 'glutes',
+  Pectorals = 'pectorals',
+  Calves = 'calves',
+  Lats = 'lats',
+  Quads = 'quads',
+  Abs = 'abs'
+}
+
+export enum Equipment {
+  StepmillMachine = 'stepmill machine',
+  EllipticalMachine = 'elliptical machine',
+  TrapBar = 'trap bar',
+  Tire = 'tire',
+  StationaryBike = 'stationary bike',
+  WheelRoller = 'wheel roller',
+  SmithMachine = 'smith machine',
+  Hammer = 'hammer',
+  SkiErgMachine = 'skierg machine',
+  Roller = 'roller',
+  ResistanceBand = 'resistance band',
+  BosuBall = 'bosu ball',
+  Weighted = 'weighted',
+  OlympicBarbell = 'olympic barbell',
+  Kettlebell = 'kettlebell',
+  UpperBodyErgometer = 'upper body ergometer',
+  SledMachine = 'sled machine',
+  EzBarbell = 'ez barbell',
+  Dumbbell = 'dumbbell',
+  Rope = 'rope',
+  Barbell = 'barbell',
+  Band = 'band',
+  StabilityBall = 'stability ball',
+  MedicineBall = 'medicine ball',
+  Assisted = 'assisted',
+  LeverageMachine = 'leverage machine',
+  Cable = 'cable',
+  BodyWeight = 'body weight'
+}
+
+export enum Difficulty {
+  Beginner = 'beginner',
+  Intermediate = 'intermediate',
+  Advanced = 'advanced'
+}
+
+export enum Mechanics {
+  Compound = 'compound',
+  Isolation = 'isolation'
+}
+
+export interface Exercise {
+  id: string;
+  slug: string;
+  name: string;
+  bodyPart: BodyPart[];
+  primaryMuscle: Muscle[];
+  secondaryMuscles: Muscle[];
+  equipment: Equipment[];
+  difficulty?: Difficulty;
+  mechanics?: Mechanics;
+  instructions: string[];
+  cues: string[];
+  contraindications: string[];
+  media: {
+    gif?: string;
+    video?: string;
+    thumbnail?: string;
+  };
+  tags: string[];
+  sourceMeta: {
+    ai_augmented?: boolean;
+    attribution?: string;
+  };
+}
+
 export interface UserProfile {
   name: string;
   age: number;
@@ -19,8 +152,14 @@ export interface UserProfile {
   gender: Gender;
   goal: FitnessGoal;
   injuries?: string;
+  equipment?: string[]; // New: List of equipment the user has
   bmi: number;
   tdee: number;
+  streak?: {
+    currentStreak: number;
+    longestStreak: number;
+    lastWorkoutDate: string | null;
+  };
 }
 
 export type AiProvider = 'google';
@@ -33,7 +172,7 @@ export interface AiProviderConfig {
   model: string;
 }
 
-export interface Exercise {
+export interface WorkoutExercise {
   id: string;
   name: string;
   sets: number;
@@ -55,7 +194,7 @@ export interface WorkoutDay {
   dayName: string; // e.g., "Monday", "Day 1"
   title: string; // e.g., "Upper Body Power", "Active Recovery"
   isRestDay: boolean;
-  exercises: Exercise[];
+  exercises: WorkoutExercise[];
 }
 
 export interface WorkoutWeek {
@@ -224,7 +363,7 @@ export interface Recipe {
 }
 
 export type AppStep = 'onboarding' | 'scanning' | 'dashboard' | 'session';
-export type ActiveView = 'workout' | 'kitchen' | 'progress' | 'profile';
+export type ActiveView = 'workout' | 'kitchen' | 'progress' | 'profile' | 'createWorkoutDay';
 
 export interface AppState {
   user: UserProfile | null;

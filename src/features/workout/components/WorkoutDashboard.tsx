@@ -1,13 +1,16 @@
-import React, { memo } from 'react';
+import React, { memo } from 'react'; // Removed useState
 import { useApp } from '@/context/AppContext';
 import ProgramOverview from './ProgramOverview';
 import NextWorkout from './NextWorkout';
+// Removed ExerciseFinder import
 
 const WorkoutDashboard = memo(() => {
   const {
     currentPlan,
     user,
   } = useApp();
+
+  // Removed isFinderOpen state
 
   if (!currentPlan || !user) {
     // A loading or empty state could go here
@@ -31,11 +34,23 @@ const WorkoutDashboard = memo(() => {
         {/* Sidebar - Overview & Stats */}
         <div className="md:col-span-5 lg:col-span-4 space-y-6">
           <ProgramOverview />
-          
-          {/* Quick Tip Widget for Desktop filling space */}
-          <div className="hidden md:block bg-gray-50 rounded-2xl p-6 border border-gray-100 text-center">
-             <p className="text-sm text-gray-500 font-medium">Keep it up!</p>
-             <p className="text-xs text-gray-400 mt-1">Consistency is key to progress.</p>
+
+          {/* Streak Widget */}
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200">
+             <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                   🔥
+                </div>
+                <div>
+                   <p className="text-sm text-orange-800 font-bold uppercase tracking-wider">Current Streak</p>
+                   <p className="text-2xl font-black text-orange-900">
+                      {user.streak?.currentStreak || 0} <span className="text-sm font-medium text-orange-700">Days</span>
+                   </p>
+                </div>
+             </div>
+             <p className="text-xs text-orange-700 mt-3 pl-13">
+                Longest: {user.streak?.longestStreak || 0} Days
+             </p>
           </div>
         </div>
       </div>

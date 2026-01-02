@@ -1,8 +1,9 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from './test-utils';
 import '@testing-library/jest-dom';
-import ResponsiveWorkoutCard, { ResponsiveWorkoutCardList, Exercise } from '@/components/ResponsiveWorkoutCard';
+import ResponsiveWorkoutCard, { ResponsiveWorkoutCardList } from '@/src/features/workout/components/ResponsiveWorkoutCard';
+import { WorkoutExercise } from '@/types';
 
 // Mock the breakpoint hook
 const mockBreakpoint = {
@@ -28,7 +29,7 @@ vi.mock('@/hooks/useLayoutManager', () => ({
 }));
 
 describe('ResponsiveWorkoutCard', () => {
-  const mockExercise: Exercise = {
+  const mockExercise: WorkoutExercise = {
     id: 'exercise-1',
     name: 'Push-ups',
     sets: 3,
@@ -382,7 +383,7 @@ describe('ResponsiveWorkoutCard', () => {
 });
 
 describe('ResponsiveWorkoutCardList', () => {
-  const mockExercises: Exercise[] = [
+  const mockExercises: WorkoutExercise[] = [
     {
       id: 'exercise-1',
       name: 'Push-ups',
@@ -390,6 +391,7 @@ describe('ResponsiveWorkoutCardList', () => {
       reps: '10-12',
       restSeconds: 60,
       isCompleted: false,
+      notes: ''
     },
     {
       id: 'exercise-2',
@@ -398,6 +400,7 @@ describe('ResponsiveWorkoutCardList', () => {
       reps: '15-20',
       restSeconds: 90,
       isCompleted: true,
+      notes: ''
     },
   ];
 

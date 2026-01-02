@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useCallback, useState } from 'react';
 
 /**
  * Performance monitoring hooks for tracking render performance
@@ -33,43 +33,44 @@ export const useRenderPerformance = (componentName: string, enabled: boolean = p
   const totalRenderTime = useRef<number>(0);
   const slowRenders = useRef<number>(0);
 
-  useEffect(() => {
+  const trackRender = useCallback(() => {
     if (!enabled) return;
+    const startTime = performance.now();
     
-    renderStartTime.current = performance.now();
-    renderCount.current += 1;
-  });
-
-  useEffect(() => {
-    if (!enabled) return;
-    
-    const renderTime = performance.now() - renderStartTime.current;
-    totalRenderTime.current += renderTime;
-    
-    if (renderTime > 16) { // Slower than 60fps
-      slowRenders.current += 1;
-    }
-    
-    const metrics: RenderMetrics = {
-      componentName,
-      renderCount: renderCount.current,
-      averageRenderTime: totalRenderTime.current / renderCount.current,
-      lastRenderTime: renderTime,
-      totalRenderTime: totalRenderTime.current,
-      slowRenders: slowRenders.current,
+    const endRender = () => {
+      const renderTime = performance.now() - startTime;
+      renderCount.current += 1;
+      totalRenderTime.current += renderTime;
+      
+      if (renderTime > 16) {
+        slowRenders.current += 1;
+      }
+      
+      const metrics: RenderMetrics = {
+        componentName,
+        renderCount: renderCount.current,
+        averageRenderTime: totalRenderTime.current / renderCount.current,
+        lastRenderTime: renderTime,
+        totalRenderTime: totalRenderTime.current,
+        slowRenders: slowRenders.current,
+      };
+      
+      renderMetrics.set(componentName, metrics);
+      
+      if (renderTime > 16 && process.env.NODE_ENV === 'development') {
+        console.warn(`[Performance] Slow render detected in ${componentName}: ${renderTime.toFixed(2)}ms`);
+      }
     };
-    
-    renderMetrics.set(componentName, metrics);
-    
-    // Log slow renders in development
-    if (renderTime > 16 && process.env.NODE_ENV === 'development') {
-      console.warn(`[Performance] Slow render detected in ${componentName}: ${renderTime.toFixed(2)}ms`);
-    }
-  });
+
+    // Calling synchronously for deterministic testing and immediate feedback in dev.
+    endRender();
+  }, [componentName, enabled]);
+
 
   return {
     getRenderMetrics: () => renderMetrics.get(componentName),
     getAllMetrics: () => Array.from(renderMetrics.values()),
+    trackRender,
   };
 };
 

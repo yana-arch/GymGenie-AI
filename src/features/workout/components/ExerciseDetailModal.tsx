@@ -1,131 +1,154 @@
-import React, { useEffect, useState } from 'react';
-import { getExerciseDetails } from '@/src/features/workout/services/WorkoutGenerator';
-import { ExerciseDetails } from '@/types';
-import { X, Loader2, Target, ListOrdered, AlertTriangle, Lightbulb, Youtube } from 'lucide-react';
+import React from 'react';
+import { X, ExternalLink, AlertTriangle, Target } from 'lucide-react';
+import { Exercise } from '../../../types/schemas';
 
 interface ExerciseDetailModalProps {
-  exerciseName: string;
+  exercise: Exercise | null;
+  isOpen: boolean;
   onClose: () => void;
+  onAddToWorkout?: () => void;
 }
 
-const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({ exerciseName, onClose }) => {
-  const [details, setDetails] = useState<ExerciseDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchDetails = async () => {
-      try {
-        const data = await getExerciseDetails(exerciseName);
-        if (mounted) {
-          setDetails(data);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error(error);
-        if (mounted) setLoading(false);
-      }
-    };
-    fetchDetails();
-    return () => { mounted = false; };
-  }, [exerciseName]);
+const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
+  exercise,
+  isOpen,
+  onClose,
+  onAddToWorkout,
+}) => {
+  if (!isOpen || !exercise) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-pop-in flex flex-col max-h-[85vh]">
-        
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-          <h2 className="text-xl font-bold text-gray-900 pr-4">{exerciseName}</h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 transition-colors">
-            <X size={24} className="text-gray-500" />
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900 truncate pr-4">
+            {exercise.name}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X size={20} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto custom-scrollbar">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12 space-y-4">
-              <Loader2 size={40} className="animate-spin text-brand-600" />
-              <p className="text-gray-500 font-medium">Asking AI Coach...</p>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-0">
+          {/* Media Section */}
+          <div className="relative aspect-video bg-gray-100 flex items-center justify-center">
+            {exercise.media.gif ? (
+              <img
+                src={exercise.media.gif}
+                alt={exercise.name}
+                className="w-full h-full object-contain"
+                loading="lazy"
+              />
+            ) : (
+              <div className="text-gray-400 flex flex-col items-center">
+                <Target size={48} className="mb-2 opacity-50" />
+                <span className="text-sm">No demonstration available</span>
+              </div>
+            )}
+
+            <div className="absolute bottom-4 left-4 flex gap-2">
+              <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-xs font-medium rounded-full uppercase tracking-wider">
+                {exercise.bodyPart.join(', ')}
+              </span>
+              <span className="px-3 py-1 bg-brand-600/90 backdrop-blur-md text-white text-xs font-medium rounded-full uppercase tracking-wider">
+                {exercise.equipment.join(', ')}
+              </span>
             </div>
-          ) : details ? (
-            <div className="space-y-6">
-              
-              {/* Muscles */}
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Muscles */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <div className="flex items-center gap-2 text-brand-600 font-bold mb-3">
-                  <Target size={20} /> <span className="uppercase text-sm tracking-wide">Target Muscles</span>
-                </div>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Target size={16} className="text-brand-600" />
+                  Target Muscles
+                </h3>
                 <div className="flex flex-wrap gap-2">
-                  {details.targetMuscles.map((m, i) => (
-                    <span key={i} className="px-3 py-1 bg-brand-50 text-brand-700 rounded-full text-sm font-medium border border-brand-100">
-                      {m}
+                  {exercise.primaryMuscle.map((muscle) => (
+                    <span
+                      key={muscle}
+                      className="px-3 py-1 bg-brand-50 text-brand-700 text-sm font-semibold rounded-lg border border-brand-100"
+                    >
+                      {muscle}
+                    </span>
+                  ))}
+                  {exercise.secondaryMuscles.map((muscle) => (
+                    <span
+                      key={muscle}
+                      className="px-3 py-1 bg-gray-50 text-gray-600 text-sm rounded-lg border border-gray-100"
+                    >
+                      {muscle}
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* Instructions */}
               <div>
-                <div className="flex items-center gap-2 text-gray-800 font-bold mb-3">
-                  <ListOrdered size={20} className="text-gray-400" /> <span className="uppercase text-sm tracking-wide text-gray-500">How to perform</span>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2">
+                  Difficulty
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 text-sm font-medium rounded-full capitalize ${
+                    exercise.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
+                    exercise.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {exercise.difficulty || 'beginner'}
+                  </span>
                 </div>
-                <ol className="space-y-3">
-                  {details.instructions.map((step, i) => (
-                    <li key={i} className="flex gap-3 text-gray-700 text-sm leading-relaxed">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-xs">
-                        {i + 1}
-                      </span>
-                      <span>{step}</span>
-                    </li>
-                  ))}
-                </ol>
               </div>
-
-              {/* Common Mistakes */}
-              <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-                <div className="flex items-center gap-2 text-orange-700 font-bold mb-2">
-                  <AlertTriangle size={18} /> <span className="uppercase text-xs tracking-wide">Avoid Mistakes</span>
-                </div>
-                <ul className="space-y-2">
-                  {details.commonMistakes.map((mistake, i) => (
-                    <li key={i} className="text-sm text-orange-800 pl-4 relative before:content-['•'] before:absolute before:left-0 before:text-orange-400">
-                      {mistake}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Pro Tips */}
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                 <div className="flex items-center gap-2 text-blue-700 font-bold mb-2">
-                  <Lightbulb size={18} /> <span className="uppercase text-xs tracking-wide">Pro Tip</span>
-                </div>
-                 <ul className="space-y-2">
-                  {details.proTips.map((tip, i) => (
-                    <li key={i} className="text-sm text-blue-800 pl-4 relative before:content-['•'] before:absolute before:left-0 before:text-blue-400">
-                      {tip}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* External Link */}
-              <a 
-                href={`https://www.youtube.com/results?search_query=how+to+do+${encodeURIComponent(exerciseName)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 transition-colors"
-              >
-                <Youtube size={20} className="text-red-600" /> Watch Video Tutorial
-              </a>
-
             </div>
-          ) : (
-            <div className="text-center py-10 text-gray-500">
-              Failed to load details. Please try again.
+
+            {/* Instructions */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">
+                Instructions
+              </h3>
+              <div className="space-y-3">
+                {exercise.instructions.map((step, index) => (
+                  <div key={index} className="flex gap-4">
+                    <div className="flex-shrink-0 w-6 h-6 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                      {index + 1}
+                    </div>
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      {step}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* AI Augmented Badge */}
+            {exercise.sourceMeta?.ai_augmented && (
+              <div className="flex items-center gap-2 p-3 bg-purple-50 text-purple-700 rounded-lg text-xs">
+                <ExternalLink size={14} />
+                <span>Instructions optimized by AI for clarity.</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Close
+          </button>
+          {onAddToWorkout && (
+            <button
+              onClick={onAddToWorkout}
+              className="px-6 py-2 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700 transition-colors shadow-sm active:scale-95 transform duration-100"
+            >
+              Add to Workout
+            </button>
           )}
         </div>
       </div>

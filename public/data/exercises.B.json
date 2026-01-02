@@ -1,0 +1,240 @@
+[
+  {
+    "id": "ae2240aa-b16d-5e76-a4ef-0ebfc2a54afd",
+    "slug": "barbell-incline-bench-press",
+    "name": "barbell incline bench press",
+    "bodyPart": [
+      "chest"
+    ],
+    "primaryMuscle": [
+      "pectorals"
+    ],
+    "secondaryMuscles": [
+      "shoulders",
+      "triceps"
+    ],
+    "equipment": [
+      "barbell"
+    ],
+    "instructions": [
+      "Step:1 Set up an incline bench at a 45-degree angle.",
+      "Step:2 Lie down on the bench with your feet flat on the ground.",
+      "Step:3 Grasp the barbell with an overhand grip, slightly wider than shoulder-width apart.",
+      "Step:4 Unrack the barbell and lower it slowly towards your chest, keeping your elbows at a 45-degree angle.",
+      "Step:5 Pause for a moment at the bottom, then push the barbell back up to the starting position.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/3TZduzM.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "5dca6589-6e6e-5702-9d2f-18983ed359de",
+    "slug": "barbell-standing-close-grip-curl",
+    "name": "barbell standing close grip curl",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ],
+    "equipment": [
+      "barbell"
+    ],
+    "instructions": [
+      "Step:1 Stand up straight with your feet shoulder-width apart and hold a barbell with an underhand grip, hands close together.",
+      "Step:2 Keep your elbows close to your torso and your upper arms stationary throughout the movement.",
+      "Step:3 Exhale as you curl the weights while contracting your biceps. Continue to raise the bar until your biceps are fully contracted and the bar is at shoulder level.",
+      "Step:4 Hold the contracted position for a brief pause as you squeeze your biceps.",
+      "Step:5 Inhale as you slowly begin to bring the barbell back to the starting position.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/4dUn2iv.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "768ca406-b6b5-5662-9c2f-d78a1a1b0639",
+    "slug": "barbell-seated-overhead-triceps-extension",
+    "name": "barbell seated overhead triceps extension",
+    "bodyPart": [
+      "upper arms"
+    ],
+    "primaryMuscle": [
+      "triceps"
+    ],
+    "secondaryMuscles": [
+      "shoulders"
+    ],
+    "equipment": [
+      "barbell"
+    ],
+    "instructions": [
+      "Step:1 Sit on a bench with your back straight and feet flat on the ground.",
+      "Step:2 Hold a barbell with an overhand grip, hands shoulder-width apart, and raise it overhead.",
+      "Step:3 Lower the barbell behind your head by bending your elbows, keeping your upper arms close to your head.",
+      "Step:4 Pause for a moment, then extend your arms to raise the barbell back to the starting position.",
+      "Step:5 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/5uFK1xr.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "78d13201-1196-5fd1-a072-a47f6e8cd9ab",
+    "slug": "barbell-standing-rocking-leg-calf-raise",
+    "name": "barbell standing rocking leg calf raise",
+    "bodyPart": [
+      "lower legs"
+    ],
+    "primaryMuscle": [
+      "calves"
+    ],
+    "secondaryMuscles": [
+      "hamstrings",
+      "quadriceps"
+    ],
+    "equipment": [
+      "barbell"
+    ],
+    "instructions": [
+      "Step:1 Stand with your feet shoulder-width apart and hold a barbell across your upper back.",
+      "Step:2 Raise your heels off the ground as high as possible, balancing on the balls of your feet.",
+      "Step:3 Slowly lower your heels back down to the starting position.",
+      "Step:4 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/6HiHHe0.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "0d2ef26e-c2d0-59b7-ad62-3676b80c9b51",
+    "slug": "barbell-wrist-curl-v-2",
+    "name": "barbell wrist curl v. 2",
+    "bodyPart": [
+      "lower arms"
+    ],
+    "primaryMuscle": [
+      "forearms"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "brachialis"
+    ],
+    "equipment": [
+      "barbell"
+    ],
+    "instructions": [
+      "Step:1 Sit on a bench with your feet flat on the ground and your knees bent.",
+      "Step:2 Hold a barbell with an underhand grip, palms facing up, and your hands shoulder-width apart.",
+      "Step:3 Rest your forearms on your thighs, allowing your wrists to hang off the edge.",
+      "Step:4 Slowly curl your wrists upward, bringing the barbell towards your forearms.",
+      "Step:5 Pause for a moment at the top, then slowly lower the barbell back down to the starting position.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/6kSxYnw.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "829c166e-9ff4-5d68-acb9-286c93756460",
+    "slug": "bent-knee-lying-twist-male",
+    "name": "bent knee lying twist (male)",
+    "bodyPart": [
+      "upper legs"
+    ],
+    "primaryMuscle": [
+      "glutes"
+    ],
+    "secondaryMuscles": [
+      "obliques",
+      "hip flexors"
+    ],
+    "equipment": [
+      "body weight"
+    ],
+    "instructions": [
+      "Step:1 Lie flat on your back with your knees bent and feet flat on the ground.",
+      "Step:2 Extend your arms out to the sides, perpendicular to your body.",
+      "Step:3 Keeping your knees together, slowly lower them to one side, aiming to touch the ground with your knees.",
+      "Step:4 Pause for a moment, then engage your core and slowly lift your knees back to the starting position.",
+      "Step:5 Repeat the movement to the other side.",
+      "Step:6 Continue alternating sides for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/6sYyrRX.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "34049f6f-7096-5d69-bcc1-e3dce77e35bc",
+    "slug": "barbell-standing-calf-raise",
+    "name": "barbell standing calf raise",
+    "bodyPart": [
+      "lower legs"
+    ],
+    "primaryMuscle": [
+      "calves"
+    ],
+    "secondaryMuscles": [
+      "hamstrings",
+      "glutes"
+    ],
+    "equipment": [
+      "barbell"
+    ],
+    "instructions": [
+      "Step:1 Stand with your feet shoulder-width apart and place a barbell across your upper back.",
+      "Step:2 Raise your heels off the ground as high as possible, using only your toes.",
+      "Step:3 Pause for a moment at the top, then slowly lower your heels back down to the starting position.",
+      "Step:4 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/8ozhUIZ.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

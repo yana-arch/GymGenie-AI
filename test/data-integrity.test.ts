@@ -2,11 +2,11 @@ import { test, expect } from 'vitest';
 import { DataIntegrityService } from '../services/DataIntegrityService';
 
 const validWorkout = {
-  id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
-  userId: 'b2c3d4e5-f6a7-8901-2345-67890abcdef12',
+  id: crypto.randomUUID(),
+  userId: crypto.randomUUID(),
   date: new Date(),
   exercises: [
-    { id: 'c3d4e5f6-a7b8-9012-3456-7890abcdef12', name: 'Bench Press', sets: 3, reps: 10 },
+    { id: crypto.randomUUID(), name: 'Bench Press', sets: 3, reps: 10 },
   ],
 };
 
@@ -32,8 +32,8 @@ test('should fail validation for a corrupted workout structure', () => {
 
 test('should recover a partially corrupted workout', () => {
   const partiallyCorrupted = {
-    id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
-    userId: 'b2c3d4e5-f6a7-8901-2345-67890abcdef12',
+    id: crypto.randomUUID(),
+    userId: crypto.randomUUID(),
     // Missing date, exercises
   };
   const { success, data } = DataIntegrityService.recoverWorkout(partiallyCorrupted);

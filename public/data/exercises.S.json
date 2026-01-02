@@ -1,0 +1,110 @@
+[
+  {
+    "id": "68388793-3be7-5ad7-b9f3-75846007ed45",
+    "slug": "sled-45-leg-press-side-pov",
+    "name": "sled 45° leg press (side pov)",
+    "bodyPart": [
+      "upper legs"
+    ],
+    "primaryMuscle": [
+      "glutes"
+    ],
+    "secondaryMuscles": [
+      "quadriceps",
+      "hamstrings",
+      "calves"
+    ],
+    "equipment": [
+      "sled machine"
+    ],
+    "instructions": [
+      "Step:1 Adjust the seat of the sled machine so that your knees are at a 90-degree angle when your feet are on the footplate.",
+      "Step:2 Sit on the sled machine with your back flat against the backrest and your feet shoulder-width apart on the footplate.",
+      "Step:3 Grip the handles on the sides of the seat for stability.",
+      "Step:4 Push against the footplate to extend your legs, straightening them completely.",
+      "Step:5 Pause for a moment at the top, then slowly bend your knees to lower the footplate back to the starting position.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/2Qh2J1e.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "67b6fc80-228c-54c0-9c65-e1f06331142f",
+    "slug": "smith-incline-bench-press",
+    "name": "smith incline bench press",
+    "bodyPart": [
+      "chest"
+    ],
+    "primaryMuscle": [
+      "pectorals"
+    ],
+    "secondaryMuscles": [
+      "shoulders",
+      "triceps"
+    ],
+    "equipment": [
+      "smith machine"
+    ],
+    "instructions": [
+      "Step:1 Adjust the bench to a 30-45 degree incline.",
+      "Step:2 Sit on the bench with your back flat against the pad and feet firmly on the ground.",
+      "Step:3 Grasp the barbell with an overhand grip slightly wider than shoulder-width apart.",
+      "Step:4 Unrack the barbell and lower it slowly towards your upper chest, keeping your elbows slightly tucked in.",
+      "Step:5 Pause for a moment at the bottom, then push the barbell back up to the starting position, fully extending your arms.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/5v7KYld.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "643fe2ab-7eaf-55ce-ba06-d28da54c2c1a",
+    "slug": "smith-leg-press",
+    "name": "smith leg press",
+    "bodyPart": [
+      "upper legs"
+    ],
+    "primaryMuscle": [
+      "glutes"
+    ],
+    "secondaryMuscles": [
+      "quadriceps",
+      "hamstrings",
+      "calves"
+    ],
+    "equipment": [
+      "smith machine"
+    ],
+    "instructions": [
+      "Step:1 Adjust the seat and footplate of the smith machine to a comfortable position.",
+      "Step:2 Sit on the machine with your back against the backrest and your feet shoulder-width apart on the footplate.",
+      "Step:3 Grasp the handles or sides of the machine for stability.",
+      "Step:4 Push the footplate away from you by extending your legs, keeping your back against the backrest.",
+      "Step:5 Pause for a moment at the fully extended position.",
+      "Step:6 Slowly bend your knees and lower the footplate back towards you, returning to the starting position.",
+      "Step:7 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/7zdxRTl.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

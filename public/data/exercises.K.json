@@ -1,0 +1,37 @@
+[
+  {
+    "id": "92ef087e-47b8-5b6c-92c5-0086ac561190",
+    "slug": "kettlebell-pistol-squat",
+    "name": "kettlebell pistol squat",
+    "bodyPart": [
+      "upper legs"
+    ],
+    "primaryMuscle": [
+      "glutes"
+    ],
+    "secondaryMuscles": [
+      "quadriceps",
+      "hamstrings",
+      "calves"
+    ],
+    "equipment": [
+      "kettlebell"
+    ],
+    "instructions": [
+      "Step:1 Stand with your feet shoulder-width apart, holding a kettlebell in front of your chest with both hands.",
+      "Step:2 Lift your left foot off the ground and extend it forward, keeping it parallel to the ground.",
+      "Step:3 Slowly lower your body down into a squat position, keeping your right foot flat on the ground and your left leg extended.",
+      "Step:4 Pause for a moment at the bottom of the squat, then push through your right heel to return to the starting position.",
+      "Step:5 Repeat for the desired number of repetitions, then switch legs."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/5bpPTHv.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

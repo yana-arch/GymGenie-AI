@@ -4,7 +4,7 @@ import { ArrowLeft, TrendingUp, Calendar, History, BarChart2, X, Dumbbell, Clock
 import TrainingVolumeChart from './TrainingVolumeChart';
 import WeeklyProgressCalendar from './WeeklyProgressCalendar';
 import WorkoutHistoryList from './WorkoutHistoryList';
-import { SessionState, Exercise } from '@/types';
+import { SessionState, WorkoutExercise } from '@/types';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 
 interface ProgressDashboardProps {}
@@ -19,7 +19,7 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
     dayIndex: number;
     weekId: string;
     dayId: string;
-    exercises: Exercise[];
+    exercises: WorkoutExercise[];
     title: string;
     dayName: string;
   } | null>(null);

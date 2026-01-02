@@ -1,17 +1,17 @@
 import React, { useMemo } from 'react';
 import { useExerciseById } from '@/hooks/useSelectiveSubscription';
-import { Exercise } from '@/types';
+import { WorkoutExercise } from '@/types';
 
 interface CompletionStatsProps {
   exerciseIds: string[];
 }
 
-const CompletionStatsRenderer: React.FC<{ exercises: Exercise[] }> = ({ exercises }) => {
+const CompletionStatsRenderer: React.FC<{ exercises: WorkoutExercise[] }> = ({ exercises }) => {
   const completionStats = useMemo(() => {
     const completed = exercises.filter(ex => ex.isCompleted).length;
     const total = exercises.length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    
+
     return { completed, total, percentage };
   }, [exercises]);
 
@@ -29,7 +29,7 @@ const CompletionStats: React.FC<CompletionStatsProps> = ({ exerciseIds }) => {
   const exercises = exerciseIds.map(id => {
     const exerciseData = useExerciseById(id);
     return exerciseData?.exercise;
-  }).filter(Boolean) as Exercise[];
+  }).filter(Boolean) as WorkoutExercise[];
 
   return <CompletionStatsRenderer exercises={exercises} />;
 };

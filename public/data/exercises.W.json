@@ -1,0 +1,70 @@
+[
+  {
+    "id": "817653fb-5924-5231-b2d0-2d011a8880b2",
+    "slug": "weighted-side-bend-on-stability-ball",
+    "name": "weighted side bend (on stability ball)",
+    "bodyPart": [
+      "waist"
+    ],
+    "primaryMuscle": [
+      "abs"
+    ],
+    "secondaryMuscles": [
+      "obliques",
+      "lower back"
+    ],
+    "equipment": [
+      "weighted"
+    ],
+    "instructions": [
+      "Step:1 Sit on a stability ball with your feet shoulder-width apart and flat on the ground.",
+      "Step:2 Hold a weight in one hand and place your other hand on your hip.",
+      "Step:3 Engage your core and slowly bend sideways towards the weighted side, keeping your back straight.",
+      "Step:4 Pause for a moment at the bottom, then slowly return to the starting position.",
+      "Step:5 Repeat for the desired number of repetitions, then switch sides."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/6bOA1Oi.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  },
+  {
+    "id": "8338d9ba-212d-5ff5-b8c6-5579dde593b6",
+    "slug": "weighted-hyperextension-on-stability-ball",
+    "name": "weighted hyperextension (on stability ball)",
+    "bodyPart": [
+      "back"
+    ],
+    "primaryMuscle": [
+      "spine"
+    ],
+    "secondaryMuscles": [
+      "glutes",
+      "hamstrings"
+    ],
+    "equipment": [
+      "weighted"
+    ],
+    "instructions": [
+      "Step:1 Position yourself face down on a stability ball with your hips resting on the ball and your feet against a wall for stability.",
+      "Step:2 Place your hands behind your head or cross them over your chest.",
+      "Step:3 Engage your core and slowly lift your upper body off the ball, extending your back until your body forms a straight line.",
+      "Step:4 Pause for a moment at the top, then slowly lower your upper body back down to the starting position.",
+      "Step:5 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/8urJS9b.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

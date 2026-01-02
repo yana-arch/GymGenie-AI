@@ -1,10 +1,9 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from './test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AppProvider } from '@/context/AppContext';
 import ResponsiveNavigation from '@/components/ResponsiveNavigation';
-import ResponsiveWorkoutCard from '@/components/ResponsiveWorkoutCard';
-import { Exercise } from '@/types';
+import ResponsiveWorkoutCard from '@/src/features/workout/components/ResponsiveWorkoutCard';
+import { WorkoutExercise } from '@/types';
 
 // Mock the breakpoint hook
 vi.mock('@/hooks/useBreakpoint', () => ({
@@ -14,6 +13,7 @@ vi.mock('@/hooks/useBreakpoint', () => ({
     isDesktop: () => false,
     isLargeDesktop: () => false,
   }),
+  useIsDesktop: () => false,
 }));
 
 // Mock the layout manager hook
@@ -24,7 +24,7 @@ vi.mock('@/hooks/useLayoutManager', () => ({
 }));
 
 describe('Performance Memoization Tests', () => {
-  const mockExercise: Exercise = {
+  const mockExercise: WorkoutExercise = {
     id: 'exercise-1',
     name: 'Push-ups',
     sets: 3,

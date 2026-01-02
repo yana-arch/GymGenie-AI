@@ -1,0 +1,35 @@
+[
+  {
+    "id": "f2d39e60-7a75-5e78-82b6-6265c82956e1",
+    "slug": "assisted-hanging-knee-raise-with-throw-down",
+    "name": "assisted hanging knee raise with throw down",
+    "bodyPart": [
+      "waist"
+    ],
+    "primaryMuscle": [
+      "abs"
+    ],
+    "secondaryMuscles": [
+      "hip flexors",
+      "lower back"
+    ],
+    "equipment": [
+      "assisted"
+    ],
+    "instructions": [
+      "Step:1 Hang from a pull-up bar with your arms fully extended and your palms facing away from you.",
+      "Step:2 Engage your core and lift your knees towards your chest, keeping your legs together.",
+      "Step:3 Once your knees are at chest level, explosively throw your legs down towards the ground, extending them fully.",
+      "Step:4 Allow your legs to swing back up and repeat the movement for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/8K0w2yA.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

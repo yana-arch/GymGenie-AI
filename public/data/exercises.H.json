@@ -1,0 +1,37 @@
+[
+  {
+    "id": "c5e262c1-c8db-561c-8c5c-319feb8d9771",
+    "slug": "hack-calf-raise",
+    "name": "hack calf raise",
+    "bodyPart": [
+      "lower legs"
+    ],
+    "primaryMuscle": [
+      "calves"
+    ],
+    "secondaryMuscles": [
+      "hamstrings",
+      "glutes"
+    ],
+    "equipment": [
+      "sled machine"
+    ],
+    "instructions": [
+      "Step:1 Adjust the sled machine to a comfortable weight.",
+      "Step:2 Stand on the sled machine with your toes on the platform and your heels hanging off.",
+      "Step:3 Hold onto the handles for stability.",
+      "Step:4 Raise your heels as high as possible by pushing through the balls of your feet.",
+      "Step:5 Pause for a moment at the top, then slowly lower your heels back down to the starting position.",
+      "Step:6 Repeat for the desired number of repetitions."
+    ],
+    "cues": [],
+    "contraindications": [],
+    "media": {
+      "gif": "/assets/exercises/2ORFMoR.gif"
+    },
+    "tags": [],
+    "sourceMeta": {
+      "attribution": "ExerciseDB"
+    }
+  }
+]

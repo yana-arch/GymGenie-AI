@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
-import { ArrowLeft, CheckCircle2, Play, Pause, SkipForward, Save, Clock, Star } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Play, Pause, SkipForward, Save, Clock, Star, Minus, Plus, Repeat, Dumbbell, Search } from 'lucide-react';
 import RestTimer from '@/src/features/workout/components/RestTimer';
 import { SessionState } from '@/types';
 import { SetPerformance, EnhancedWorkoutSession } from '@/types/enhanced';
@@ -8,6 +8,10 @@ import { useDispatch } from 'react-redux';
 import { addSetToSession } from '../store/sessionSlice';
 import { QualityScoreCalculator } from '../services/QualityScoreCalculator';
 import { WorkoutSession } from '../services/WorkoutSession';
+import exerciseRegistry from '@/src/data/ExerciseRegistry.json';
+import ExerciseDetailModal from '@/src/features/workout/components/ExerciseDetailModal';
+import { exerciseCatalogService } from '@/src/features/workout/services/ExerciseCatalogService';
+import { Exercise } from '@/src/types/schemas';
 
 const LiveWorkoutSession = () => {
   const {
@@ -29,6 +33,10 @@ const LiveWorkoutSession = () => {
   const [rpe, setRpe] = useState(5);
   const [loggingStats, setLoggingStats] = useState({ duration: 0 });
   
+  // Smart Input State (LiftLog Style)
+  const [inputWeight, setInputWeight] = useState<number>(0);
+  const [inputReps, setInputReps] = useState<number>(0);
+
   // Track set timing
   const [setStartTime, setSetStartTime] = useState<number>(Date.now());
   const [lastRestTime, setLastRestTime] = useState<number>(0);
@@ -42,11 +50,21 @@ const LiveWorkoutSession = () => {
     
     if (!week || !day) return null;
 
-    // Filter out completed exercises or just show all in order?
-    // Usually live tracking follows the order.
     const currentExercise = day.exercises[activeExerciseIndex];
     
-    return { week, day, currentExercise, totalExercises: day.exercises.length };
+    // Find Registry Metadata
+    const registryData = exerciseRegistry.find(ex =>
+        ex.name === currentExercise.name ||
+        ex.aliases.includes(currentExercise.name)
+    );
+
+    return {
+        week,
+        day,
+        currentExercise,
+        totalExercises: day.exercises.length,
+        registryData
+    };
   }, [currentPlan, currentSession, activeExerciseIndex]);
 
   // Determine completed sets from session state instead of local state
@@ -59,6 +77,20 @@ const LiveWorkoutSession = () => {
     }
     return 0;
   }, [currentSession, activeContext]);
+
+  // Auto-fill logic when exercise changes
+  useEffect(() => {
+      if (activeContext) {
+          // Default to planned reps
+          const plannedReps = parseInt(activeContext.currentExercise.reps) || 0;
+          setInputReps(plannedReps);
+          
+          // Try to find previous weight (Simulation: In real app, query history)
+          // For now, default to 0 or last set
+          // TODO: Query Redux history for this exercise ID
+          setInputWeight(20);
+      }
+  }, [activeExerciseIndex, activeContext]);
 
   // Effect to track actual rest time when timer stops
   useEffect(() => {
@@ -159,16 +191,15 @@ const LiveWorkoutSession = () => {
 
     const now = Date.now();
     const duration = now - setStartTime;
-    // const actualRestTime = lastRestTime; // This needs better tracking logic to be accurate
     
     const setPerformance: SetPerformance = {
         id: crypto.randomUUID(),
         setNumber: completedSetsCount + 1,
-        weight: 0, // Placeholder, would come from input
-        reps: parseInt(currentExercise.reps) || 0, // Placeholder
+        weight: inputWeight,
+        reps: inputReps,
         completedAt: now,
         targetRestTime: currentExercise.restSeconds,
-        actualRestTime: 0, // Would need to track this from previous rest timer
+        actualRestTime: 0,
         duration: duration
     };
 
@@ -185,10 +216,39 @@ const LiveWorkoutSession = () => {
     if (currentExercise.restSeconds > 0) {
       startRestTimer(currentExercise.restSeconds);
     }
-  }, [activeContext, completedSetsCount, currentExercise, setStartTime, startRestTimer, dispatch]);
+  }, [activeContext, completedSetsCount, currentExercise, setStartTime, startRestTimer, dispatch, inputWeight, inputReps]);
+
+  const [showHowTo, setShowHowTo] = useState(false);
+  const [currentCatalogExercise, setCurrentCatalogExercise] = useState<Exercise | null>(null);
+
+  useEffect(() => {
+    // Load full exercise details if available in registry
+    const loadDetails = async () => {
+        if (activeContext?.registryData?.id) {
+            // Search by name in the new service to get the 'full' object with instructions
+            const results = await exerciseCatalogService.search(activeContext.currentExercise.name);
+            if (results.length > 0) {
+                const fullEx = await exerciseCatalogService.getById(results[0].id);
+                setCurrentCatalogExercise(fullEx);
+            }
+        } else if (activeContext?.currentExercise.name) {
+             // Fallback search by name
+             const results = await exerciseCatalogService.search(activeContext.currentExercise.name);
+             if (results.length > 0) {
+                 const fullEx = await exerciseCatalogService.getById(results[0].id);
+                 setCurrentCatalogExercise(fullEx);
+             }
+        }
+    };
+    loadDetails();
+  }, [activeContext]);
+
+  // Helper for Smart Input Buttons
+  const adjustWeight = (amount: number) => setInputWeight(prev => Math.max(0, prev + amount));
+  const adjustReps = (amount: number) => setInputReps(prev => Math.max(0, prev + amount));
 
   return (
-    <div className="flex flex-col h-screen bg-white relative overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-50 relative">
       {/* Top Bar: Minimal Navigation */}
       <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white z-10">
         <button 
@@ -225,25 +285,68 @@ const LiveWorkoutSession = () => {
                 <Clock size={12} /> {currentExercise.restSeconds}s
               </span>
             </div>
+            
+            {/* How-to Button */}
+            {currentCatalogExercise && (
+                <button
+                    onClick={() => setShowHowTo(true)}
+                    className="inline-flex items-center gap-1 text-brand-600 text-sm font-bold mt-2 hover:text-brand-700"
+                >
+                    <Search size={14} /> How to perform
+                </button>
+            )}
           </div>
 
-          {/* Active Set Card */}
-          <div className="bg-brand-50/50 border-2 border-brand-100 rounded-3xl p-8 flex flex-col items-center justify-center space-y-6 shadow-sm">
-            <div className="text-center">
-              <p className="text-brand-600 font-bold uppercase tracking-widest text-sm mb-1">Current Set</p>
-              <p className="text-5xl font-black text-gray-900">
-                {completedSetsCount + 1} <span className="text-2xl text-gray-400 font-medium">/ {currentExercise.sets}</span>
-              </p>
+          {/* Active Set Card with Smart Inputs */}
+          <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm space-y-6">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+               <div>
+                  <p className="text-brand-600 font-bold uppercase tracking-widest text-xs mb-1">Current Set</p>
+                  <p className="text-3xl font-black text-gray-900">
+                    {completedSetsCount + 1} <span className="text-xl text-gray-400 font-medium">/ {currentExercise.sets}</span>
+                  </p>
+               </div>
+               {activeContext.registryData && (
+                   <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center">
+                       {/* Placeholder for Image - in real app would use registryData.image_url */}
+                       <Dumbbell className="text-brand-500" />
+                   </div>
+               )}
             </div>
             
-            <div className="grid grid-cols-2 gap-4 w-full">
-               <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
-                  <p className="text-xs text-gray-400 font-bold uppercase">Weight</p>
-                  <p className="text-2xl font-bold text-gray-900">-- <span className="text-sm text-gray-400">kg</span></p>
+            {/* Weight Input */}
+            <div className="space-y-3">
+               <div className="flex justify-between text-sm font-bold text-gray-500 uppercase">
+                   <span>Weight (kg)</span>
                </div>
-               <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
-                  <p className="text-xs text-gray-400 font-bold uppercase">Reps</p>
-                  <p className="text-2xl font-bold text-gray-900">{currentExercise.reps}</p>
+               <div className="flex items-center gap-3">
+                   <button onClick={() => adjustWeight(-2.5)} className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center active:scale-95 transition-all">
+                       <Minus size={20} />
+                   </button>
+                   <div className="flex-1 bg-gray-50 h-12 rounded-xl flex items-center justify-center border border-gray-200">
+                       <span className="text-2xl font-black text-gray-900">{inputWeight}</span>
+                   </div>
+                   <button onClick={() => adjustWeight(2.5)} className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center active:scale-95 transition-all">
+                       <Plus size={20} />
+                   </button>
+               </div>
+            </div>
+
+            {/* Reps Input */}
+            <div className="space-y-3">
+               <div className="flex justify-between text-sm font-bold text-gray-500 uppercase">
+                   <span>Reps</span>
+               </div>
+               <div className="flex items-center gap-3">
+                   <button onClick={() => adjustReps(-1)} className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center active:scale-95 transition-all">
+                       <Minus size={20} />
+                   </button>
+                   <div className="flex-1 bg-gray-50 h-12 rounded-xl flex items-center justify-center border border-gray-200">
+                       <span className="text-2xl font-black text-gray-900">{inputReps}</span>
+                   </div>
+                   <button onClick={() => adjustReps(1)} className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center active:scale-95 transition-all">
+                       <Plus size={20} />
+                   </button>
                </div>
             </div>
           </div>
@@ -275,6 +378,13 @@ const LiveWorkoutSession = () => {
 
       {/* Rest Timer Overlay */}
       <RestTimer />
+
+      {/* Exercise Detail Modal */}
+      <ExerciseDetailModal
+        isOpen={showHowTo}
+        onClose={() => setShowHowTo(false)}
+        exercise={currentCatalogExercise}
+      />
 
       {/* Logging Modal */}
       {isLogging && (

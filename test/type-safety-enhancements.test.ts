@@ -73,7 +73,8 @@ describe('Type Safety Enhancements', () => {
         environment: {
           location: 'gym',
           equipment: ['Dumbbells', 'Bench']
-        }
+        },
+        exerciseData: {}
       };
 
       expect(session.state).toBe(SessionState.ACTIVE);
@@ -217,7 +218,10 @@ describe('Type Safety Enhancements', () => {
         score: 8,
         mood: 'Focused',
         summary: 'Great workout session with consistent effort.',
-        advice: 'Try increasing weight on compound movements.'
+        advice: 'Try increasing weight on compound movements.',
+        strengths: [],
+        improvements: [],
+        nextWorkoutRecommendations: []
       };
 
       const result = ApiResponseValidator.validateWorkoutAnalysisResponse(validAnalysis);
@@ -230,7 +234,10 @@ describe('Type Safety Enhancements', () => {
         score: 15, // Invalid: too high
         mood: '',  // Invalid: empty
         summary: 'Valid summary',
-        advice: 'Valid advice'
+        advice: 'Valid advice',
+        strengths: [],
+        improvements: [],
+        nextWorkoutRecommendations: []
       };
 
       expect(() => 

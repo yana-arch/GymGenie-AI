@@ -3,8 +3,8 @@ import { DataIntegrityService } from '../services/DataIntegrityService';
 
 test('should validate a minimal workout', () => {
   const workout = {
-    id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
-    userId: 'b2c3d4e5-f6a7-8901-2345-67890abcdef12',
+    id: crypto.randomUUID(),
+    userId: crypto.randomUUID(),
     date: new Date(),
     exercises: [],
   };
