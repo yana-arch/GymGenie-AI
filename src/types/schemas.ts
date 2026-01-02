@@ -217,6 +217,7 @@ export const EnhancedWorkoutPlanSchema = BaseEntitySchema.merge(VersionedSchema)
   description: z.string().min(1, 'Description required').max(1000, 'Description too long'),
   totalDurationWeeks: z.number().int().min(1, 'At least 1 week required').max(52, 'Too many weeks'),
   targetUser: z.string().uuid('Invalid user ID'),
+  generatedAt: z.string().datetime('Generated At must be a valid ISO 8601 datetime string'), // Added generatedAt
   weeks: z.array(EnhancedWorkoutWeekSchema).min(1, 'At least 1 week required').max(52, 'Too many weeks'),
   metadata: WorkoutPlanMetadataSchema
 });

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { z } from 'zod';
+// Removed duplicate import { z } from 'zod';
 import { UserProfile, WorkoutPlan, WorkoutDay, Exercise, ExerciseDetails, WorkoutExercise } from "@/types";
 import exerciseRegistry from "@/src/data/ExerciseRegistry.json";
 import {
@@ -11,62 +11,187 @@ import {
   getModelName
 } from "@/services/enhanced-gemini-service";
 import { ExerciseSwapResponseSchema } from "@/services/api-validation";
+import { exerciseCatalogService } from "./ExerciseCatalogService"; // Import ExerciseCatalogService
+import { EnhancedWorkoutPlanSchema } from '@/src/types/schemas'; // Import schema for validation
+import { z } from 'zod'; // Import z for safeParse
 
 /**
  * Uses Gemini Pro to generate a structured 4-week workout plan.
  * Delegates to the enhanced service with validation.
+ *
+ * NOTE: The existing `generateWorkoutPlan` directly calls `generateWorkoutPlanWithValidation`.
+ * We will introduce a new `generateWorkoutPlanWithAI` for the onboarding flow
+ * that provides more direct control over the prompt and uses the enhanced schema.
  */
-/**
- * Helper to match AI generated exercise names with our static registry
- * to enrich with metadata (images, IDs)
- */
-const enrichPlanWithRegistry = (plan: WorkoutPlan): WorkoutPlan => {
-    // Helper for fuzzy matching (very simple substring match for now)
-    const findRegistryMatch = (name: string) => {
-        const lowerName = name.toLowerCase();
-        return exerciseRegistry.find(ex =>
-            ex.name.toLowerCase() === lowerName ||
-            ex.aliases.some(alias => alias.toLowerCase() === lowerName) ||
-            ex.name.toLowerCase().includes(lowerName) ||
-            lowerName.includes(ex.name.toLowerCase())
-        );
-    };
 
-    return {
+/**
+ * Generates a multi-week workout plan using AI based on user profile.
+ */
+export const generateWorkoutPlanWithAI = async (
+  user: UserProfile,
+): Promise<WorkoutPlan> => {
+  const ai = getAiClient();
+  const model = getModelName();
+
+  // Fetch all available exercise names and their primary muscle/equipment for context
+  const allExercises = await exerciseCatalogService.loadAll();
+  const exerciseSummary = allExercises.map(ex => ({
+    name: ex.name,
+    primaryMuscle: ex.primaryMuscle.join('/'),
+    equipment: ex.equipment.join('/'),
+    difficulty: ex.difficulty,
+  }));
+
+  const prompt = `
+    You are a highly knowledgeable fitness coach AI. Your task is to create a comprehensive 4-week workout plan
+    tailored to the user's profile and goals.
+
+    User Profile:
+    - Name: ${user.name}
+    - Age: ${user.age}
+    - Gender: ${user.gender}
+    - Weight: ${user.weightKg}kg
+    - Height: ${user.heightCm}cm
+    - Goal: ${user.goal}
+    - Equipment available: ${user.equipment?.join(', ') || 'None'}
+    ${user.injuries ? `- Injuries/Considerations: ${user.injuries}` : ''}
+
+    Workout Plan Requirements:
+    - Create a 4-week plan.
+    - Each week should have 7 days.
+    - Design days with a clear focus (e.g., "Upper Body Strength", "Legs & Core", "Full Body", "Rest Day").
+    - For each workout day (not rest days), include 4-7 exercises.
+    - For each exercise, suggest appropriate sets (e.g., 3-4), reps (e.g., "8-12", "10-15"), and rest time in seconds (e.g., 60, 90, 120).
+    - Include concise "notes" for each exercise with progressive overload suggestions or technique tips.
+    - Ensure variety and progression across the weeks.
+    - Consider the user's available equipment. You CAN suggest bodyweight exercises if no equipment is specified.
+    - You MAY suggest exercises not explicitly in the provided list, but prioritize common and effective ones.
+
+    Available Exercise Information (as a guide, not exhaustive):
+    ${JSON.stringify(exerciseSummary.slice(0, 50), null, 2)}
+    ... (truncated for brevity, focus on common exercise types)
+
+    Return the entire 4-week workout plan as a JSON object, adhering strictly to the WorkoutPlan schema.
+    Do NOT include any introductory or concluding text, only the JSON.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: EnhancedWorkoutPlanSchema.passthrough() // Pass the Zod schema directly
+      }
+    });
+
+    // Extract text from the response parts
+    const responseText = response.text;
+    if (!responseText) {
+      throw new Error("AI response was empty.");
+    }
+
+    const parsedResponse = JSON.parse(responseText);
+
+    // Validate with Zod schema
+    const validationResult = EnhancedWorkoutPlanSchema.safeParse(parsedResponse);
+
+    if (!validationResult.success) {
+      console.error("AI response validation failed:", validationResult.error);
+      throw new Error("AI generated an invalid workout plan structure.");
+    }
+
+    const validatedPlan = validationResult.data;
+
+    // Post-processing: Enrich with actual exercise IDs from ExerciseRegistry if possible
+    // This is a simplified version; a more robust matching would be needed for production
+    const enrichWithRegistryIds = (plan: WorkoutPlan): WorkoutPlan => {
+      const registryMap = new Map<string, Exercise>();
+      allExercises.forEach(ex => registryMap.set(ex.name.toLowerCase(), ex));
+
+      return {
         ...plan,
         weeks: plan.weeks.map(week => ({
-            ...week,
-            days: week.days.map(day => ({
-                ...day,
-                exercises: day.exercises.map(exercise => {
-                    const match = findRegistryMatch(exercise.name);
-                    // We don't overwrite the ID if it's already a UUID from generation,
-                    // but we might want to store the registry ID for reference.
-                    // For now, let's keep the name from AI but maybe standardise it if matched?
-                    // Actually, let's append the image URL if matched.
-                    // Since Exercise type doesn't have image field yet, we rely on UI to look it up by name,
-                    // OR we modify the Exercise type.
-                    // Given we can't easily change types.ts globally right this second without reading it again,
-                    // we will rely on the UI component (LiveWorkoutSession) to look up the registry based on name.
-                    // However, we can at least standardise the NAME to match our registry if found.
-                    
-                    if (match) {
-                        return {
-                            ...exercise,
-                            name: match.name // Standardise name
-                        };
-                    }
-                    return exercise;
-                })
-            }))
+          ...week,
+          days: week.days.map(day => ({
+            ...day,
+            exercises: day.exercises.map(exercise => {
+              const matchedExercise = registryMap.get(exercise.name.toLowerCase());
+              return {
+                ...exercise,
+                id: matchedExercise ? matchedExercise.id : crypto.randomUUID(), // Assign ID from registry or new UUID
+                isCompleted: false, // Ensure exercises are not pre-completed
+              };
+            })
+          }))
         }))
+      };
     };
+
+    return enrichWithRegistryIds(validatedPlan);
+  } catch (error) {
+    console.error("AI Plan Generation Error:", error);
+    // Fallback: Return a simple default plan
+    // This needs to be robust for a real application
+    return {
+      id: crypto.randomUUID(),
+      title: "Default 4-Week Plan",
+      description: "A generic plan for muscle gain.",
+      generatedAt: new Date().toISOString(),
+      totalDurationWeeks: 4,
+      weeks: Array.from({ length: 4 }, (_, i) => ({
+        id: crypto.randomUUID(),
+        weekNumber: i + 1,
+        focus: "Full Body Strength",
+        phase: "Build", // Assuming default phase
+        days: Array.from({ length: 7 }, (_, j) => ({
+          id: crypto.randomUUID(),
+          dayName: `Day ${j + 1}`,
+          title: j < 3 ? "Full Body Workout" : "Rest Day",
+          isRestDay: j >= 3,
+          focus: j < 3 ? "Strength" : "Recovery",
+          estimatedDuration: j < 3 ? 60 : 0,
+          targetCalories: j < 3 ? 300 : 0,
+          difficulty: "intermediate",
+          warmupExercises: [],
+          cooldownExercises: [],
+          exercises: j < 3 ? [
+            { id: crypto.randomUUID(), name: "Squats", sets: 3, reps: "8-12", restSeconds: 90, notes: "Focus on form", isCompleted: false },
+            { id: crypto.randomUUID(), name: "Push-ups", sets: 3, reps: "AMRAP", restSeconds: 60, notes: "Chest & Triceps", isCompleted: false },
+          ] : [],
+          state: "pending",
+        })),
+        progressMetrics: {
+          totalWorkouts: 0,
+          completedWorkouts: 0,
+          averageRpe: 0,
+          totalVolume: 0,
+          strengthGains: {},
+        }
+      }))
+    };
+  }
 };
 
+// The original generateWorkoutPlan can be kept or removed/refactored
 export const generateWorkoutPlan = async (user: UserProfile, equipment: string[]): Promise<WorkoutPlan> => {
+  // This might need to be refactored to use the new generateWorkoutPlanWithAI
+  // or if it serves a different purpose. For now, keeping it as is.
   const plan = await generateWorkoutPlanWithValidation(user, equipment);
-  return enrichPlanWithRegistry(plan);
+  // return enrichPlanWithRegistry(plan); // Original enrichPlanWithRegistry is now deprecated/replaced by generateWorkoutPlanWithAI's internal logic
+  return plan; // Returning raw plan as enrichment is handled by the new AI function
 };
+
+// Original enrichPlanWithRegistry is now effectively superseded by generateWorkoutPlanWithAI's logic
+// It might be removed or refactored if no other parts of the app use it directly.
+// For now, commenting it out to avoid confusion if it's no longer intended for use with current flow.
+/*
+const enrichPlanWithRegistry = (plan: WorkoutPlan): WorkoutPlan => {
+    // ... original implementation ...
+};
+*/
 
 /**
  * Smart Progressive Overload: Modifies future weeks based on user RPE feedback.

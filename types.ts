@@ -362,7 +362,7 @@ export interface Recipe {
   cookingTimeMinutes: number;
 }
 
-export type AppStep = 'onboarding' | 'scanning' | 'dashboard' | 'session';
+export type AppStep = 'onboarding' | 'scanning' | 'generatePlan' | 'dashboard' | 'session';
 export type ActiveView = 'workout' | 'kitchen' | 'progress' | 'profile' | 'createWorkoutDay';
 
 export interface AppState {

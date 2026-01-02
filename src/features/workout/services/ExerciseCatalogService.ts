@@ -106,6 +106,11 @@ export class ExerciseCatalogService {
     await Promise.all(promises);
     return Array.from(this.cache.values());
   }
+
+  // New public method to get all exercises, wrapping the private loadAll
+  public async getAllExercises(): Promise<Exercise[]> {
+    return this.loadAll();
+  }
 }
 
 // Singleton instance

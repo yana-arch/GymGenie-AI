@@ -30,7 +30,7 @@ const ProgressIndicator = ({ currentStep, totalSteps }: { currentStep: number, t
 const Onboarding = () => {
   const { setUser, setStep: setAppStep } = useApp();
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 2;
+  const totalSteps = 3; // Now includes the plan generation step
 
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     name: '',
@@ -83,7 +83,7 @@ const Onboarding = () => {
     };
 
     setUser(fullProfile);
-    setAppStep('scanning');
+    setAppStep('generatePlan'); // Transition to the new plan generation step
   };
 
   return (
@@ -95,12 +95,18 @@ const Onboarding = () => {
           </div>
           <div className="text-center md:text-left">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-              {currentStep === 1 ? 'About You' : 'Your Fitness Goal'}
+              {currentStep === 1
+                ? 'About You'
+                : currentStep === 2
+                ? 'Your Fitness Goal'
+                : 'Generate Your Plan'} {/* New title for step 3 */}
             </h1>
             <p className="text-gray-500 text-sm md:text-base leading-relaxed">
               {currentStep === 1
                 ? "Let's get some basic information to personalize your experience."
-                : "Tell us what you want to achieve. This helps the AI build the perfect plan for you."}
+                : currentStep === 2
+                ? "Tell us what you want to achieve. This helps the AI build the perfect plan for you."
+                : "Ready to get started? Let AI craft a personalized workout plan for you."} {/* New description for step 3 */}
             </p>
           </div>
         </div>

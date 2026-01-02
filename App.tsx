@@ -12,12 +12,17 @@ const ProgressDashboard = React.lazy(() => import('./src/features/workout/compon
 const ProfileDashboard = React.lazy(() => import('./src/features/profile/components/ProfileDashboard'));
 const NutritionGenie = React.lazy(() => import('./src/features/nutrition/components/NutritionGenie'));
 const LiveWorkoutSession = React.lazy(() => import('./src/features/session/components/LiveWorkoutSession'));
-const CreateWorkoutDay = React.lazy(() => import('./src/features/workout/components/CreateWorkoutDay')); // New import
+const CreateWorkoutDay = React.lazy(() => import('./src/features/workout/components/CreateWorkoutDay'));
+const WorkoutPlanGenerator = React.lazy(() => import('./src/features/onboarding/components/WorkoutPlanGenerator')); // New import
 
 const AppContent = memo(() => {
   const { step, isLoading, activeView, setActiveView, setStep } = useApp();
 
-  if (step === 'session') {
+  // Define new AppStep type for plan generation
+  type OnboardingAppStep = 'onboarding' | 'scanning' | 'generatePlan' | 'dashboard' | 'session';
+  const currentAppStep = step as OnboardingAppStep; // Cast to new type to include 'generatePlan'
+
+  if (currentAppStep === 'session') {
     return (
       <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin text-brand-600" size={32} /></div>}>
         <LiveWorkoutSession />
@@ -41,13 +46,14 @@ const AppContent = memo(() => {
 
         {/* Page content */}
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-brand-600" size={32} /></div>}>
-          {step === 'onboarding' && <Onboarding />}
-          {step === 'scanning' && <EquipmentScanner />}
-          {step === 'dashboard' && activeView === 'workout' && <WorkoutDashboard />}
-          {step === 'dashboard' && activeView === 'progress' && <ProgressDashboard />}
-          {step === 'dashboard' && activeView === 'profile' && <ProfileDashboard />}
-          {step === 'dashboard' && activeView === 'kitchen' && <NutritionGenie />}
-          {step === 'dashboard' && activeView === 'createWorkoutDay' && <CreateWorkoutDay />} {/* New render condition */}
+          {currentAppStep === 'onboarding' && <Onboarding />}
+          {currentAppStep === 'scanning' && <EquipmentScanner />}
+          {currentAppStep === 'generatePlan' && <WorkoutPlanGenerator />} {/* New render condition */}
+          {currentAppStep === 'dashboard' && activeView === 'workout' && <WorkoutDashboard />}
+          {currentAppStep === 'dashboard' && activeView === 'progress' && <ProgressDashboard />}
+          {currentAppStep === 'dashboard' && activeView === 'profile' && <ProfileDashboard />}
+          {currentAppStep === 'dashboard' && activeView === 'kitchen' && <NutritionGenie />}
+          {currentAppStep === 'dashboard' && activeView === 'createWorkoutDay' && <CreateWorkoutDay />}
         </Suspense>
       </ResponsiveNavigation>
     </div>
