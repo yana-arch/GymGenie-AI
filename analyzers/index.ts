@@ -19,3 +19,24 @@ export * from './type-system';
 export * from './service-integration';
 export * from './code-flow';
 export * from './dependency-graph';
+
+// Cleanup Plan
+export * from './cleanup-plan';
+
+// Cleanup Executor
+export * from './cleanup-executor';
+
+// Rollback Manager
+export * from './rollback-manager';
+
+// Report Generator
+export * from './report-generator';
+
+// Quality Metrics
+export * from './quality-metrics';
+
+// Bundle Size
+export * from './bundle-size';
+
+// Pipeline
+export * from './pipeline';
