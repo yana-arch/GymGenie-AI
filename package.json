@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@fast-check/vitest": "^0.2.4",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",

@@ -1,19 +1,19 @@
-import React, { memo } from 'react'; // Removed useState
+import React, { memo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import ProgramOverview from './ProgramOverview';
 import NextWorkout from './NextWorkout';
-// Removed ExerciseFinder import
+import TodaysWorkout from './TodaysWorkout';
+import ExerciseFinder from './ExerciseFinder';
+import { Exercise } from '@/types';
 
 const WorkoutDashboard = memo(() => {
   const {
     currentPlan,
     user,
   } = useApp();
-
-  // Removed isFinderOpen state
+  const [isFinderOpen, setIsFinderOpen] = useState(false);
 
   if (!currentPlan || !user) {
-    // A loading or empty state could go here
     return (
       <div className="p-4 text-center text-gray-500">
         Loading your workout plan...
@@ -21,21 +21,19 @@ const WorkoutDashboard = memo(() => {
     );
   }
 
-  // This is where the new, simplified dashboard will be built.
-  // We will add the `ProgramOverview` and `NextWorkout` components here.
+  if (isFinderOpen) {
+    return <ExerciseFinder onSelectExercise={() => setIsFinderOpen(false)} onClose={() => setIsFinderOpen(false)} isOpen={isFinderOpen} />;
+  }
+
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Main Column - Next Workout (Hero) */}
-        <div className="md:col-span-7 lg:col-span-8 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
           <NextWorkout />
+          <TodaysWorkout onStartWorkout={() => setIsFinderOpen(true)} />
         </div>
-
-        {/* Sidebar - Overview & Stats */}
-        <div className="md:col-span-5 lg:col-span-4 space-y-6">
+        <div className="lg:col-span-1 space-y-6">
           <ProgramOverview />
-
-          {/* Streak Widget */}
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200">
              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">

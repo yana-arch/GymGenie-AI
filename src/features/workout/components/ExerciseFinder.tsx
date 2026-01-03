@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Filter, Dumbbell, X, ChevronRight } from 'lucide-react';
+import { Search, Filter, Dumbbell, X, ChevronRight, LayoutGrid, List } from 'lucide-react';
 
 import { exerciseCatalogService } from '../services/ExerciseCatalogService';
-import { Exercise, BodyPartEnum, EquipmentEnum } from '../../../types/schemas';
+import { Exercise, BodyPartEnum, EquipmentEnum, DifficultyEnum, MechanicsEnum } from '../../../types/schemas';
 import ExerciseDetailModal from './ExerciseDetailModal';
+import { toTitleCase } from '../../../utils/stringUtils';
 
 interface ExerciseFinderProps {
   onSelectExercise: (exercise: Exercise) => void;
@@ -18,10 +19,13 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
   const [isLoading, setIsLoading] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
 
   // Filters
   const [selectedBodyPart, setSelectedBodyPart] = useState<string>('');
   const [selectedEquipment, setSelectedEquipment] = useState<string>('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
+  const [selectedMechanics, setSelectedMechanics] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -33,6 +37,8 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
       const results = await exerciseCatalogService.search(queryToUse, {
         bodyPart: selectedBodyPart ? [selectedBodyPart] : undefined,
         equipment: selectedEquipment ? [selectedEquipment] : undefined,
+        difficulty: selectedDifficulty ? [selectedDifficulty] : undefined,
+        mechanics: selectedMechanics ? [selectedMechanics] : undefined,
       });
       setExercises(results);
     } catch (error) {
@@ -40,13 +46,13 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
     } finally {
       setIsLoading(false);
     }
-  }, [selectedBodyPart, selectedEquipment]);
+  }, [selectedBodyPart, selectedEquipment, selectedDifficulty, selectedMechanics]);
 
   useEffect(() => {
     if (isOpen) {
       performSearch(query);
     }
-  }, [isOpen, selectedBodyPart, selectedEquipment, query]);
+  }, [isOpen, selectedBodyPart, selectedEquipment, selectedDifficulty, selectedMechanics, query]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
@@ -77,12 +83,6 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
     }
   };
 
-  const isAvailableWithUserEquipment = (exercise: Exercise) => {
-    return exercise.equipment.some(eq => userEquipment.includes(eq)) || exercise.equipment.includes('body weight');
-  };
-
-
-
   if (!isOpen) return null;
 
   return (
@@ -95,7 +95,7 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
             Exercise Library
           </h2>
           {onClose && (
-            <button 
+            <button
               onClick={onClose}
               className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
             >
@@ -117,8 +117,8 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${
-              showFilters || selectedBodyPart || selectedEquipment 
-                ? 'text-brand-600 bg-brand-50' 
+              showFilters || selectedBodyPart || selectedEquipment
+                ? 'text-brand-600 bg-brand-50'
                 : 'text-gray-400 hover:text-gray-600'
             }`}
           >
@@ -136,7 +136,7 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
             >
               <option value="">All Body Parts</option>
               {BodyPartEnum.options.map(part => (
-                <option key={part} value={part}>{part}</option>
+                <option key={part} value={part}>{toTitleCase(part)}</option>
               ))}
             </select>
             <select
@@ -146,15 +146,43 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
             >
               <option value="">All Equipment</option>
               {EquipmentEnum.options.map(equip => (
-                <option key={equip} value={equip}>{equip}</option>
+                <option key={equip} value={equip}>{toTitleCase(equip)}</option>
+              ))}
+            </select>
+            <select
+              value={selectedDifficulty}
+              onChange={(e) => setSelectedDifficulty(e.target.value)}
+              className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-300"
+            >
+              <option value="">All Difficulties</option>
+              {DifficultyEnum.options.map(diff => (
+                <option key={diff} value={diff}>{toTitleCase(diff)}</option>
+              ))}
+            </select>
+            <select
+              value={selectedMechanics}
+              onChange={(e) => setSelectedMechanics(e.target.value)}
+              className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-300"
+            >
+              <option value="">All Mechanics</option>
+              {MechanicsEnum.options.map(mech => (
+                <option key={mech} value={mech}>{toTitleCase(mech)}</option>
               ))}
             </select>
           </div>
         )}
+        <div className="flex justify-end mt-2">
+          <button onClick={() => setViewMode('list')} className={`p-2 rounded-l-lg ${viewMode === 'list' ? 'bg-brand-500 text-white' : 'bg-gray-200'}`}>
+            <List size={18} />
+          </button>
+          <button onClick={() => setViewMode('card')} className={`p-2 rounded-r-lg ${viewMode === 'card' ? 'bg-brand-500 text-white' : 'bg-gray-200'}`}>
+            <LayoutGrid size={18} />
+          </button>
+        </div>
       </div>
 
       {/* List */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         {isLoading && exercises.length === 0 ? (
           <div className="p-8 text-center text-gray-500">Loading library...</div>
         ) : exercises.length === 0 ? (
@@ -165,8 +193,8 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
             <p className="font-medium text-gray-900">No exercises found</p>
             <p className="text-sm mt-1">Try adjusting your search or filters</p>
           </div>
-        ) : (
-          <div className="overflow-y-auto h-full">
+        ) : viewMode === 'list' ? (
+          <div className="h-full">
             {exercises.map((exercise, index) => (
               <div key={exercise.id} className="px-4 py-2">
                 <button
@@ -175,19 +203,32 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
                 >
                   <div className="flex-1 min-w-0 pr-4">
                     <h4 className="font-bold text-gray-900 truncate group-hover:text-brand-700">
-                      {exercise.name}
+                      {toTitleCase(exercise.name)}
                     </h4>
                     <div className="flex gap-2 mt-1 text-xs text-gray-500">
                       <span className="capitalize bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
-                        {exercise.bodyPart}
+                        {toTitleCase(exercise.bodyPart.join(', '))}
                       </span>
                       <span className="capitalize bg-gray-50 px-2 py-0.5 rounded border border-gray-100 truncate max-w-[120px]">
-                        {exercise.equipment}
+                        {toTitleCase(exercise.equipment.join(', '))}
                       </span>
                     </div>
                   </div>
                   <ChevronRight size={18} className="text-gray-300 group-hover:text-brand-400" />
                 </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+            {exercises.map((exercise) => (
+              <div key={exercise.id} className="bg-white rounded-lg shadow-md overflow-hidden relative" onClick={() => handleExerciseClick(exercise.id)}>
+                <div className="w-full aspect-w-16 aspect-h-9 bg-gray-200">
+                  <img src={exercise.media?.gif} alt={exercise.name} className="w-full h-full object-contain" />
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                  <h3 className="font-bold text-white text-lg">{toTitleCase(exercise.name)}</h3>
+                </div>
               </div>
             ))}
           </div>
