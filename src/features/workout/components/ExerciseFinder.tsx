@@ -86,18 +86,18 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-40 bg-gray-50 flex flex-col animate-in slide-in-from-bottom-10 duration-200">
+    <div className="fixed inset-0 z-40 bg-gray-50 dark:bg-gray-900 flex flex-col animate-in slide-in-from-bottom-10 duration-200">
       {/* Header */}
-      <div className="bg-white px-4 pt-4 pb-2 border-b border-gray-100 shadow-sm z-10">
+      <div className="bg-white dark:bg-gray-800 px-4 pt-4 pb-2 border-b border-gray-100 dark:border-gray-700 shadow-sm z-10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Dumbbell className="text-brand-600" />
             Exercise Library
           </h2>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+              className="p-2 -mr-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
             >
               <X size={24} />
             </button>
@@ -105,21 +105,21 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
           <input
             type="text"
             placeholder="Search exercises..."
             value={query}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:bg-white transition-all"
+            className="w-full pl-10 pr-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:bg-white dark:focus:bg-gray-800 transition-all"
             autoFocus
           />
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${
               showFilters || selectedBodyPart || selectedEquipment
-                ? 'text-brand-600 bg-brand-50'
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'text-brand-600 bg-brand-50 dark:bg-brand-900/20'
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
             }`}
           >
             <Filter size={18} />
@@ -128,11 +128,11 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
 
         {/* Filters */}
         {showFilters && (
-          <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2">
+          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2">
             <select
               value={selectedBodyPart}
               onChange={(e) => setSelectedBodyPart(e.target.value)}
-              className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-300"
+              className="w-full p-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-brand-300 dark:text-gray-200"
             >
               <option value="">All Body Parts</option>
               {BodyPartEnum.options.map(part => (
@@ -142,7 +142,7 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
             <select
               value={selectedEquipment}
               onChange={(e) => setSelectedEquipment(e.target.value)}
-              className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-300"
+              className="w-full p-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-brand-300 dark:text-gray-200"
             >
               <option value="">All Equipment</option>
               {EquipmentEnum.options.map(equip => (
@@ -152,7 +152,7 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
-              className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-300"
+              className="w-full p-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-brand-300 dark:text-gray-200"
             >
               <option value="">All Difficulties</option>
               {DifficultyEnum.options.map(diff => (
@@ -162,7 +162,7 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
             <select
               value={selectedMechanics}
               onChange={(e) => setSelectedMechanics(e.target.value)}
-              className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-300"
+              className="w-full p-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-brand-300 dark:text-gray-200"
             >
               <option value="">All Mechanics</option>
               {MechanicsEnum.options.map(mech => (
@@ -172,10 +172,10 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
           </div>
         )}
         <div className="flex justify-end mt-2">
-          <button onClick={() => setViewMode('list')} className={`p-2 rounded-l-lg ${viewMode === 'list' ? 'bg-brand-500 text-white' : 'bg-gray-200'}`}>
+          <button onClick={() => setViewMode('list')} className={`p-2 rounded-l-lg ${viewMode === 'list' ? 'bg-brand-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-gray-400'}`}>
             <List size={18} />
           </button>
-          <button onClick={() => setViewMode('card')} className={`p-2 rounded-r-lg ${viewMode === 'card' ? 'bg-brand-500 text-white' : 'bg-gray-200'}`}>
+          <button onClick={() => setViewMode('card')} className={`p-2 rounded-r-lg ${viewMode === 'card' ? 'bg-brand-500 text-white' : 'bg-gray-200 dark:bg-gray-700 dark:text-gray-400'}`}>
             <LayoutGrid size={18} />
           </button>
         </div>
@@ -184,13 +184,13 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
       {/* List */}
       <div className="flex-1 overflow-y-auto">
         {isLoading && exercises.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">Loading library...</div>
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading library...</div>
         ) : exercises.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 flex flex-col items-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Search size={24} className="text-gray-400" />
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+              <Search size={24} className="text-gray-400 dark:text-gray-500" />
             </div>
-            <p className="font-medium text-gray-900">No exercises found</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">No exercises found</p>
             <p className="text-sm mt-1">Try adjusting your search or filters</p>
           </div>
         ) : viewMode === 'list' ? (
@@ -199,22 +199,22 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
               <div key={exercise.id} className="px-4 py-2">
                 <button
                   onClick={() => handleExerciseClick(exercise.id)}
-                  className="w-full text-left bg-white p-3 rounded-xl border border-gray-100 hover:border-brand-200 hover:shadow-sm transition-all flex items-center justify-between group active:scale-[0.99]"
+                  className="w-full text-left bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-sm transition-all flex items-center justify-between group active:scale-[0.99]"
                 >
                   <div className="flex-1 min-w-0 pr-4">
-                    <h4 className="font-bold text-gray-900 truncate group-hover:text-brand-700">
+                    <h4 className="font-bold text-gray-900 dark:text-gray-100 truncate group-hover:text-brand-700 dark:group-hover:text-brand-400">
                       {toTitleCase(exercise.name)}
                     </h4>
-                    <div className="flex gap-2 mt-1 text-xs text-gray-500">
-                      <span className="capitalize bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                    <div className="flex gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="capitalize bg-gray-50 dark:bg-gray-700 px-2 py-0.5 rounded border border-gray-100 dark:border-gray-600">
                         {toTitleCase(exercise.bodyPart.join(', '))}
                       </span>
-                      <span className="capitalize bg-gray-50 px-2 py-0.5 rounded border border-gray-100 truncate max-w-[120px]">
+                      <span className="capitalize bg-gray-50 dark:bg-gray-700 px-2 py-0.5 rounded border border-gray-100 dark:border-gray-600 truncate max-w-[120px]">
                         {toTitleCase(exercise.equipment.join(', '))}
                       </span>
                     </div>
                   </div>
-                  <ChevronRight size={18} className="text-gray-300 group-hover:text-brand-400" />
+                  <ChevronRight size={18} className="text-gray-300 dark:text-gray-600 group-hover:text-brand-400" />
                 </button>
               </div>
             ))}
@@ -222,8 +222,8 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
             {exercises.map((exercise) => (
-              <div key={exercise.id} className="bg-white rounded-lg shadow-md overflow-hidden relative" onClick={() => handleExerciseClick(exercise.id)}>
-                <div className="w-full aspect-w-16 aspect-h-9 bg-gray-200">
+              <div key={exercise.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden relative" onClick={() => handleExerciseClick(exercise.id)}>
+                <div className="w-full aspect-w-16 aspect-h-9 bg-gray-200 dark:bg-gray-700 p-2">
                   <img src={exercise.media?.gif} alt={exercise.name} className="w-full h-full object-contain" />
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">

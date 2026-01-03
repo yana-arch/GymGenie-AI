@@ -27,26 +27,26 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
   const getSessionStateIcon = (state: SessionState, size: number = 16) => {
     switch (state) {
       case SessionState.ACTIVE:
-        return <Activity size={size} className="text-green-600" />;
+        return <Activity size={size} className="text-green-600 dark:text-green-400" />;
       case SessionState.COMPLETED:
-        return <CheckCircle2 size={size} className="text-yellow-600" />;
+        return <CheckCircle2 size={size} className="text-yellow-600 dark:text-yellow-400" />;
       case SessionState.LOGGED:
-        return <Trophy size={size} className="text-blue-600" />;
+        return <Trophy size={size} className="text-blue-600 dark:text-blue-400" />;
       default:
-        return <Circle size={size} className="text-gray-300" />;
+        return <Circle size={size} className="text-gray-300 dark:text-gray-600" />;
     }
   };
 
   const getSessionStateColor = (state: SessionState) => {
     switch (state) {
       case SessionState.ACTIVE:
-        return 'bg-green-100 border-green-300 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/20 border-green-300 dark:border-green-800 text-green-800 dark:text-green-200';
       case SessionState.COMPLETED:
-        return 'bg-yellow-100 border-yellow-300 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200';
       case SessionState.LOGGED:
-        return 'bg-blue-100 border-blue-300 text-blue-800';
+        return 'bg-blue-100 dark:bg-blue-900/20 border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-200';
       default:
-        return 'bg-gray-50 border-gray-200 text-gray-500';
+        return 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400';
     }
   };
 
@@ -111,17 +111,17 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
   }, [currentPlan, selectedWeekIndex, isExpanded]);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 transition-all duration-300">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Calendar size={20} className="text-brand-600" />
-          <h3 className="text-lg font-bold text-gray-900">
+          <Calendar size={20} className="text-brand-600 dark:text-brand-400" />
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {isExpanded ? 'Full Schedule' : 'Current Week'}
           </h3>
         </div>
-        <button 
+        <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-sm font-medium text-brand-600 flex items-center gap-1 hover:text-brand-700 transition-colors"
+          className="text-sm font-medium text-brand-600 dark:text-brand-400 flex items-center gap-1 hover:text-brand-700 dark:hover:text-brand-300 transition-colors"
         >
           {isExpanded ? (
             <>Less <ChevronUp size={16} /></>
@@ -144,24 +144,24 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
                 onClick={() => onWeekSelect(index)}
                 className={`w-full p-3 rounded-xl border transition-all text-left ${
                   isSelected
-                    ? 'bg-brand-50 border-brand-200 shadow-sm ring-1 ring-brand-100'
-                    : 'bg-white border-gray-100 hover:bg-gray-50'
+                    ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 shadow-sm ring-1 ring-brand-100 dark:ring-brand-900/40'
+                    : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <h4 className={`font-bold ${isSelected ? 'text-brand-900' : 'text-gray-900'}`}>
+                    <h4 className={`font-bold ${isSelected ? 'text-brand-900 dark:text-brand-200' : 'text-gray-900 dark:text-gray-100'}`}>
                       Week {week.weekNumber}
                     </h4>
-                    <p className="text-xs text-gray-500">{week.focus}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{week.focus}</p>
                   </div>
                   <div className="text-right">
                     <div className={`text-sm font-bold ${
                       progress.completed === progress.total && progress.total > 0
-                        ? 'text-green-600'
+                        ? 'text-green-600 dark:text-green-400'
                         : progress.active > 0
-                          ? 'text-yellow-600'
-                          : 'text-gray-500'
+                          ? 'text-yellow-600 dark:text-yellow-400'
+                          : 'text-gray-500 dark:text-gray-400'
                     }`}>
                       {progress.completed}/{progress.total}
                     </div>
@@ -169,14 +169,14 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
                 </div>
 
                 {/* Progress Bar */}
-                <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-gray-100 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all duration-500 ${
                       progressPercentage === 100
                         ? 'bg-green-500'
                         : progressPercentage > 0
                           ? 'bg-brand-500'
-                          : 'bg-gray-300'
+                          : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                     style={{ width: `${progressPercentage}%` }}
                   />
@@ -188,10 +188,10 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
       </div>
 
       {/* Selected Week Day Grid - Always Visible for Context */}
-      <div className="border-t border-gray-100 pt-4">
-        <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center justify-between">
+      <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+        <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center justify-between">
           <span>Week {currentPlan.weeks[selectedWeekIndex]?.weekNumber} Overview</span>
-          <span className="text-xs font-normal text-gray-400">Tap to view day</span>
+          <span className="text-xs font-normal text-gray-400 dark:text-gray-500">Tap to view day</span>
         </h4>
         
         <div className="grid grid-cols-7 gap-2">
@@ -248,9 +248,9 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
                 }}
                 className={`aspect-square p-1 rounded-lg border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                   day.isRestDay
-                    ? 'bg-gray-50 border-gray-100 cursor-default opacity-40'
+                    ? 'bg-gray-50 dark:bg-gray-700 border-gray-100 dark:border-gray-600 cursor-default opacity-40'
                     : isLocked
-                        ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed grayscale'
+                        ? 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed grayscale'
                         : `${getSessionStateColor(sessionState)} hover:scale-105 active:scale-95 cursor-pointer`
                 }`}
                 disabled={day.isRestDay} // We handle custom click for locked non-rest days to show toast
@@ -261,7 +261,7 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
                   </div>
                   <div className="flex items-center justify-center">
                     {day.isRestDay ? (
-                      <Clock size={10} className="text-gray-400" />
+                      <Clock size={10} className="text-gray-400 dark:text-gray-500" />
                     ) : (
                       getSessionStateIcon(sessionState, 12)
                     )}
@@ -274,18 +274,18 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
 
       {/* Simplified Legend */}
       {isExpanded && (
-        <div className="border-t border-gray-100 pt-3 mt-4 animate-fade-in">
-          <div className="flex justify-between text-[10px] text-gray-500">
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-4 animate-fade-in">
+          <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-1">
-              <Circle size={8} className="text-gray-300" />
+              <Circle size={8} className="text-gray-300 dark:text-gray-600" />
               <span>To Do</span>
             </div>
             <div className="flex items-center gap-1">
-              <Activity size={8} className="text-green-600" />
+              <Activity size={8} className="text-green-600 dark:text-green-400" />
               <span>Active</span>
             </div>
             <div className="flex items-center gap-1">
-              <Trophy size={8} className="text-blue-600" />
+              <Trophy size={8} className="text-blue-600 dark:text-blue-400" />
               <span>Done</span>
             </div>
           </div>

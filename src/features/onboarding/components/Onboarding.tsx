@@ -12,13 +12,13 @@ const ProgressIndicator = ({ currentStep, totalSteps }: { currentStep: number, t
           <div
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
               currentStep > step ? 'bg-brand-600 text-white' :
-              currentStep === step ? 'bg-brand-500 text-white' : 'bg-gray-200 text-gray-400'
+              currentStep === step ? 'bg-brand-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
             }`}
           >
             {currentStep > step ? <Check size={16} /> : step}
           </div>
           {index < steps.length - 1 && (
-            <div className={`h-1 w-12 transition-all duration-300 ${currentStep > step ? 'bg-brand-600' : 'bg-gray-200'}`} />
+            <div className={`h-1 w-12 transition-all duration-300 ${currentStep > step ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-700'}`} />
           )}
         </React.Fragment>
       ))}
@@ -87,21 +87,21 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col md:grid md:grid-cols-12 bg-white animate-fade-in">
-      <div className="md:col-span-5 bg-brand-50/50 p-6 md:p-10 border-r border-gray-100 flex flex-col justify-between">
+    <div className="min-h-full flex flex-col md:grid md:grid-cols-12 bg-white dark:bg-gray-800 animate-fade-in">
+      <div className="md:col-span-5 bg-brand-50/50 dark:bg-gray-900 p-6 md:p-10 border-r border-gray-100 dark:border-gray-700 flex flex-col justify-between">
         <div>
           <div className="mb-8">
             <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
           </div>
           <div className="text-center md:text-left">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               {currentStep === 1
                 ? 'About You'
                 : currentStep === 2
                 ? 'Your Fitness Goal'
                 : 'Generate Your Plan'} {/* New title for step 3 */}
             </h1>
-            <p className="text-gray-500 text-sm md:text-base leading-relaxed">
+            <p className="text-gray-500 dark:text-gray-400 text-sm md:text-base leading-relaxed">
               {currentStep === 1
                 ? "Let's get some basic information to personalize your experience."
                 : currentStep === 2
@@ -111,18 +111,18 @@ const Onboarding = () => {
           </div>
         </div>
         <div className="hidden md:block space-y-4 mt-12">
-           <div className={`flex gap-3 items-start p-4 rounded-xl transition-all duration-300 ${currentStep === 1 ? 'bg-white shadow-sm border border-gray-100' : 'bg-transparent'}`}>
+           <div className={`flex gap-3 items-start p-4 rounded-xl transition-all duration-300 ${currentStep === 1 ? 'bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700' : 'bg-transparent'}`}>
               <Ruler className="text-brand-500 shrink-0 mt-0.5" size={20} />
               <div>
-                <p className="font-semibold text-sm text-gray-800">Your Metrics</p>
-                <p className="text-xs text-gray-500">Your age, height, and weight help us calculate your metabolic rate.</p>
+                <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">Your Metrics</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Your age, height, and weight help us calculate your metabolic rate.</p>
               </div>
            </div>
-           <div className={`flex gap-3 items-start p-4 rounded-xl transition-all duration-300 ${currentStep === 2 ? 'bg-white shadow-sm border border-gray-100' : 'bg-transparent'}`}>
+           <div className={`flex gap-3 items-start p-4 rounded-xl transition-all duration-300 ${currentStep === 2 ? 'bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700' : 'bg-transparent'}`}>
               <Target className="text-brand-500 shrink-0 mt-0.5" size={20} />
               <div>
-                <p className="font-semibold text-sm text-gray-800">Your Goal</p>
-                <p className="text-xs text-gray-500">Workouts adapt based on whether you want to cut, bulk, or maintain.</p>
+                <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">Your Goal</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Workouts adapt based on whether you want to cut, bulk, or maintain.</p>
               </div>
            </div>
         </div>
@@ -133,32 +133,32 @@ const Onboarding = () => {
           {currentStep === 1 && (
             <>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
-                <input type="text" required className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all shadow-sm text-gray-900 placeholder-gray-400" placeholder="Your Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Name</label>
+                <input type="text" required className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all shadow-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500" placeholder="Your Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Age</label>
-                  <input type="number" required className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900" value={formData.age} onChange={e => setFormData({...formData, age: Number(e.target.value)})} />
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Age</label>
+                  <input type="number" required className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900 dark:text-gray-100" value={formData.age} onChange={e => setFormData({...formData, age: Number(e.target.value)})} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Gender</label>
                   <div className="relative">
-                    <select className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900 appearance-none" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value as Gender})}>
+                    <select className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900 dark:text-gray-100 appearance-none" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value as Gender})}>
                       {Object.values(Gender).map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg></div>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 dark:text-gray-400"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg></div>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Height (cm)</label>
-                  <input type="number" required className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900" value={formData.heightCm} onChange={e => setFormData({...formData, heightCm: Number(e.target.value)})} />
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Height (cm)</label>
+                  <input type="number" required className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900 dark:text-gray-100" value={formData.heightCm} onChange={e => setFormData({...formData, heightCm: Number(e.target.value)})} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Weight (kg)</label>
-                  <input type="number" required className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900" value={formData.weightKg} onChange={e => setFormData({...formData, weightKg: Number(e.target.value)})} />
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Weight (kg)</label>
+                  <input type="number" required className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900 dark:text-gray-100" value={formData.weightKg} onChange={e => setFormData({...formData, weightKg: Number(e.target.value)})} />
                 </div>
               </div>
             </>
@@ -167,25 +167,25 @@ const Onboarding = () => {
           {currentStep === 2 && (
             <>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Primary Goal</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Primary Goal</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {Object.values(FitnessGoal).map(goal => (
-                    <button key={goal} type="button" onClick={() => setFormData({...formData, goal})} className={`p-3 rounded-xl text-xs font-semibold border transition-all ${formData.goal === goal ? 'bg-brand-500 text-white border-brand-500 shadow-md transform scale-[1.02]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'}`}>
+                    <button key={goal} type="button" onClick={() => setFormData({...formData, goal})} className={`p-3 rounded-xl text-xs font-semibold border transition-all ${formData.goal === goal ? 'bg-brand-500 text-white border-brand-500 shadow-md transform scale-[1.02]' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500'}`}>
                       {goal}
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Injuries / Notes (Optional)</label>
-                <textarea className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900 min-h-[100px]" rows={2} placeholder="e.g. Lower back pain, left knee..." value={formData.injuries} onChange={e => setFormData({...formData, injuries: e.target.value})} />
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Injuries / Notes (Optional)</label>
+                <textarea className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900 dark:text-gray-100 min-h-[100px]" rows={2} placeholder="e.g. Lower back pain, left knee..." value={formData.injuries} onChange={e => setFormData({...formData, injuries: e.target.value})} />
               </div>
             </>
           )}
 
           <div className="pt-6 mt-auto flex items-center gap-4">
             {currentStep > 1 && (
-              <button type="button" onClick={handleBack} className="flex items-center justify-center gap-2 text-gray-600 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 active:scale-95 transition-all">
+              <button type="button" onClick={handleBack} className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-300 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 active:scale-95 transition-all">
                 <ArrowLeft size={20} /> Back
               </button>
             )}

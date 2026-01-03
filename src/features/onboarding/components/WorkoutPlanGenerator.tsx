@@ -42,7 +42,7 @@ const WorkoutPlanGenerator = memo(() => {
 
   if (!user) {
     return (
-      <div className="p-4 text-center text-gray-500 flex flex-col items-center justify-center h-full">
+      <div className="p-4 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center h-full">
         <Loader2 className="animate-spin text-brand-600 mb-4" size={32} />
         <p className="text-lg">Loading user profile...</p>
       </div>
@@ -51,13 +51,13 @@ const WorkoutPlanGenerator = memo(() => {
 
   return (
     <div className="p-6 md:p-10 max-w-2xl mx-auto w-full flex flex-col items-center">
-      <h2 className="text-3xl font-bold text-gray-900 mb-4 text-center">Your AI Workout Plan</h2>
-      <p className="text-gray-600 mb-8 text-center">Based on your profile, AI will craft a personalized multi-week plan.</p>
+      <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4 text-center">Your AI Workout Plan</h2>
+      <p className="text-gray-600 dark:text-gray-400 mb-8 text-center">Based on your profile, AI will craft a personalized multi-week plan.</p>
 
       {/* Display User Inputs */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8 w-full">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Your Profile Summary:</h3>
-        <ul className="text-gray-700 text-sm space-y-1">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8 w-full">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Your Profile Summary:</h3>
+        <ul className="text-gray-700 dark:text-gray-300 text-sm space-y-1">
           <li><strong>Name:</strong> {user.name}</li>
           <li><strong>Age:</strong> {user.age}</li>
           <li><strong>Goal:</strong> {user.goal}</li>
@@ -67,7 +67,7 @@ const WorkoutPlanGenerator = memo(() => {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl mb-6 w-full text-center">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-4 rounded-xl mb-6 w-full text-center">
           {error}
         </div>
       )}
@@ -92,11 +92,11 @@ const WorkoutPlanGenerator = memo(() => {
 
       {/* Generated Plan Preview */}
       {generatedPlan && (
-        <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-xl shadow-sm w-full animate-fade-in">
-          <h3 className="text-xl font-bold text-green-800 mb-3">Plan Generated Successfully!</h3>
-          <p className="text-gray-800"><strong>Title:</strong> {generatedPlan.title}</p>
-          <p className="text-gray-700 mt-2">{generatedPlan.description}</p>
-          <p className="text-sm text-gray-500 mt-3">Total Weeks: {generatedPlan.totalDurationWeeks}</p>
+        <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl shadow-sm w-full animate-fade-in">
+          <h3 className="text-xl font-bold text-green-800 dark:text-green-200 mb-3">Plan Generated Successfully!</h3>
+          <p className="text-gray-800 dark:text-gray-200"><strong>Title:</strong> {generatedPlan.title}</p>
+          <p className="text-gray-700 dark:text-gray-300 mt-2">{generatedPlan.description}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">Total Weeks: {generatedPlan.totalDurationWeeks}</p>
           
           <div className="mt-6 flex gap-4">
             <button
@@ -107,7 +107,7 @@ const WorkoutPlanGenerator = memo(() => {
             </button>
             <button
               onClick={() => setGeneratedPlan(null)} // Allow re-generation
-              className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-xl font-semibold text-lg shadow-sm hover:bg-gray-300 transition-colors"
+              className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-3 px-6 rounded-xl font-semibold text-lg shadow-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               Re-generate
             </button>

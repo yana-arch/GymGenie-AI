@@ -93,17 +93,17 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = memo(({
   }, [isReordering, isReadOnly, onToggle, exercise.id]);
   return (
     <div 
-      className={`group bg-white p-4 rounded-2xl border transition-all duration-200 relative overflow-hidden touch-target ${
+      className={`group bg-white dark:bg-gray-800 p-4 rounded-2xl border transition-all duration-200 relative overflow-hidden touch-target ${
         isReadOnly 
-          ? 'border-gray-200 bg-gray-50/30 shadow-none opacity-80' 
+          ? 'border-gray-200 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-900/30 shadow-none opacity-80' 
           : !isReordering && exercise.isCompleted 
-            ? 'border-green-200 bg-green-50/50 shadow-none' 
-            : 'border-gray-100 shadow-sm hover:shadow-md'
+            ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20 shadow-none' 
+            : 'border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md'
       } ${!isReordering && !isReadOnly ? 'cursor-pointer active:scale-[0.99]' : ''} ${className}`}
     >
       {isSwapping && (
-        <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center backdrop-blur-sm">
-          <Loader2 className="animate-spin text-brand-600" size={24} />
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 z-20 flex items-center justify-center backdrop-blur-sm">
+          <Loader2 className="animate-spin text-brand-600 dark:text-brand-400" size={24} />
         </div>
       )}
 
@@ -117,7 +117,7 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = memo(({
               <button 
                 onClick={handleMoveUpClick}
                 disabled={index === 0}
-                className="p-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100 touch-target"
+                className="p-2 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-gray-100 touch-target"
                 aria-label="Move exercise up"
               >
                 <ArrowUp size={16} />
@@ -125,7 +125,7 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = memo(({
               <button 
                 onClick={handleMoveDownClick}
                 disabled={index === totalExercises - 1}
-                className="p-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100 touch-target"
+                className="p-2 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-gray-100 touch-target"
                 aria-label="Move exercise down"
               >
                 <ArrowDown size={16} />
@@ -155,7 +155,7 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = memo(({
           <h3 
             onClick={handleExerciseNameClick}
             className={`font-bold text-lg flex-1 ${
-              !isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'
+              !isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100'
             } ${
               !isReordering && !isReadOnly ? 'cursor-pointer' : ''
             } ${
@@ -170,14 +170,14 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = memo(({
             <button 
               onClick={handleSwapClick}
               disabled={isSwapping || isReadOnly}
-              className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed touch-target"
+              className="text-gray-300 dark:text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 p-2 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed touch-target"
               title={isReadOnly ? "Cannot modify logged workout" : "Swap for alternative"}
             >
               <Shuffle size={18} />
             </button>
             <button 
               onClick={handleDetailsClick}
-              className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-2 rounded-lg transition-all touch-target"
+              className="text-gray-300 dark:text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 p-2 rounded-lg transition-all touch-target"
               title="View instructions"
             >
               <Info size={18} />
@@ -186,17 +186,17 @@ const MobileWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = memo(({
         </div>
         
         {/* Exercise Details */}
-        <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-          <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.sets} Sets</span>
-          <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.reps} Reps</span>
-          <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-medium border border-blue-100">
+        <div className="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg font-medium border border-gray-200 dark:border-gray-600">{exercise.sets} Sets</span>
+          <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg font-medium border border-gray-200 dark:border-gray-600">{exercise.reps} Reps</span>
+          <span className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-lg font-medium border border-blue-100 dark:border-blue-800">
             <Clock size={14} /> {exercise.restSeconds}s Rest
           </span>
         </div>
         
         {/* Notes */}
         {exercise.notes && (
-          <p className="text-sm text-gray-500 italic border-l-2 border-brand-200 pl-3 py-1 bg-gray-50/50 rounded-r-lg">
+          <p className="text-sm text-gray-500 dark:text-gray-400 italic border-l-2 border-brand-200 pl-3 py-1 bg-gray-50/50 dark:bg-gray-900/50 rounded-r-lg">
             {exercise.notes}
           </p>
         )}
@@ -224,17 +224,17 @@ const TabletWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
 }) => {
   return (
     <div 
-      className={`group bg-white p-5 rounded-2xl border transition-all duration-200 relative overflow-hidden ${
+      className={`group bg-white dark:bg-gray-800 p-5 rounded-2xl border transition-all duration-200 relative overflow-hidden ${
         isReadOnly 
-          ? 'border-gray-200 bg-gray-50/30 shadow-none opacity-80' 
+          ? 'border-gray-200 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-900/30 shadow-none opacity-80' 
           : !isReordering && exercise.isCompleted 
-            ? 'border-green-200 bg-green-50/50 shadow-none' 
-            : 'border-gray-100 shadow-sm hover:shadow-md'
+            ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20 shadow-none' 
+            : 'border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md'
       } ${!isReordering && !isReadOnly ? 'cursor-pointer active:scale-[0.99]' : ''} ${className}`}
     >
       {isSwapping && (
-        <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center backdrop-blur-sm">
-          <Loader2 className="animate-spin text-brand-600" size={24} />
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 z-20 flex items-center justify-center backdrop-blur-sm">
+          <Loader2 className="animate-spin text-brand-600 dark:text-brand-400" size={24} />
         </div>
       )}
 
@@ -249,7 +249,7 @@ const TabletWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                 onMoveUp?.(exercise.id); 
               }}
               disabled={index === 0}
-              className="p-1.5 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100"
+              className="p-1.5 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-gray-100"
               aria-label="Move exercise up"
             >
               <ArrowUp size={18} />
@@ -260,7 +260,7 @@ const TabletWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                 onMoveDown?.(exercise.id); 
               }}
               disabled={index === totalExercises - 1}
-              className="p-1.5 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100"
+              className="p-1.5 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-gray-100"
               aria-label="Move exercise down"
             >
               <ArrowDown size={18} />
@@ -302,7 +302,7 @@ const TabletWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                 }
               }}
               className={`font-bold text-lg ${
-                !isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'
+                !isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100'
               } ${
                 !isReordering && !isReadOnly ? 'cursor-pointer' : ''
               } ${
@@ -322,7 +322,7 @@ const TabletWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                   }
                 }}
                 disabled={isSwapping || isReadOnly}
-                className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="text-gray-300 dark:text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 p-1.5 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 title={isReadOnly ? "Cannot modify logged workout" : "Swap for alternative"}
               >
                 <Shuffle size={16} />
@@ -332,7 +332,7 @@ const TabletWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                   e.stopPropagation();
                   onViewDetails?.(exercise.name);
                 }}
-                className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all"
+                className="text-gray-300 dark:text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 p-1.5 rounded-lg transition-all"
                 title="View instructions"
               >
                 <Info size={16} />
@@ -341,17 +341,17 @@ const TabletWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
           </div>
           
           {/* Exercise Details */}
-          <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-2">
-            <span className="bg-gray-100 px-2.5 py-1 rounded-lg font-medium border border-gray-200">{exercise.sets} Sets</span>
-            <span className="bg-gray-100 px-2.5 py-1 rounded-lg font-medium border border-gray-200">{exercise.reps} Reps</span>
-            <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg font-medium border border-blue-100">
+          <div className="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
+            <span className="bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-lg font-medium border border-gray-200 dark:border-gray-600">{exercise.sets} Sets</span>
+            <span className="bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-lg font-medium border border-gray-200 dark:border-gray-600">{exercise.reps} Reps</span>
+            <span className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-lg font-medium border border-blue-100 dark:border-blue-800">
               <Clock size={12} /> {exercise.restSeconds}s
             </span>
           </div>
           
           {/* Notes */}
           {exercise.notes && (
-            <p className="text-sm text-gray-500 italic border-l-2 border-brand-200 pl-3 py-1 bg-gray-50/50 rounded-r-lg line-clamp-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400 italic border-l-2 border-brand-200 pl-3 py-1 bg-gray-50/50 dark:bg-gray-900/50 rounded-r-lg line-clamp-2">
               {exercise.notes}
             </p>
           )}
@@ -378,17 +378,17 @@ const DesktopWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
 }) => {
   return (
     <div 
-      className={`group bg-white p-6 rounded-2xl border transition-all duration-200 relative overflow-hidden ${
+      className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl border transition-all duration-200 relative overflow-hidden ${
         isReadOnly 
-          ? 'border-gray-200 bg-gray-50/30 shadow-none opacity-80' 
+          ? 'border-gray-200 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-900/30 shadow-none opacity-80' 
           : !isReordering && exercise.isCompleted 
-            ? 'border-green-200 bg-green-50/50 shadow-none' 
-            : 'border-gray-200 shadow-sm hover:shadow-md'
+            ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20 shadow-none' 
+            : 'border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md'
       } ${!isReordering && !isReadOnly ? 'cursor-pointer active:scale-[0.99]' : ''} ${className}`}
     >
       {isSwapping && (
-        <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center backdrop-blur-sm">
-          <Loader2 className="animate-spin text-brand-600" size={24} />
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 z-20 flex items-center justify-center backdrop-blur-sm">
+          <Loader2 className="animate-spin text-brand-600 dark:text-brand-400" size={24} />
         </div>
       )}
 
@@ -403,7 +403,7 @@ const DesktopWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                 onMoveUp?.(exercise.id); 
               }}
               disabled={index === 0}
-              className="p-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100"
+              className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-gray-100"
               aria-label="Move exercise up"
             >
               <ArrowUp size={20} />
@@ -414,7 +414,7 @@ const DesktopWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                 onMoveDown?.(exercise.id); 
               }}
               disabled={index === totalExercises - 1}
-              className="p-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:hover:bg-gray-100"
+              className="p-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:hover:bg-gray-100"
               aria-label="Move exercise down"
             >
               <ArrowDown size={20} />
@@ -456,7 +456,7 @@ const DesktopWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                 }
               }}
               className={`font-bold text-lg mb-2 ${
-                !isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'
+                !isReordering && exercise.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100'
               } ${
                 !isReordering && !isReadOnly ? 'cursor-pointer' : ''
               } ${
@@ -476,7 +476,7 @@ const DesktopWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                   }
                 }}
                 disabled={isSwapping || isReadOnly}
-                className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="text-gray-300 dark:text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 p-1.5 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 title={isReadOnly ? "Cannot modify logged workout" : "Swap for alternative"}
               >
                 <Shuffle size={18} />
@@ -486,7 +486,7 @@ const DesktopWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
                   e.stopPropagation();
                   onViewDetails?.(exercise.name);
                 }}
-                className="text-gray-300 hover:text-brand-500 hover:bg-brand-50 p-1.5 rounded-lg transition-all"
+                className="text-gray-300 dark:text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 p-1.5 rounded-lg transition-all"
                 title="View instructions"
               >
                 <Info size={18} />
@@ -495,17 +495,17 @@ const DesktopWorkoutCard: React.FC<ResponsiveWorkoutCardProps> = ({
           </div>
           
           {/* Exercise Details */}
-          <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3">
-            <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.sets} Sets</span>
-            <span className="bg-gray-100 px-3 py-1 rounded-lg font-medium border border-gray-200">{exercise.reps} Reps</span>
-            <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-medium border border-blue-100">
+          <div className="flex flex-wrap gap-3 text-sm text-gray-600 dark:text-gray-400 mb-3">
+            <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg font-medium border border-gray-200 dark:border-gray-600">{exercise.sets} Sets</span>
+            <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg font-medium border border-gray-200 dark:border-gray-600">{exercise.reps} Reps</span>
+            <span className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-lg font-medium border border-blue-100 dark:border-blue-800">
               <Clock size={14} /> {exercise.restSeconds}s Rest
             </span>
           </div>
           
           {/* Notes */}
           {exercise.notes && (
-            <p className="text-sm text-gray-500 italic border-l-2 border-brand-200 pl-3 py-1 bg-gray-50/50 rounded-r-lg">
+            <p className="text-sm text-gray-500 dark:text-gray-400 italic border-l-2 border-brand-200 pl-3 py-1 bg-gray-50/50 dark:bg-gray-900/50 rounded-r-lg">
               {exercise.notes}
             </p>
           )}

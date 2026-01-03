@@ -87,25 +87,25 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 md:bg-white animate-fade-in pb-24">
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 md:bg-white md:dark:bg-gray-800 animate-fade-in pb-24">
       {/* Header */}
-      <div className="bg-white p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-4">
           <div>
-            <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
-              <TrendingUp className="text-brand-600" /> Progress
+            <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <TrendingUp className="text-brand-600 dark:text-brand-400" /> Progress
             </h2>
           </div>
         </div>
         
         {/* Mini Stats in Header for Mobile */}
-        <div className="flex items-center gap-4 text-xs font-medium text-gray-500">
+        <div className="flex items-center gap-4 text-xs font-medium text-gray-500 dark:text-gray-400">
             <div className="text-right hidden sm:block">
-                <p className="font-bold text-gray-900">{totalWorkouts}</p>
+                <p className="font-bold text-gray-900 dark:text-gray-100">{totalWorkouts}</p>
                 <p>Workouts</p>
             </div>
             <div className="text-right hidden sm:block">
-                <p className="font-bold text-gray-900">{totalMinutes}m</p>
+                <p className="font-bold text-gray-900 dark:text-gray-100">{totalMinutes}m</p>
                 <p>Total Time</p>
             </div>
         </div>
@@ -118,13 +118,13 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
         <div className={`${isDesktop ? 'col-span-8 space-y-6' : 'space-y-6 order-2 md:order-1'}`}>
             
             {/* Training Volume Chart */}
-            <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <section className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <BarChart2 size={20} className="text-brand-600" />
-                        <h3 className="text-lg font-bold text-gray-900">Training Volume</h3>
+                        <BarChart2 size={20} className="text-brand-600 dark:text-brand-400" />
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Training Volume</h3>
                     </div>
-                    <div className="bg-brand-50 text-brand-700 px-3 py-1 rounded-full text-xs font-bold">
+                    <div className="bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 px-3 py-1 rounded-full text-xs font-bold">
                         Consistency: {consistencyScore}%
                     </div>
                 </div>
@@ -134,8 +134,8 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
              {/* Recent History List */}
              <section>
                 <div className="flex items-center gap-2 mb-4 px-1">
-                    <History size={20} className="text-brand-600" />
-                    <h3 className="text-lg font-bold text-gray-900">Recent History</h3>
+                    <History size={20} className="text-brand-600 dark:text-brand-400" />
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Recent History</h3>
                 </div>
                 <WorkoutHistoryList history={history} />
             </section>
@@ -153,26 +153,26 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
 
                 {/* Desktop Day Details Panel */}
                 {isDesktop && selectedDayDetails && (
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-fade-in">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 animate-fade-in">
                         <div className="flex justify-between items-start mb-4">
                              <div>
-                                 <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider">{selectedDayDetails.dayName}</h4>
-                                 <h3 className="text-xl font-bold text-gray-900">{selectedDayDetails.title}</h3>
+                                 <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{selectedDayDetails.dayName}</h4>
+                                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{selectedDayDetails.title}</h3>
                              </div>
-                             <button onClick={closeDayDetails} className="p-1 hover:bg-gray-100 rounded-full">
-                                 <X size={20} className="text-gray-400" />
+                             <button onClick={closeDayDetails} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                                 <X size={20} className="text-gray-400 dark:text-gray-500" />
                              </button>
                         </div>
                         
                         <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
                              {selectedDayDetails.exercises.map((ex, i) => (
-                                 <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                                     <div className="bg-white p-2 rounded-lg border border-gray-100 shrink-0">
-                                         <Dumbbell size={16} className="text-brand-600" />
+                                 <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                                     <div className="bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-600 shrink-0">
+                                         <Dumbbell size={16} className="text-brand-600 dark:text-brand-400" />
                                      </div>
                                      <div>
-                                         <p className="font-bold text-sm text-gray-900">{ex.name}</p>
-                                         <p className="text-xs text-gray-500">{ex.sets} sets × {ex.reps} reps</p>
+                                         <p className="font-bold text-sm text-gray-900 dark:text-gray-100">{ex.name}</p>
+                                         <p className="text-xs text-gray-500 dark:text-gray-400">{ex.sets} sets × {ex.reps} reps</p>
                                      </div>
                                  </div>
                              ))}
@@ -186,7 +186,7 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
                 {history.length === 0 && !selectedDayDetails && (
                      <div className="bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl p-6 text-white shadow-lg">
                         <h3 className="font-bold text-lg mb-2">Start Your Journey!</h3>
-                        <p className="text-brand-50 text-sm mb-4">
+                        <p className="text-brand-50 dark:text-brand-100 text-sm mb-4">
                             You haven't logged any workouts yet. Select a day from the calendar to begin.
                         </p>
                      </div>
@@ -200,29 +200,29 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
       {!isDesktop && selectedDayDetails && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={closeDayDetails}>
               <div
-                className="bg-white w-full rounded-t-3xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-slide-up"
+                className="bg-white dark:bg-gray-800 w-full rounded-t-3xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-slide-up"
                 onClick={e => e.stopPropagation()}
               >
-                  <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                  <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                       <div>
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{selectedDayDetails.dayName}</p>
-                          <h3 className="text-lg font-bold text-gray-900">{selectedDayDetails.title}</h3>
+                          <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{selectedDayDetails.dayName}</p>
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{selectedDayDetails.title}</h3>
                       </div>
-                      <button onClick={closeDayDetails} className="p-2 bg-gray-100 rounded-full">
-                          <X size={20} className="text-gray-600" />
+                      <button onClick={closeDayDetails} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full">
+                          <X size={20} className="text-gray-600 dark:text-gray-300" />
                       </button>
                   </div>
                   
                   <div className="p-4 overflow-y-auto">
                       <div className="space-y-3">
                            {selectedDayDetails.exercises.map((ex, i) => (
-                               <div key={i} className="flex items-center gap-4 p-3 border border-gray-100 rounded-xl bg-white shadow-sm">
-                                   <div className="w-10 h-10 bg-brand-50 rounded-full flex items-center justify-center shrink-0 text-brand-600">
+                               <div key={i} className="flex items-center gap-4 p-3 border border-gray-100 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm">
+                                   <div className="w-10 h-10 bg-brand-50 dark:bg-brand-900/20 rounded-full flex items-center justify-center shrink-0 text-brand-600 dark:text-brand-400">
                                        <Dumbbell size={18} />
                                    </div>
                                    <div className="flex-1">
-                                       <p className="font-bold text-gray-900 text-sm">{ex.name}</p>
-                                       <div className="flex gap-3 mt-1 text-xs text-gray-500">
+                                       <p className="font-bold text-gray-900 dark:text-gray-100 text-sm">{ex.name}</p>
+                                       <div className="flex gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
                                            <span className="flex items-center gap-1"><Flame size={10} /> Set {ex.sets}</span>
                                            <span className="flex items-center gap-1"><Clock size={10} /> Reps {ex.reps}</span>
                                        </div>
@@ -232,7 +232,7 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
                       </div>
                   </div>
                   
-                  <div className="p-4 border-t border-gray-100 bg-gray-50">
+                  <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                        
                   </div>
               </div>

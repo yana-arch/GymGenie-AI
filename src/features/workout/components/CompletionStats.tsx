@@ -17,8 +17,8 @@ const CompletionStatsRenderer: React.FC<{ exercises: WorkoutExercise[] }> = ({ e
 
   return (
     <div className="flex items-center justify-between mb-2">
-      <h3 className="text-sm font-bold text-gray-900">Exercise Progress</h3>
-      <div className="text-sm font-bold text-gray-600">
+      <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Exercise Progress</h3>
+      <div className="text-sm font-bold text-gray-600 dark:text-gray-400">
         {completionStats.completed}/{completionStats.total} completed
       </div>
     </div>

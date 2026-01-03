@@ -4,6 +4,7 @@ import { ReduxProvider } from './store/ReduxProvider';
 import SessionErrorBoundary from './src/features/session/components/SessionErrorBoundary';
 import { Loader2 } from 'lucide-react';
 import ResponsiveNavigation from './components/ResponsiveNavigation';
+import ThemeProvider from './src/components/ThemeProvider';
 
 const Onboarding = React.lazy(() => import('./src/features/onboarding/components/Onboarding'));
 const EquipmentScanner = React.lazy(() => import('./src/features/profile/components/EquipmentScanner'));
@@ -31,15 +32,15 @@ const AppContent = memo(() => {
   }
 
   return (
-    <div className="h-screen bg-gray-100 font-sans text-gray-900">
+    <div className="h-screen bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
       <ResponsiveNavigation>
         {/* Global Overlay Loader */}
         {isLoading && (
-          <div className="absolute inset-0 bg-white/80 z-50 flex items-center justify-center backdrop-blur-sm animate-fade-in">
-            <div className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-100 flex flex-col items-center">
+          <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 z-50 flex items-center justify-center backdrop-blur-sm animate-fade-in">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 flex flex-col items-center">
               <Loader2 size={48} className="animate-spin text-brand-600 mb-4" />
-              <p className="font-bold text-lg text-gray-800">GymGenie AI</p>
-              <p className="text-sm text-gray-500 mt-1">Crafting your plan...</p>
+              <p className="font-bold text-lg text-gray-800 dark:text-gray-200">GymGenie AI</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Crafting your plan...</p>
             </div>
           </div>
         )}
@@ -65,7 +66,9 @@ const App = memo(() => {
     <SessionErrorBoundary>
       <ReduxProvider>
         <AppProvider>
-          <AppContent />
+          <ThemeProvider>
+            <AppContent />
+          </ThemeProvider>
         </AppProvider>
       </ReduxProvider>
     </SessionErrorBoundary>

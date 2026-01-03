@@ -8,11 +8,13 @@ const DashboardBottomNav: React.FC = () => {
 
   const getButtonClass = (view: ActiveView) =>
     `flex flex-col items-center p-2 rounded-md transition-colors ${
-      activeView === view ? 'text-brand-500' : 'text-gray-400 hover:text-white'
+      activeView === view 
+        ? 'text-brand-500 dark:text-brand-400' 
+        : 'text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-100'
     }`;
 
   return (
-    <footer className="bg-gray-900 border-t border-gray-800 text-white pb-safe pt-2 px-2 shadow-lg z-50">
+    <footer className="bg-gray-900 dark:bg-gray-900 border-t border-gray-800 dark:border-gray-800 text-white dark:text-gray-100 pb-safe pt-2 px-2 shadow-lg z-50">
       <nav className="flex justify-around">
         <button
           onClick={() => setActiveView('workout')}

@@ -61,9 +61,9 @@ const TrainingVolumeChart: React.FC<TrainingVolumeChartProps> = ({ history }) =>
 
   if (chartData.length === 0) {
     return (
-      <div className="h-64 flex flex-col items-center justify-center bg-gray-50 rounded-2xl border border-gray-100 p-6">
-        <p className="text-gray-400 font-medium">No workout data available</p>
-        <p className="text-sm text-gray-400 mt-1">Complete workouts to see your progress</p>
+      <div className="h-64 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+        <p className="text-gray-400 dark:text-gray-500 font-medium">No workout data available</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Complete workouts to see your progress</p>
       </div>
     );
   }
@@ -72,9 +72,9 @@ const TrainingVolumeChart: React.FC<TrainingVolumeChartProps> = ({ history }) =>
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-100">
-          <p className="text-sm font-bold text-gray-900 mb-1">{label}</p>
-          <p className="text-xs text-brand-600 font-medium">
+        <div className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
+          <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">{label}</p>
+          <p className="text-xs text-brand-600 dark:text-brand-400 font-medium">
             Exercises: {payload[0].value}
           </p>
         </div>
@@ -96,12 +96,13 @@ const TrainingVolumeChart: React.FC<TrainingVolumeChartProps> = ({ history }) =>
               <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-gray-100 dark:text-gray-700" />
           <XAxis 
             dataKey="label" 
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#94a3b8', fontSize: 12 }}
+            tick={{ fill: 'currentColor', fontSize: 12 }}
+            className="text-gray-400 dark:text-gray-500"
             dy={10}
             interval="preserveStartEnd"
             minTickGap={30}
@@ -109,7 +110,8 @@ const TrainingVolumeChart: React.FC<TrainingVolumeChartProps> = ({ history }) =>
           <YAxis 
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#94a3b8', fontSize: 12 }}
+            tick={{ fill: 'currentColor', fontSize: 12 }}
+            className="text-gray-400 dark:text-gray-500"
           />
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} />
           <Area 

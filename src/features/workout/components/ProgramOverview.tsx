@@ -29,12 +29,12 @@ const ProgramOverview: React.FC = () => {
   const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 font-medium">Active Program</p>
-          <h2 className="text-2xl font-bold text-gray-900 mt-1">{currentPlan.title}</h2>
-          <p className="text-sm text-brand-600 font-semibold mt-1 flex items-center gap-1.5">
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Active Program</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{currentPlan.title}</h2>
+          <p className="text-sm text-brand-600 dark:text-brand-400 font-semibold mt-1 flex items-center gap-1.5">
             <Target size={14} />
             {user.goal}
           </p>
@@ -48,7 +48,7 @@ const ProgramOverview: React.FC = () => {
               stroke="currentColor"
               strokeWidth="8"
               fill="transparent"
-              className="text-gray-200"
+              className="text-gray-200 dark:text-gray-700"
             />
             <circle
               cx="56"
@@ -64,7 +64,7 @@ const ProgramOverview: React.FC = () => {
               style={{ transition: 'stroke-dashoffset 0.35s' }}
             />
           </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-800">
+          <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-800 dark:text-gray-100">
             {progress}%
           </span>
         </div>

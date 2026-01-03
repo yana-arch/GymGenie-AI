@@ -165,7 +165,7 @@ const HEADER_HEIGHT = 60; // Height for section headers
       return (
         <div style={style} className="flex items-center gap-2 mb-4 px-4">
           {item.icon}
-          <h3 className="text-lg font-bold text-gray-900">{item.title}</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{item.title}</h3>
         </div>
       );
     }
@@ -174,10 +174,10 @@ const HEADER_HEIGHT = 60; // Height for section headers
       return (
         <div style={style} className="px-4 pb-4">
           <div 
-            className={`bg-white p-5 rounded-2xl border shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
-              item.sessionState === 'active' ? 'border-green-200 bg-green-50/30' :
-              item.sessionState === 'completed' ? 'border-yellow-200 bg-yellow-50/30' :
-              'border-gray-100'
+            className={`bg-white dark:bg-gray-800 p-5 rounded-2xl border shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+              item.sessionState === 'active' ? 'border-green-200 dark:border-green-800 bg-green-50/30' :
+              item.sessionState === 'completed' ? 'border-yellow-200 dark:border-yellow-800 bg-yellow-50/30' :
+              'border-gray-100 dark:border-gray-700'
             }`} 
             onClick={() => handleNavigateToWorkout(item.weekId, item.dayId)}
           >
@@ -186,20 +186,20 @@ const HEADER_HEIGHT = 60; // Height for section headers
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                   item.sessionState === 'active' ? 'bg-green-500 text-white' :
                   item.sessionState === 'completed' ? 'bg-yellow-500 text-white' :
-                  'bg-gray-100 text-gray-500'
+                  'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                 }`}>
                   {item.sessionState === 'active' ? <Activity size={16} /> :
                    item.sessionState === 'completed' ? <CheckCircle2 size={16} /> :
                    <Calendar size={16} />}
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">
                     Week {item.weekNumber} • {item.dayName}
                   </p>
                   <p className={`text-sm font-bold ${
-                    item.sessionState === 'active' ? 'text-green-800' :
-                    item.sessionState === 'completed' ? 'text-yellow-800' :
-                    'text-gray-800'
+                    item.sessionState === 'active' ? 'text-green-800 dark:text-green-400' :
+                    item.sessionState === 'completed' ? 'text-yellow-800 dark:text-yellow-400' :
+                    'text-gray-800 dark:text-gray-200'
                   }`}>
                     {item.sessionState === 'active' ? 'Active Session' :
                      item.sessionState === 'completed' ? 'Ready to Log' :
@@ -211,10 +211,10 @@ const HEADER_HEIGHT = 60; // Height for section headers
               <div className="flex items-center gap-2">
                 <div className={`flex items-center gap-1.5 font-bold px-3 py-1.5 rounded-full border text-sm ${
                   item.completedExercises === item.totalExercises 
-                    ? 'bg-green-50 text-green-700 border-green-200'
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
                     : item.completedExercises > 0
-                      ? 'bg-orange-50 text-orange-700 border-orange-200'
-                      : 'bg-gray-50 text-gray-500 border-gray-200'
+                      ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800'
+                      : 'bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600'
                 }`}>
                   <CheckCircle2 size={16} />
                   {item.completedExercises}/{item.totalExercises}
@@ -226,9 +226,9 @@ const HEADER_HEIGHT = 60; // Height for section headers
                     handleNavigateToWorkout(item.weekId, item.dayId);
                   }}
                   className={`p-2 rounded-lg transition-all ${
-                    item.sessionState === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-200' :
-                    item.sessionState === 'completed' ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' :
-                    'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    item.sessionState === 'active' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/60' :
+                    item.sessionState === 'completed' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/60' :
+                    'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                   title={item.sessionState === 'active' ? 'Continue workout' : 
                          item.sessionState === 'completed' ? 'Log workout' : 
@@ -243,8 +243,8 @@ const HEADER_HEIGHT = 60; // Height for section headers
             
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="font-bold text-gray-900 text-lg leading-tight">{item.dayTitle}</h3>
-                <p className="text-sm text-gray-500 mt-1">{item.totalExercises} exercises</p>
+                <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">{item.dayTitle}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{item.totalExercises} exercises</p>
               </div>
             </div>
           </div>

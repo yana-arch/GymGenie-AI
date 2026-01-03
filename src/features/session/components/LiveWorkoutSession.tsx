@@ -103,8 +103,8 @@ const LiveWorkoutSession = () => {
 
   if (!activeContext) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-        <p className="text-gray-500 mb-4">No active session found.</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
+        <p className="text-gray-500 dark:text-gray-400 mb-4">No active session found.</p>
         <button
           onClick={() => setStep('dashboard')}
           className="px-6 py-3 bg-brand-600 text-white rounded-xl font-bold"
@@ -248,22 +248,22 @@ const LiveWorkoutSession = () => {
   const adjustReps = (amount: number) => setInputReps(prev => Math.max(0, prev + amount));
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 relative">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 relative">
       {/* Top Bar: Minimal Navigation */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white z-10">
-        <button 
+      <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 z-10">
+        <button
           onClick={() => setStep('dashboard')}
-          className="p-2 -ml-2 text-gray-400 hover:text-gray-600 rounded-full"
+          className="p-2 -ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-full"
         >
           <ArrowLeft size={24} />
         </button>
         <div className="text-center">
-          <h2 className="font-bold text-gray-900">{day.title}</h2>
-          <p className="text-xs text-gray-500">{activeExerciseIndex + 1} of {totalExercises}</p>
+          <h2 className="font-bold text-gray-900 dark:text-gray-100">{day.title}</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{activeExerciseIndex + 1} of {totalExercises}</p>
         </div>
-        <button 
+        <button
           onClick={handleFinishWorkout}
-          className="text-sm font-bold text-brand-600 hover:text-brand-700"
+          className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300"
         >
           Finish
         </button>
@@ -275,13 +275,13 @@ const LiveWorkoutSession = () => {
           
           {/* Exercise Title & Info */}
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-black text-gray-900 leading-tight">
+            <h1 className="text-3xl font-black text-gray-900 dark:text-gray-100 leading-tight">
               {currentExercise.name}
             </h1>
-            <div className="flex justify-center gap-4 text-sm text-gray-500 font-medium">
-              <span className="bg-gray-100 px-3 py-1 rounded-full">{currentExercise.sets} Sets</span>
-              <span className="bg-gray-100 px-3 py-1 rounded-full">{currentExercise.reps} Reps</span>
-              <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full flex items-center gap-1">
+            <div className="flex justify-center gap-4 text-sm text-gray-500 dark:text-gray-400 font-medium">
+              <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">{currentExercise.sets} Sets</span>
+              <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">{currentExercise.reps} Reps</span>
+              <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 px-3 py-1 rounded-full flex items-center gap-1">
                 <Clock size={12} /> {currentExercise.restSeconds}s
               </span>
             </div>
@@ -290,7 +290,7 @@ const LiveWorkoutSession = () => {
             {currentCatalogExercise && (
                 <button
                     onClick={() => setShowHowTo(true)}
-                    className="inline-flex items-center gap-1 text-brand-600 text-sm font-bold mt-2 hover:text-brand-700"
+                    className="inline-flex items-center gap-1 text-brand-600 dark:text-brand-400 text-sm font-bold mt-2 hover:text-brand-700 dark:hover:text-brand-300"
                 >
                     <Search size={14} /> How to perform
                 </button>
@@ -298,16 +298,16 @@ const LiveWorkoutSession = () => {
           </div>
 
           {/* Active Set Card with Smart Inputs */}
-          <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm space-y-6">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-6 shadow-sm space-y-6">
+            <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-4">
                <div>
-                  <p className="text-brand-600 font-bold uppercase tracking-widest text-xs mb-1">Current Set</p>
-                  <p className="text-3xl font-black text-gray-900">
-                    {completedSetsCount + 1} <span className="text-xl text-gray-400 font-medium">/ {currentExercise.sets}</span>
+                  <p className="text-brand-600 dark:text-brand-400 font-bold uppercase tracking-widest text-xs mb-1">Current Set</p>
+                  <p className="text-3xl font-black text-gray-900 dark:text-gray-100">
+                    {completedSetsCount + 1} <span className="text-xl text-gray-400 dark:text-gray-500 font-medium">/ {currentExercise.sets}</span>
                   </p>
                </div>
                {activeContext.registryData && (
-                   <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center">
+                   <div className="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center">
                        {/* Placeholder for Image - in real app would use registryData.image_url */}
                        <Dumbbell className="text-brand-500" />
                    </div>
@@ -316,17 +316,17 @@ const LiveWorkoutSession = () => {
             
             {/* Weight Input */}
             <div className="space-y-3">
-               <div className="flex justify-between text-sm font-bold text-gray-500 uppercase">
+               <div className="flex justify-between text-sm font-bold text-gray-500 dark:text-gray-400 uppercase">
                    <span>Weight (kg)</span>
                </div>
                <div className="flex items-center gap-3">
-                   <button onClick={() => adjustWeight(-2.5)} className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center active:scale-95 transition-all">
+                   <button onClick={() => adjustWeight(-2.5)} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center active:scale-95 transition-all text-gray-600 dark:text-gray-300">
                        <Minus size={20} />
                    </button>
-                   <div className="flex-1 bg-gray-50 h-12 rounded-xl flex items-center justify-center border border-gray-200">
-                       <span className="text-2xl font-black text-gray-900">{inputWeight}</span>
+                   <div className="flex-1 bg-gray-50 dark:bg-gray-900 h-12 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                       <span className="text-2xl font-black text-gray-900 dark:text-gray-100">{inputWeight}</span>
                    </div>
-                   <button onClick={() => adjustWeight(2.5)} className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center active:scale-95 transition-all">
+                   <button onClick={() => adjustWeight(2.5)} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center active:scale-95 transition-all text-gray-600 dark:text-gray-300">
                        <Plus size={20} />
                    </button>
                </div>
@@ -334,17 +334,17 @@ const LiveWorkoutSession = () => {
 
             {/* Reps Input */}
             <div className="space-y-3">
-               <div className="flex justify-between text-sm font-bold text-gray-500 uppercase">
+               <div className="flex justify-between text-sm font-bold text-gray-500 dark:text-gray-400 uppercase">
                    <span>Reps</span>
                </div>
                <div className="flex items-center gap-3">
-                   <button onClick={() => adjustReps(-1)} className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center active:scale-95 transition-all">
+                   <button onClick={() => adjustReps(-1)} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center active:scale-95 transition-all text-gray-600 dark:text-gray-300">
                        <Minus size={20} />
                    </button>
-                   <div className="flex-1 bg-gray-50 h-12 rounded-xl flex items-center justify-center border border-gray-200">
-                       <span className="text-2xl font-black text-gray-900">{inputReps}</span>
+                   <div className="flex-1 bg-gray-50 dark:bg-gray-900 h-12 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                       <span className="text-2xl font-black text-gray-900 dark:text-gray-100">{inputReps}</span>
                    </div>
-                   <button onClick={() => adjustReps(1)} className="w-12 h-12 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center active:scale-95 transition-all">
+                   <button onClick={() => adjustReps(1)} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center active:scale-95 transition-all text-gray-600 dark:text-gray-300">
                        <Plus size={20} />
                    </button>
                </div>
@@ -356,7 +356,7 @@ const LiveWorkoutSession = () => {
             onClick={handleLogSet}
             disabled={completedSetsCount >= currentExercise.sets}
             className={`w-full text-white font-bold py-5 rounded-2xl shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all text-xl ${
-                completedSetsCount >= currentExercise.sets ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-900'
+                completedSetsCount >= currentExercise.sets ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed' : 'bg-gray-900 dark:bg-brand-600'
             }`}
           >
             <CheckCircle2 size={28} />
@@ -367,7 +367,7 @@ const LiveWorkoutSession = () => {
           {activeExerciseIndex < totalExercises - 1 && (
              <button 
                onClick={handleNextExercise}
-               className="w-full text-gray-500 font-bold py-3 flex items-center justify-center gap-2 hover:text-gray-900 transition-colors"
+               className="w-full text-gray-500 dark:text-gray-400 font-bold py-3 flex items-center justify-center gap-2 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
              >
                Skip to Next Exercise <SkipForward size={18} />
              </button>
@@ -388,24 +388,24 @@ const LiveWorkoutSession = () => {
 
       {/* Logging Modal */}
       {isLogging && (
-        <div className="absolute inset-0 z-50 bg-white animate-fade-in flex flex-col items-center justify-center p-6">
+        <div className="absolute inset-0 z-50 bg-white dark:bg-gray-900 animate-fade-in flex flex-col items-center justify-center p-6">
           <div className="w-full max-w-md space-y-8 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 size={40} className="text-green-600" />
+            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 size={40} className="text-green-600 dark:text-green-400" />
             </div>
             
             <div>
-              <h2 className="text-3xl font-black text-gray-900 mb-2">Workout Complete!</h2>
-              <p className="text-gray-500">Great job crushing {activeContext?.day.title}.</p>
-              <p className="text-sm font-bold text-gray-400 mt-2 uppercase tracking-widest">{loggingStats.duration} Minutes</p>
+              <h2 className="text-3xl font-black text-gray-900 dark:text-gray-100 mb-2">Workout Complete!</h2>
+              <p className="text-gray-500 dark:text-gray-400">Great job crushing {activeContext?.day.title}.</p>
+              <p className="text-sm font-bold text-gray-400 dark:text-gray-500 mt-2 uppercase tracking-widest">{loggingStats.duration} Minutes</p>
             </div>
 
-            <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-              <label className="block text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">Rate Effort (RPE)</label>
+            <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700">
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">Rate Effort (RPE)</label>
               <div className="flex justify-between items-center mb-2 px-2">
-                <span className="text-xs font-bold text-gray-400">Easy</span>
-                <span className="text-2xl font-black text-brand-600">{rpe}</span>
-                <span className="text-xs font-bold text-gray-400">Max</span>
+                <span className="text-xs font-bold text-gray-400 dark:text-gray-500">Easy</span>
+                <span className="text-2xl font-black text-brand-600 dark:text-brand-400">{rpe}</span>
+                <span className="text-xs font-bold text-gray-400 dark:text-gray-500">Max</span>
               </div>
               <input
                 type="range"
@@ -414,9 +414,9 @@ const LiveWorkoutSession = () => {
                 step="1"
                 value={rpe}
                 onChange={(e) => setRpe(Number(e.target.value))}
-                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
               />
-              <div className="flex justify-between mt-2 text-xs text-gray-400 font-medium">
+              <div className="flex justify-between mt-2 text-xs text-gray-400 dark:text-gray-500 font-medium">
                 <span>1</span>
                 <span>5</span>
                 <span>10</span>

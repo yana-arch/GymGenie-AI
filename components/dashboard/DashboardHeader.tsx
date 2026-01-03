@@ -7,13 +7,15 @@ const DashboardHeader: React.FC = () => {
 
   const getButtonClass = (view: ActiveView) =>
     `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-      activeView === view ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+      activeView === view 
+        ? 'bg-gray-900 dark:bg-brand-600 text-white dark:text-white' 
+        : 'text-gray-300 dark:text-gray-400 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white dark:hover:text-gray-100'
     }`;
 
   return (
-    <header className="bg-gray-800 text-white p-4 shadow-md">
+    <header className="bg-gray-800 dark:bg-gray-900 text-white dark:text-gray-100 p-4 shadow-md border-b border-gray-700 dark:border-gray-800">
       <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-xl font-bold">GymGenie</h1>
+        <h1 className="text-xl font-bold text-white dark:text-gray-100">GymGenie</h1>
         <nav className="flex space-x-4">
           <button
             onClick={() => setActiveView('workout')}

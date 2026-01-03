@@ -22,13 +22,13 @@ const ProfileDashboard: React.FC<ProfileDashboardProps> = () => {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 md:bg-white animate-fade-in pb-24">
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 md:bg-white md:dark:bg-gray-800 animate-fade-in pb-24">
       {/* Header */}
-      <div className="bg-white p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-4">
           <div>
-            <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900">
-              <UserCircle className="text-brand-600" /> My Profile
+            <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+              <UserCircle className="text-brand-600 dark:text-brand-400" /> My Profile
             </h2>
           </div>
         </div>
@@ -60,12 +60,12 @@ const ProfileDashboard: React.FC<ProfileDashboardProps> = () => {
       {/* Equipment Scanner Overlay/Modal */}
       {showScanner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-5xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-5xl h-[90vh] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col">
             <button
               onClick={() => setShowScanner(false)}
-              className="absolute top-4 right-4 z-50 p-2 bg-white/80 backdrop-blur rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 z-50 p-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <X size={24} />
+              <X size={24} className="text-gray-600 dark:text-gray-300" />
             </button>
             <div className="flex-1 overflow-hidden">
               <EquipmentScanner />

@@ -15,7 +15,7 @@ const WorkoutDashboard = memo(() => {
 
   if (!currentPlan || !user) {
     return (
-      <div className="p-4 text-center text-gray-500">
+      <div className="p-4 text-center text-gray-500 dark:text-gray-400">
         Loading your workout plan...
       </div>
     );
@@ -34,19 +34,19 @@ const WorkoutDashboard = memo(() => {
         </div>
         <div className="lg:col-span-1 space-y-6">
           <ProgramOverview />
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200">
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-800">
              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
                    🔥
                 </div>
                 <div>
-                   <p className="text-sm text-orange-800 font-bold uppercase tracking-wider">Current Streak</p>
-                   <p className="text-2xl font-black text-orange-900">
-                      {user.streak?.currentStreak || 0} <span className="text-sm font-medium text-orange-700">Days</span>
+                   <p className="text-sm text-orange-800 dark:text-orange-200 font-bold uppercase tracking-wider">Current Streak</p>
+                   <p className="text-2xl font-black text-orange-900 dark:text-orange-100">
+                      {user.streak?.currentStreak || 0} <span className="text-sm font-medium text-orange-700 dark:text-orange-300">Days</span>
                    </p>
                 </div>
              </div>
-             <p className="text-xs text-orange-700 mt-3 pl-13">
+             <p className="text-xs text-orange-700 dark:text-orange-300 mt-3 pl-13">
                 Longest: {user.streak?.longestStreak || 0} Days
              </p>
           </div>

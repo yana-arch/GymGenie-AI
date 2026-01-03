@@ -42,7 +42,7 @@ const CreateWorkoutDay = memo(() => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full flex flex-col h-full">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Custom Workout Day</h2>
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Create Custom Workout Day</h2>
 
       {/* Button to Add Exercises */}
       <button
@@ -55,30 +55,30 @@ const CreateWorkoutDay = memo(() => {
 
       {/* Selected Exercises List / AI Generated List */}
       {selectedExercises.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-gray-500 text-center">
+        <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400 text-center">
           <p>Start by adding exercises to your custom workout day.</p>
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto space-y-4">
           {(aiGeneratedExercises.length > 0 ? aiGeneratedExercises : selectedExercises).map((exercise, index) => (
-            <div key={exercise.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div key={exercise.id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold text-gray-900">{exercise.name}</h3>
+                <h3 className="font-bold text-gray-900 dark:text-gray-100">{exercise.name}</h3>
                 {selectedExercises.includes(exercise as Exercise) && ( // Only show remove button for manually added exercises
                   <button
                     onClick={() => handleRemoveExercise(exercise.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
                   >
                     <X size={20} />
                   </button>
                 )}
               </div>
               {aiGeneratedExercises.length > 0 && (
-                <div className="text-sm text-gray-700">
+                <div className="text-sm text-gray-700 dark:text-gray-300">
                   <p>Sets: {exercise.sets}</p>
                   <p>Reps: {exercise.reps}</p>
                   <p>Rest: {exercise.restSeconds}s</p>
-                  {exercise.notes && <p className="text-xs text-gray-500 mt-1">Notes: {exercise.notes}</p>}
+                  {exercise.notes && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Notes: {exercise.notes}</p>}
                 </div>
               )}
             </div>
