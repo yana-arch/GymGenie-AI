@@ -18,16 +18,16 @@ const DashboardHeader: React.FC = () => {
         <h1 className="text-xl font-bold text-white dark:text-gray-100">GymGenie</h1>
         <nav className="flex space-x-4">
           <button
+            onClick={() => setActiveView('home')}
+            className={getButtonClass('home')}
+          >
+            Home
+          </button>
+          <button
             onClick={() => setActiveView('workout')}
             className={getButtonClass('workout')}
           >
             Workout
-          </button>
-          <button
-            onClick={() => setActiveView('createWorkoutDay')}
-            className={getButtonClass('createWorkoutDay')}
-          >
-            Add Exercise
           </button>
           <button
             onClick={() => setActiveView('kitchen')}

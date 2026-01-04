@@ -7,7 +7,7 @@ export * from './schemas';
 // Type-safe serialization utilities
 export * from './serialization';
 
-export type ActiveView = 'workout' | 'kitchen' | 'progress' | 'profile';
+export type ActiveView = 'home' | 'workout' | 'kitchen' | 'progress' | 'profile';
 
 // Re-export original types for backward compatibility (excluding conflicting ones)
 export type {

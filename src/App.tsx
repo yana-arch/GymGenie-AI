@@ -15,6 +15,7 @@ const NutritionGenie = React.lazy(() => import('./features/nutrition/components/
 const LiveWorkoutSession = React.lazy(() => import('./features/session/components/LiveWorkoutSession'));
 const CreateWorkoutDay = React.lazy(() => import('./features/workout/components/CreateWorkoutDay'));
 const WorkoutPlanGenerator = React.lazy(() => import('./features/onboarding/components/WorkoutPlanGenerator')); // New import
+const HomeDashboard = React.lazy(() => import('./features/home/components/HomeDashboard'));
 
 const AppContent = memo(() => {
   const { step, isLoading, activeView, setActiveView, setStep } = useApp();
@@ -50,6 +51,7 @@ const AppContent = memo(() => {
           {currentAppStep === 'onboarding' && <Onboarding />}
           {currentAppStep === 'scanning' && <EquipmentScanner />}
           {currentAppStep === 'generatePlan' && <WorkoutPlanGenerator />} {/* New render condition */}
+          {currentAppStep === 'dashboard' && activeView === 'home' && <HomeDashboard />}
           {currentAppStep === 'dashboard' && activeView === 'workout' && <WorkoutDashboard />}
           {currentAppStep === 'dashboard' && activeView === 'progress' && <ProgressDashboard />}
           {currentAppStep === 'dashboard' && activeView === 'profile' && <ProfileDashboard />}

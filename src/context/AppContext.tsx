@@ -15,7 +15,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   const [equipment, setEquipmentState] = useState<string[]>([]);
   const [currentPlan, setPlanState] = useState<WorkoutPlan | null>(null);
   const [step, setStepState] = useState<AppStep>('onboarding');
-  const [activeView, setActiveViewState] = useState<ActiveView>('workout');
+  const [activeView, setActiveViewState] = useState<ActiveView>('home');
   const [history, setHistoryState] = useState<WorkoutHistoryEntry[]>([]);
   const [isLoading, setLoading] = useState(false);
 

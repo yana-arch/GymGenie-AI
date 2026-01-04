@@ -370,6 +370,7 @@ export type AppStep =
   | "dashboard"
   | "session";
 export type ActiveView =
+  | "home"
   | "workout"
   | "kitchen"
   | "progress"

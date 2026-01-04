@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
 import { ActiveView } from '@/types';
-import { Dumbbell, Utensils, TrendingUp, User, Plus } from 'lucide-react'; // Added Plus icon
+import { Dumbbell, Utensils, TrendingUp, User, Plus, Home } from 'lucide-react'; // Added Home icon
 
 const DashboardBottomNav: React.FC = () => {
   const { activeView, setActiveView } = useApp();
@@ -16,6 +16,13 @@ const DashboardBottomNav: React.FC = () => {
   return (
     <footer className="bg-gray-900 dark:bg-gray-900 border-t border-gray-800 dark:border-gray-800 text-white dark:text-gray-100 pb-safe pt-2 px-2 shadow-lg z-50">
       <nav className="flex justify-around">
+        <button
+          onClick={() => setActiveView('home')}
+          className={getButtonClass('home')}
+        >
+          <Home size={24} />
+          <span className="text-[10px] mt-1 font-medium">Home</span>
+        </button>
         <button
           onClick={() => setActiveView('workout')}
           className={getButtonClass('workout')}
