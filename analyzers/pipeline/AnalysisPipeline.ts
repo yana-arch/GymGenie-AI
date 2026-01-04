@@ -16,7 +16,7 @@ import {
   PipelineError,
   PipelineProgress,
 } from './types';
-import { logger } from '../utils/logger';
+import { Logger } from '../utils/Logger';
 
 /**
  * Orchestrates the execution of multiple analysis stages
@@ -33,7 +33,7 @@ export class AnalysisPipeline {
    */
   async execute(options: PipelineOptions): Promise<PipelineExecutionResult> {
     const startTime = new Date();
-    logger.info('Starting analysis pipeline...');
+    Logger.info('Starting analysis pipeline...');
 
     const stagesToRun = this.getStagesToRun(options);
     const results: StageResult[] = [];
@@ -94,7 +94,7 @@ export class AnalysisPipeline {
 
         // Stop on error if configured
         if (options.stopOnError && stagesFailed > 0) {
-          logger.error('Stopping pipeline due to error');
+          Logger.error('Stopping pipeline due to error');
           break;
         }
       }
@@ -115,7 +115,7 @@ export class AnalysisPipeline {
           });
 
           if (options.stopOnError) {
-            logger.error('Stopping pipeline due to error');
+            Logger.error('Stopping pipeline due to error');
             break;
           }
         }
@@ -149,7 +149,7 @@ export class AnalysisPipeline {
       message: `Pipeline completed: ${stagesExecuted} succeeded, ${stagesFailed} failed`,
     });
 
-    logger.info(
+    Logger.info(
       `Pipeline completed in ${duration}ms: ${stagesExecuted} succeeded, ${stagesFailed} failed, ${stagesSkipped} skipped`
     );
 
@@ -175,7 +175,7 @@ export class AnalysisPipeline {
     options: PipelineOptions
   ): Promise<StageResult> {
     const startTime = Date.now();
-    logger.info(`Executing stage: ${stage.name}`);
+    Logger.info(`Executing stage: ${stage.name}`);
 
     this.reportProgress(options, {
       stage: stage.name,
@@ -199,7 +199,7 @@ export class AnalysisPipeline {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : String(error);
 
-      logger.error(`Stage ${stage.name} failed: ${errorMessage}`);
+      Logger.error(`Stage ${stage.name} failed: ${errorMessage}`);
 
       return {
         stage: stage.name,

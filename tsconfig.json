@@ -21,18 +21,17 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
       ]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": "."
   },
   "include": [
     "src",
     "test",
     "vite.config.ts",
-    "vitest.config.ts",
-    "store",
-    "services"
+    "vitest.config.ts"
   ]
 }

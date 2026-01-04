@@ -2,7 +2,7 @@ import React from 'react';
 import { Settings, Moon, Sun, Monitor, Bell, Timer, Key, Server, Lock } from 'lucide-react';
 // Assuming we'll have typed hooks for redux state in the future, for now using direct dispatch/select logic via userSlice
 import { useDispatch, useSelector } from 'react-redux';
-import { setTheme, toggleNotifications, setDefaultRestTime, updateAiConfig } from '@/src/features/user/store/userSlice';
+import { setTheme, toggleNotifications, setDefaultRestTime, updateAiConfig } from '@/features/user/store/userSlice';
 import { AiProviderConfig } from '@/types';
 
 const SettingsMenu: React.FC = () => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserProfile } from '@/types';
 import { useApp } from '@/context/AppContext';
 import { Edit2, Save, X, Activity } from 'lucide-react';
-import { updateProfile } from '@/src/features/user/store/userSlice';
+import { updateProfile } from '@/features/user/store/userSlice';
 import { useDispatch } from 'react-redux';
 
 interface BiometricEditorProps {

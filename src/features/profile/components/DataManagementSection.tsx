@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Download, Trash2, AlertTriangle, Check, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { clearUserData } from '@/src/features/user/store/userSlice';
-import { clearWorkoutData } from '@/src/features/workout/store/workoutSlice';
+import { clearUserData } from '@/features/user/store/userSlice';
+import { clearWorkoutData } from '@/features/workout/store/workoutSlice';
 
 const DataManagementSection: React.FC = () => {
   const { resetApp } = useApp();

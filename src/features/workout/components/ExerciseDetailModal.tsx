@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, ExternalLink, AlertTriangle, Target, Sparkles, Loader2, List, Play } from 'lucide-react';
-import { Exercise } from '../../../types/schemas';
-import { getExerciseDetails } from '@/src/features/workout/services/WorkoutGenerator';
-import { toTitleCase } from '../../../utils/stringUtils';
+import { Exercise } from '@/types/schemas';
+import { geminiService } from '@/services/ai/GeminiService';
+import { toTitleCase } from '@/utils/stringUtils';
 
 interface ExerciseDetailModalProps {
   exercise: Exercise | null;
@@ -17,11 +17,11 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
   onClose,
   onAddToWorkout,
 }) => {
-  const [aiDetails, setAiDetails] = useState<{ 
-    targetMuscles: string[]; 
-    instructions: string[]; 
-    commonMistakes: string[]; 
-    proTips: string[]; 
+  const [aiDetails, setAiDetails] = useState<{
+    targetMuscles: string[];
+    instructions: string[];
+    commonMistakes: string[];
+    proTips: string[];
   } | null>(null);
   const [isGeneratingTip, setIsGeneratingTip] = useState(false);
 
@@ -37,7 +37,7 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
     if (!exercise.name) return;
     setIsGeneratingTip(true);
     try {
-      const details = await getExerciseDetails(exercise.name);
+      const details = await geminiService.getExerciseDetails(exercise.name);
       setAiDetails(details);
     } catch (error) {
       console.error("Failed to generate AI tip:", error);
@@ -80,7 +80,7 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
                 {toTitleCase(muscle)}
               </span>
             ))}
-            {(!aiDetails && exercise.secondaryMuscles.length > 0) && 
+            {(!aiDetails && exercise.secondaryMuscles.length > 0) &&
               exercise.secondaryMuscles.slice(0, 2).map((muscle) => (
                 <span
                   key={muscle}
@@ -167,11 +167,41 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
             <X size={24} />
           </button>
         </div>
+      
+        {/* Media Section */}
+        <div className="w-full aspect-video bg-gray-100 dark:bg-gray-900 rounded-3xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
+          {exercise.media.gif ? (
+            <img
+              src={exercise.media.gif}
+              alt={exercise.name}
+              className="w-full h-full object-contain"
+              loading="lazy"
+            />
+          ) : (
+            <div className="text-gray-400 dark:text-gray-500 h-full flex flex-col items-center justify-center">
+              <Target size={48} className="mb-2 opacity-50" />
+              <span className="text-sm">No demonstration available</span>
+            </div>
+          )}
+
+          <div className="absolute bottom-4 left-4 flex gap-2">
+            <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
+              {exercise.bodyPart.join(", ")}
+            </span>
+            <span className="px-3 py-1 bg-brand-600/90 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
+              {exercise.equipment.join(", ")}
+            </span>
+          </div>
+        </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8 custom-scrollbar">
           {renderContent()}
 
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-3">
           {/* Button to fetch AI tips if not already fetched and not loading */}
           {!aiDetails && !isGeneratingTip && (
             <div className="flex justify-center mt-4">
@@ -186,35 +216,6 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
             </div>
           )}
 
-          {/* Media Section */}
-          <div className="w-full aspect-video bg-gray-100 dark:bg-gray-900 rounded-3xl overflow-hidden relative border border-gray-100 dark:border-gray-700">
-            {exercise.media.gif ? (
-              <img
-                src={exercise.media.gif}
-                alt={exercise.name}
-                className="w-full h-full object-contain"
-                loading="lazy"
-              />
-            ) : (
-              <div className="text-gray-400 dark:text-gray-500 h-full flex flex-col items-center justify-center">
-                <Target size={48} className="mb-2 opacity-50" />
-                <span className="text-sm">No demonstration available</span>
-              </div>
-            )}
-
-            <div className="absolute bottom-4 left-4 flex gap-2">
-              <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
-                {exercise.bodyPart.join(", ")}
-              </span>
-              <span className="px-3 py-1 bg-brand-600/90 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
-                {exercise.equipment.join(", ")}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-3">
           <button
             onClick={() => {
               const query = encodeURIComponent(`${exercise.name} exercise tutorial`);

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
-import { generateRecipesFromImage, getMealSuggestions } from '@/src/features/nutrition/services/DietService';
+import { generateRecipesFromImage, getMealSuggestions } from '@/features/nutrition/services/DietService';
 import { Recipe } from '@/types';
 import { Camera, ChefHat, Flame, Clock, Utensils, Loader2, UploadCloud, RefreshCw, BarChart, Sparkles, PlusCircle } from 'lucide-react';
 

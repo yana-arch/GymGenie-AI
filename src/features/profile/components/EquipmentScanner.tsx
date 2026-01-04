@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { identifyEquipment } from '@/src/features/profile/services/EquipmentIdentifier';
-import { generateWorkoutPlan } from '@/src/features/workout/services/WorkoutGenerator';
+import { identifyEquipment } from '@/features/profile/services/EquipmentIdentifier';
+import { generateWorkoutPlan } from '@/features/workout/services/WorkoutGenerator';
 import { Camera, Dumbbell, Loader2, Plus, Trash2, Zap, UploadCloud, Image as ImageIcon, AlertCircle } from 'lucide-react';
 
 const EquipmentScanner = () => {

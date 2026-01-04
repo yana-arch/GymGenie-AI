@@ -4,7 +4,7 @@ import { Search, Filter, Dumbbell, X, ChevronRight, LayoutGrid, List } from 'luc
 import { exerciseCatalogService } from '../services/ExerciseCatalogService';
 import { Exercise, BodyPartEnum, EquipmentEnum, DifficultyEnum, MechanicsEnum } from '../../../types/schemas';
 import ExerciseDetailModal from './ExerciseDetailModal';
-import { toTitleCase } from '../../../utils/stringUtils';
+import { toTitleCase } from '@/utils/stringUtils';
 
 interface ExerciseFinderProps {
   onSelectExercise: (exercise: Exercise) => void;

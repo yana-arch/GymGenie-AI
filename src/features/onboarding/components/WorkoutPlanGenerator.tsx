@@ -2,7 +2,7 @@ import React, { memo, useState, useCallback } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Loader2 } from 'lucide-react';
 import { WorkoutPlan } from '@/types';
-import { generateWorkoutPlanWithAI } from '../../workout/services/WorkoutGenerator'; // New import for AI function
+import { generateWorkoutPlan } from '../../workout/services/WorkoutGenerator';
 
 const WorkoutPlanGenerator = memo(() => {
   const { user, setLoading, setPlan, setStep } = useApp();
@@ -22,7 +22,7 @@ const WorkoutPlanGenerator = memo(() => {
     setGeneratedPlan(null);
 
     try {
-      const generated = await generateWorkoutPlanWithAI(user); // Call the actual AI function
+      const generated = await generateWorkoutPlan(user); // Call the actual AI function
       setGeneratedPlan(generated);
     } catch (err: any) {
       console.error("Error generating plan:", err);

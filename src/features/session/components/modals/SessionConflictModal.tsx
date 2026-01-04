@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { SessionConflict, ConflictResolutionOption } from '@/src/features/session/services/SessionConflictDetector';
-import { UserPromptConfig } from '@/src/features/session/services/SessionConflictResolver';
+import { SessionConflict, ConflictResolutionOption } from '@/features/session/services/SessionConflictDetector';
+import { UserPromptConfig } from '@/features/session/services/SessionConflictResolver';
 
 interface SessionConflictModalProps {
   isOpen: boolean;

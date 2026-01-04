@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useEffect, useState, PropsWithChildren, useRef, useMemo, useCallback } from 'react';
 import { AppStep, UserProfile, WorkoutPlan, WorkoutDay, WorkoutHistoryEntry, Exercise, WorkoutExercise, WorkoutAnalysis, AppContextType, SessionStateManager as ISessionStateManager, WorkoutSession, SessionState, SessionStorageData, ActiveView } from '@/types';
-import { StorageService } from '@/services/storageService';
-import { SessionStateManager } from '@/src/features/session/services/sessionStateManager';
-import StaleSessionModal from '@/src/features/session/components/modals/StaleSessionModal';
-import SessionConflictModal from '@/src/features/session/components/modals/SessionConflictModal';
-import { SessionSequenceValidator } from '@/src/features/session/services/SessionSequenceValidator';
-import { SessionConflict } from '@/src/features/session/services/SessionConflictDetector';
-import { UserPromptConfig } from '@/src/features/session/services/SessionConflictResolver';
+import { StorageService } from "@/services/storage/StorageService";
+import { SessionStateManager } from "@/features/session/services/sessionStateManager";
+import StaleSessionModal from '@/features/session/components/modals/StaleSessionModal';
+import SessionConflictModal from '@/features/session/components/modals/SessionConflictModal';
+import { SessionSequenceValidator } from '@/features/session/services/SessionSequenceValidator';
+import { SessionConflict } from '@/features/session/services/SessionConflictDetector';
+import { UserPromptConfig } from '@/features/session/services/SessionConflictResolver';
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 

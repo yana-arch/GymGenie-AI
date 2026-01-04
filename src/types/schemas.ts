@@ -62,7 +62,7 @@ export type Mechanics = z.infer<typeof MechanicsEnum>;
 export type Exercise = z.infer<typeof ExerciseSchema>;
 
 // Enhanced schemas (from the original schemas file)
-import { Gender, FitnessGoal, FitnessLevel, TimeOfDay, MuscleGroup, DifficultyLevel, WorkoutFocus, TrainingPhase, WorkoutDayState, SessionState, ExerciseSessionData } from '../../types/enhanced';
+import { Gender, FitnessGoal, FitnessLevel, TimeOfDay, MuscleGroup, DifficultyLevel, WorkoutFocus, TrainingPhase, WorkoutDayState, SessionState, ExerciseSessionData } from './enhanced';
 
 // Base schemas
 export const BaseEntitySchema = z.object({

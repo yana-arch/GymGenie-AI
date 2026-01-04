@@ -1,18 +1,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { ArrowLeft, CheckCircle2, Play, Pause, SkipForward, Save, Clock, Star, Minus, Plus, Repeat, Dumbbell, Search } from 'lucide-react';
-import RestTimer from '@/src/features/workout/components/RestTimer';
+import RestTimer from '@/features/workout/components/RestTimer';
 import { SessionState } from '@/types';
 import { SetPerformance, EnhancedWorkoutSession } from '@/types/enhanced';
 import { useDispatch } from 'react-redux';
 import { addSetToSession } from '../store/sessionSlice';
 import { QualityScoreCalculator } from '../services/QualityScoreCalculator';
 import { WorkoutSession } from '../services/WorkoutSession';
-import exerciseRegistry from '@/src/data/ExerciseRegistry.json';
-import ExerciseDetailModal from '@/src/features/workout/components/ExerciseDetailModal';
-import { exerciseCatalogService } from '@/src/features/workout/services/ExerciseCatalogService';
-import { Exercise } from '@/src/types/schemas';
-import { toTitleCase } from '@/src/utils/stringUtils';
+import exerciseRegistry from '@/data/ExerciseRegistry.json';
+import ExerciseDetailModal from '@/features/workout/components/ExerciseDetailModal';
+import { exerciseCatalogService } from '@/features/workout/services/ExerciseCatalogService';
+import { Exercise } from '@/types/schemas';
+import { toTitleCase } from '@/utils/stringUtils';
 
 const LiveWorkoutSession = () => {
   const {

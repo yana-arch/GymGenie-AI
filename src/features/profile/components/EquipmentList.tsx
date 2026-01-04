@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
 import { Dumbbell, Plus, Trash2, ScanLine } from 'lucide-react';
-import { removeEquipment } from '@/src/features/user/store/userSlice';
+import { removeEquipment } from '@/features/user/store/userSlice';
 import { useDispatch } from 'react-redux';
 
 interface EquipmentListProps {

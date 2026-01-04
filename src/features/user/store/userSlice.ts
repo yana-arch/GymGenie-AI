@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { UserProfile, AppStep, AiProviderConfig } from '@/types';
-import { StorageService } from '@/services/storageService';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { UserProfile, AppStep, AiProviderConfig } from "@/types";
+import { StorageService } from "@/services/storage/StorageService";
 
 interface UserSliceState {
   profile: UserProfile | null;
@@ -8,11 +8,11 @@ interface UserSliceState {
   currentStep: AppStep;
   aiConfig: AiProviderConfig;
   preferences: {
-    theme: 'light' | 'dark' | 'system';
+    theme: "light" | "dark" | "system";
     notifications: boolean;
     autoStartTimer: boolean;
     defaultRestTime: number;
-    units: 'metric' | 'imperial';
+    units: "metric" | "imperial";
   };
   streak: {
     currentStreak: number;
@@ -24,56 +24,58 @@ interface UserSliceState {
 const initialState: UserSliceState = {
   profile: null,
   equipment: [],
-  currentStep: 'onboarding',
+  currentStep: "onboarding",
   streak: {
     currentStreak: 0,
     longestStreak: 0,
-    lastWorkoutDate: null
+    lastWorkoutDate: null,
   },
   aiConfig: StorageService.getAiConfig() || {
-    provider: 'google',
-    apiKey: '',
+    provider: "google",
+    apiKey: "",
     useCustomUrl: false,
-    customUrl: '',
-    model: 'gemini-1.5-flash'
+    customUrl: "",
+    model: "gemini-1.5-flash",
   },
   preferences: {
-    theme: 'system',
+    theme: "system",
     notifications: true,
     autoStartTimer: true,
     defaultRestTime: 60,
-    units: 'metric',
+    units: "metric",
   },
 };
 
 const userSlice = createSlice({
-  name: 'user',
+  name: "user",
   initialState,
   reducers: {
     setProfile: (state, action: PayloadAction<UserProfile>) => {
       state.profile = action.payload;
     },
-    
+
     updateProfile: (state, action: PayloadAction<Partial<UserProfile>>) => {
       if (state.profile) {
         state.profile = { ...state.profile, ...action.payload };
       }
     },
-    
+
     setEquipment: (state, action: PayloadAction<string[]>) => {
       state.equipment = action.payload;
     },
-    
+
     addEquipment: (state, action: PayloadAction<string>) => {
       if (!state.equipment.includes(action.payload)) {
         state.equipment.push(action.payload);
       }
     },
-    
+
     removeEquipment: (state, action: PayloadAction<string>) => {
-      state.equipment = state.equipment.filter(item => item !== action.payload);
+      state.equipment = state.equipment.filter(
+        (item) => item !== action.payload
+      );
     },
-    
+
     setCurrentStep: (state, action: PayloadAction<AppStep>) => {
       state.currentStep = action.payload;
     },
@@ -83,33 +85,42 @@ const userSlice = createSlice({
       StorageService.saveAiConfig(action.payload);
     },
 
-    updateAiConfig: (state, action: PayloadAction<Partial<AiProviderConfig>>) => {
+    updateAiConfig: (
+      state,
+      action: PayloadAction<Partial<AiProviderConfig>>
+    ) => {
       state.aiConfig = { ...state.aiConfig, ...action.payload };
       StorageService.saveAiConfig(state.aiConfig);
     },
-    
-    updatePreferences: (state, action: PayloadAction<Partial<UserSliceState['preferences']>>) => {
+
+    updatePreferences: (
+      state,
+      action: PayloadAction<Partial<UserSliceState["preferences"]>>
+    ) => {
       state.preferences = { ...state.preferences, ...action.payload };
     },
-    
-    setTheme: (state, action: PayloadAction<'light' | 'dark' | 'system'>) => {
+
+    setTheme: (state, action: PayloadAction<"light" | "dark" | "system">) => {
       state.preferences.theme = action.payload;
     },
-    
+
     toggleNotifications: (state) => {
       state.preferences.notifications = !state.preferences.notifications;
     },
-    
+
     setDefaultRestTime: (state, action: PayloadAction<number>) => {
-      state.preferences.defaultRestTime = Math.max(10, Math.min(600, action.payload));
+      state.preferences.defaultRestTime = Math.max(
+        10,
+        Math.min(600, action.payload)
+      );
     },
-    
-    setUnits: (state, action: PayloadAction<'metric' | 'imperial'>) => {
+
+    setUnits: (state, action: PayloadAction<"metric" | "imperial">) => {
       state.preferences.units = action.payload;
     },
 
     updateStreak: (state) => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
       const lastWorkout = state.streak.lastWorkoutDate;
 
       if (lastWorkout === today) {
@@ -136,19 +147,19 @@ const userSlice = createSlice({
       }
       state.streak.lastWorkoutDate = today;
     },
-    
+
     clearUserData: (state) => {
       state.profile = null;
       state.equipment = [];
-      state.currentStep = 'onboarding';
+      state.currentStep = "onboarding";
       state.streak = {
         currentStreak: 0,
         longestStreak: 0,
-        lastWorkoutDate: null
+        lastWorkoutDate: null,
       };
       // Keep preferences when clearing user data
     },
-    
+
     resetAllUserData: (state) => {
       return initialState;
     },

@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from 'react';
-import VirtualizedExerciseListWrapper from '@/src/features/workout/components/VirtualizedExerciseListWrapper';
+import VirtualizedExerciseListWrapper from '@/features/workout/components/VirtualizedExerciseListWrapper';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useResponsiveComponent } from '@/hooks/useLayoutManager';
 import { useExerciseById } from '@/hooks/useSelectiveSubscription';

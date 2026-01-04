@@ -1,20 +1,20 @@
 import React, { memo, useCallback, Suspense } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { ReduxProvider } from './store/ReduxProvider';
-import SessionErrorBoundary from './src/features/session/components/SessionErrorBoundary';
+import SessionErrorBoundary from './features/session/components/SessionErrorBoundary';
 import { Loader2 } from 'lucide-react';
 import ResponsiveNavigation from './components/ResponsiveNavigation';
-import ThemeProvider from './src/components/ThemeProvider';
+import ThemeProvider from './components/ThemeProvider';
 
-const Onboarding = React.lazy(() => import('./src/features/onboarding/components/Onboarding'));
-const EquipmentScanner = React.lazy(() => import('./src/features/profile/components/EquipmentScanner'));
-const WorkoutDashboard = React.lazy(() => import('./src/features/workout/components/WorkoutDashboard'));
-const ProgressDashboard = React.lazy(() => import('./src/features/workout/components/ProgressDashboard'));
-const ProfileDashboard = React.lazy(() => import('./src/features/profile/components/ProfileDashboard'));
-const NutritionGenie = React.lazy(() => import('./src/features/nutrition/components/NutritionGenie'));
-const LiveWorkoutSession = React.lazy(() => import('./src/features/session/components/LiveWorkoutSession'));
-const CreateWorkoutDay = React.lazy(() => import('./src/features/workout/components/CreateWorkoutDay'));
-const WorkoutPlanGenerator = React.lazy(() => import('./src/features/onboarding/components/WorkoutPlanGenerator')); // New import
+const Onboarding = React.lazy(() => import('./features/onboarding/components/Onboarding'));
+const EquipmentScanner = React.lazy(() => import('./features/profile/components/EquipmentScanner'));
+const WorkoutDashboard = React.lazy(() => import('./features/workout/components/WorkoutDashboard'));
+const ProgressDashboard = React.lazy(() => import('./features/workout/components/ProgressDashboard'));
+const ProfileDashboard = React.lazy(() => import('./features/profile/components/ProfileDashboard'));
+const NutritionGenie = React.lazy(() => import('./features/nutrition/components/NutritionGenie'));
+const LiveWorkoutSession = React.lazy(() => import('./features/session/components/LiveWorkoutSession'));
+const CreateWorkoutDay = React.lazy(() => import('./features/workout/components/CreateWorkoutDay'));
+const WorkoutPlanGenerator = React.lazy(() => import('./features/onboarding/components/WorkoutPlanGenerator')); // New import
 
 const AppContent = memo(() => {
   const { step, isLoading, activeView, setActiveView, setStep } = useApp();
