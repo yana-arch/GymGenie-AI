@@ -12,6 +12,7 @@ import exerciseRegistry from '@/src/data/ExerciseRegistry.json';
 import ExerciseDetailModal from '@/src/features/workout/components/ExerciseDetailModal';
 import { exerciseCatalogService } from '@/src/features/workout/services/ExerciseCatalogService';
 import { Exercise } from '@/src/types/schemas';
+import { toTitleCase } from '@/src/utils/stringUtils';
 
 const LiveWorkoutSession = () => {
   const {
@@ -106,7 +107,7 @@ const LiveWorkoutSession = () => {
       <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <p className="text-gray-500 dark:text-gray-400 mb-4">No active session found.</p>
         <button
-          onClick={() => setStep('dashboard')}
+          onClick={() => setStep("dashboard")}
           className="px-6 py-3 bg-brand-600 text-white rounded-xl font-bold"
         >
           Return to Dashboard
@@ -155,8 +156,8 @@ const LiveWorkoutSession = () => {
          
          // Cast to WorkoutSession class if needed or use plain object if calculator supports it
          // Assuming calculator handles the currentSession object structure
-         // We might need to reconstruct the class instance if it's lost in Redux
-         // For now, let's assume we pass the raw object and cast it inside if needed or utility handles it
+         // We might need to reconstruct the class instance if it\'s lost in Redux
+         // For now, let\'s assume we pass the raw object and cast it inside if needed or utility handles it
          const sessionInstance = WorkoutSession.fromStoredData(currentSession);
          scoreResult = QualityScoreCalculator.calculate(sessionInstance, planData);
       }
@@ -172,7 +173,7 @@ const LiveWorkoutSession = () => {
       } : undefined;
 
       await logWorkout(activeContext.week.id, activeContext.day.id, rpe, analysis);
-      setStep('dashboard');
+      setStep("dashboard");
     } catch (error) {
       console.error("Failed to log workout", error);
       alert("Failed to save workout. Please try again.");
@@ -222,17 +223,14 @@ const LiveWorkoutSession = () => {
   const [currentCatalogExercise, setCurrentCatalogExercise] = useState<Exercise | null>(null);
 
   useEffect(() => {
-    // Load full exercise details if available in registry
     const loadDetails = async () => {
         if (activeContext?.registryData?.id) {
-            // Search by name in the new service to get the 'full' object with instructions
             const results = await exerciseCatalogService.search(activeContext.currentExercise.name);
             if (results.length > 0) {
                 const fullEx = await exerciseCatalogService.getById(results[0].id);
                 setCurrentCatalogExercise(fullEx);
             }
         } else if (activeContext?.currentExercise.name) {
-             // Fallback search by name
              const results = await exerciseCatalogService.search(activeContext.currentExercise.name);
              if (results.length > 0) {
                  const fullEx = await exerciseCatalogService.getById(results[0].id);
@@ -243,48 +241,75 @@ const LiveWorkoutSession = () => {
     loadDetails();
   }, [activeContext]);
 
-  // Helper for Smart Input Buttons
   const adjustWeight = (amount: number) => setInputWeight(prev => Math.max(0, prev + amount));
   const adjustReps = (amount: number) => setInputReps(prev => Math.max(0, prev + amount));
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 relative">
       {/* Top Bar: Minimal Navigation */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 z-10">
+      <div className="flex items-center justify-between p-6 bg-transparent z-10">
         <button
-          onClick={() => setStep('dashboard')}
-          className="p-2 -ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-full"
+          onClick={() => setStep("dashboard")}
+          className="p-3 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-all active:scale-95"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={20} />
         </button>
-        <div className="text-center">
-          <h2 className="font-bold text-gray-900 dark:text-gray-100">{day.title}</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{activeExerciseIndex + 1} of {totalExercises}</p>
-        </div>
         <button
           onClick={handleFinishWorkout}
-          className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300"
+          className="px-6 py-2.5 bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 font-black rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all active:scale-95 text-sm uppercase tracking-wider"
         >
           Finish
         </button>
       </div>
 
       {/* Main Content: Current Exercise */}
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 overflow-y-auto px-6 pb-24 flex flex-col items-center">
+        <div className="w-full max-w-md space-y-6">
           
           {/* Exercise Title & Info */}
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-black text-gray-900 dark:text-gray-100 leading-tight">
-              {currentExercise.name}
-            </h1>
-            <div className="flex justify-center gap-4 text-sm text-gray-500 dark:text-gray-400 font-medium">
-              <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">{currentExercise.sets} Sets</span>
-              <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">{currentExercise.reps} Reps</span>
-              <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 px-3 py-1 rounded-full flex items-center gap-1">
-                <Clock size={12} /> {currentExercise.restSeconds}s
+          <div className="text-center space-y-4">
+            <div className="relative">
+              <p className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-[0.2em] mb-2">
+                {activeExerciseIndex + 1} / {totalExercises} • {day.title}
+              </p>
+              <div className="flex items-center justify-center gap-2">
+                <h1 className="text-4xl font-black text-gray-900 dark:text-gray-100 leading-tight">
+                  {toTitleCase(currentExercise.name)}
+                </h1>
+                <button
+                  onClick={() => setShowHowTo(true)}
+                  className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 rounded-full transition-colors active:scale-95"
+                  title="View exercise details"
+                >
+                  <Search size={16} />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex justify-center gap-2">
+              <span className="px-3 py-1 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-bold rounded-full border border-gray-100 dark:border-gray-700 shadow-sm uppercase tracking-wider">{currentExercise.sets} Sets</span>
+              <span className="px-3 py-1 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-bold rounded-full border border-gray-100 dark:border-gray-700 shadow-sm uppercase tracking-wider">{currentExercise.reps} Reps</span>
+              <span className="px-3 py-1 bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 text-[10px] font-bold rounded-full border border-gray-100 dark:border-gray-700 shadow-sm uppercase tracking-wider flex items-center gap-1">
+                <Clock size={10} /> {currentExercise.restSeconds}s
               </span>
             </div>
+
+            {/* Reference Image */}
+            {currentCatalogExercise?.media?.gif && (
+              <div className="w-full aspect-video bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden shadow-xl border border-white dark:border-gray-700 p-2 group relative">
+                <img 
+                  src={currentCatalogExercise.media.gif} 
+                  alt={currentExercise.name} 
+                  className="w-full h-full object-contain rounded-[2rem]"
+                />
+                <button 
+                  onClick={() => setShowHowTo(true)}
+                  className="absolute bottom-4 right-4 p-3 bg-white/90 dark:bg-gray-800/90 text-brand-600 dark:text-brand-400 rounded-2xl shadow-lg backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all active:scale-95"
+                >
+                  <Search size={20} />
+                </button>
+              </div>
+            )}
             
             {/* How-to Button */}
             {currentCatalogExercise && (
@@ -298,54 +323,51 @@ const LiveWorkoutSession = () => {
           </div>
 
           {/* Active Set Card with Smart Inputs */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-6 shadow-sm space-y-6">
-            <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-4">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[2.5rem] p-8 shadow-xl space-y-8">
+            <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-6">
                <div>
-                  <p className="text-brand-600 dark:text-brand-400 font-bold uppercase tracking-widest text-xs mb-1">Current Set</p>
-                  <p className="text-3xl font-black text-gray-900 dark:text-gray-100">
-                    {completedSetsCount + 1} <span className="text-xl text-gray-400 dark:text-gray-500 font-medium">/ {currentExercise.sets}</span>
+                  <p className="text-brand-600 dark:text-brand-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-1">Current Set</p>
+                  <p className="text-4xl font-black text-gray-900 dark:text-gray-100">
+                    {completedSetsCount + 1} <span className="text-2xl text-gray-300 dark:text-gray-600 font-medium">/ {currentExercise.sets}</span>
                   </p>
                </div>
-               {activeContext.registryData && (
-                   <div className="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-                       {/* Placeholder for Image - in real app would use registryData.image_url */}
-                       <Dumbbell className="text-brand-500" />
-                   </div>
-               )}
+               <div className="w-14 h-14 bg-brand-50 dark:bg-brand-900/20 rounded-2xl flex items-center justify-center">
+                   <Dumbbell className="text-brand-500" size={28} />
+               </div>
             </div>
             
             {/* Weight Input */}
-            <div className="space-y-3">
-               <div className="flex justify-between text-sm font-bold text-gray-500 dark:text-gray-400 uppercase">
+            <div className="space-y-4">
+               <div className="flex justify-between text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
                    <span>Weight (kg)</span>
                </div>
-               <div className="flex items-center gap-3">
-                   <button onClick={() => adjustWeight(-2.5)} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center active:scale-95 transition-all text-gray-600 dark:text-gray-300">
-                       <Minus size={20} />
+               <div className="flex items-center gap-4">
+                   <button onClick={() => adjustWeight(-2.5)} className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center active:scale-90 transition-all text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+                       <Minus size={24} />
                    </button>
-                   <div className="flex-1 bg-gray-50 dark:bg-gray-900 h-12 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-700">
-                       <span className="text-2xl font-black text-gray-900 dark:text-gray-100">{inputWeight}</span>
+                   <div className="flex-1 bg-gray-50 dark:bg-gray-900 h-14 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-gray-700 shadow-inner">
+                       <span className="text-3xl font-black text-gray-900 dark:text-gray-100">{inputWeight}</span>
                    </div>
-                   <button onClick={() => adjustWeight(2.5)} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center active:scale-95 transition-all text-gray-600 dark:text-gray-300">
-                       <Plus size={20} />
+                   <button onClick={() => adjustWeight(2.5)} className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center active:scale-90 transition-all text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+                       <Plus size={24} />
                    </button>
                </div>
             </div>
 
             {/* Reps Input */}
-            <div className="space-y-3">
-               <div className="flex justify-between text-sm font-bold text-gray-500 dark:text-gray-400 uppercase">
+            <div className="space-y-4">
+               <div className="flex justify-between text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
                    <span>Reps</span>
                </div>
-               <div className="flex items-center gap-3">
-                   <button onClick={() => adjustReps(-1)} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center active:scale-95 transition-all text-gray-600 dark:text-gray-300">
-                       <Minus size={20} />
+               <div className="flex items-center gap-4">
+                   <button onClick={() => adjustReps(-1)} className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center active:scale-90 transition-all text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+                       <Minus size={24} />
                    </button>
-                   <div className="flex-1 bg-gray-50 dark:bg-gray-900 h-12 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-700">
-                       <span className="text-2xl font-black text-gray-900 dark:text-gray-100">{inputReps}</span>
+                   <div className="flex-1 bg-gray-50 dark:bg-gray-900 h-14 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-gray-700 shadow-inner">
+                       <span className="text-3xl font-black text-gray-900 dark:text-gray-100">{inputReps}</span>
                    </div>
-                   <button onClick={() => adjustReps(1)} className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center active:scale-95 transition-all text-gray-600 dark:text-gray-300">
-                       <Plus size={20} />
+                   <button onClick={() => adjustReps(1)} className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center active:scale-90 transition-all text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+                       <Plus size={24} />
                    </button>
                </div>
             </div>
@@ -355,8 +377,8 @@ const LiveWorkoutSession = () => {
           <button
             onClick={handleLogSet}
             disabled={completedSetsCount >= currentExercise.sets}
-            className={`w-full text-white font-bold py-5 rounded-2xl shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all text-xl ${
-                completedSetsCount >= currentExercise.sets ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed' : 'bg-gray-900 dark:bg-brand-600'
+            className={`w-full text-white font-black py-6 rounded-[2rem] shadow-2xl flex items-center justify-center gap-3 active:scale-95 transition-all text-xl uppercase tracking-widest ${
+                completedSetsCount >= currentExercise.sets ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed' : 'bg-brand-600'
             }`}
           >
             <CheckCircle2 size={28} />
@@ -364,14 +386,17 @@ const LiveWorkoutSession = () => {
           </button>
 
           {/* Navigation */}
-          {activeExerciseIndex < totalExercises - 1 && (
-             <button 
-               onClick={handleNextExercise}
-               className="w-full text-gray-500 dark:text-gray-400 font-bold py-3 flex items-center justify-center gap-2 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-             >
-               Skip to Next Exercise <SkipForward size={18} />
-             </button>
-          )}
+          <div className="flex flex-col items-center gap-4 py-4">
+            {activeExerciseIndex < totalExercises - 1 && (
+               <button 
+                 onClick={handleNextExercise}
+                 className="text-gray-400 dark:text-gray-500 font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+               >
+                 Skip to Next Exercise <SkipForward size={16} />
+               </button>
+            )}
+            
+          </div>
 
         </div>
       </div>
@@ -383,7 +408,21 @@ const LiveWorkoutSession = () => {
       <ExerciseDetailModal
         isOpen={showHowTo}
         onClose={() => setShowHowTo(false)}
-        exercise={currentCatalogExercise}
+        exercise={currentCatalogExercise || {
+          id: currentExercise.id,
+          slug: currentExercise.name.toLowerCase().replace(/\s+/g, '-'),
+          name: currentExercise.name,
+          primaryMuscle: ["abs" as any], // fallback
+          secondaryMuscles: [],
+          instructions: ["Perform the exercise as demonstrated."],
+          contraindications: [],
+          cues: [],
+          bodyPart: ["waist" as any],
+          equipment: ["bodyweight" as any],
+          tags: [],
+          sourceMeta: { ai_augmented: false },
+          media: { gif: null }
+        }}
       />
 
       {/* Logging Modal */}
