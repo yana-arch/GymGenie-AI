@@ -5,7 +5,7 @@ import RestTimer from '@/features/workout/components/RestTimer';
 import { SessionState } from '@/types';
 import { SetPerformance, EnhancedWorkoutSession } from '@/types/enhanced';
 import { useDispatch } from 'react-redux';
-import { addSetToSession } from '../store/sessionSlice';
+import { addSetToSession as addSetToSessionAction } from '../store/sessionSlice';
 import { QualityScoreCalculator } from '../services/QualityScoreCalculator';
 import { WorkoutSession } from '../services/WorkoutSession';
 import exerciseRegistry from '@/data/ExerciseRegistry.json';
@@ -24,7 +24,8 @@ const LiveWorkoutSession = () => {
     timerSeconds,
     startRestTimer,
     stopRestTimer,
-    isTimerRunning
+    isTimerRunning,
+    addSetToSession
   } = useApp();
 
   const dispatch = useDispatch();
@@ -187,7 +188,7 @@ const LiveWorkoutSession = () => {
     }
   }, [activeExerciseIndex, totalExercises]);
 
-  const handleLogSet = React.useCallback(() => {
+  const handleLogSet = React.useCallback(async () => {
     if (!activeContext) return;
 
     const now = Date.now();
@@ -204,8 +205,15 @@ const LiveWorkoutSession = () => {
         duration: duration
     };
 
-    // Dispatch action to Redux to save set immediately
-    dispatch(addSetToSession({
+    // Use context method to ensure session manager is updated (and thus UI)
+    try {
+        await addSetToSession(currentExercise.id, setPerformance);
+    } catch (error) {
+        console.error('Failed to log set:', error);
+    }
+    
+    // Also dispatch to Redux for dual-state consistency if needed, or remove if fully migrating
+    dispatch(addSetToSessionAction({
         exerciseId: currentExercise.id,
         set: setPerformance
     }));
@@ -217,7 +225,7 @@ const LiveWorkoutSession = () => {
     if (currentExercise.restSeconds > 0) {
       startRestTimer(currentExercise.restSeconds);
     }
-  }, [activeContext, completedSetsCount, currentExercise, setStartTime, startRestTimer, dispatch, inputWeight, inputReps]);
+  }, [activeContext, completedSetsCount, currentExercise, setStartTime, startRestTimer, dispatch, inputWeight, inputReps, addSetToSession]);
 
   const [showHowTo, setShowHowTo] = useState(false);
   const [currentCatalogExercise, setCurrentCatalogExercise] = useState<Exercise | null>(null);

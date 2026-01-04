@@ -219,7 +219,7 @@ const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
           <button
             onClick={() => {
               const query = encodeURIComponent(`${exercise.name} exercise tutorial`);
-              window.open(`https://www.youtube.com/results?search_query=${query}`, "_blank");
+              window.open(`https://www.youtube.com/results?search_query=${query.replaceAll(" ", "+")}`, "_blank");
             }}
             className="w-full py-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all shadow-sm active:scale-[0.99]"
           >

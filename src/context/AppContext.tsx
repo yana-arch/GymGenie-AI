@@ -158,6 +158,12 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     isSessionReadOnly: (weekId: string, dayId: string) => {
       return sessionManagerInstance.isSessionReadOnly(weekId, dayId);
     },
+    addSet: async (exerciseId: string, set: any) => {
+      await sessionManagerInstance.addSet(exerciseId, set);
+      // Force immediate sync
+      const newSession = sessionManagerInstance.currentSession;
+      setCurrentSession(newSession);
+    },
   };
 
   // Load from storage on mount
@@ -643,6 +649,15 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     }
   }, [sessionManager]);
 
+  const addSetToSession = useCallback(async (exerciseId: string, set: any) => {
+    try {
+      await sessionManager.addSet(exerciseId, set);
+    } catch (error) {
+      console.error('Failed to add set to session:', error);
+      throw error;
+    }
+  }, [sessionManager]);
+
   const isWorkoutReadOnly = useCallback((weekId: string, dayId: string): boolean => {
     return sessionManager.isSessionReadOnly(weekId, dayId);
   }, [sessionManager]);
@@ -736,7 +751,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     sessionStartTime, exerciseTimestamps,
     // New session management properties
     sessionManager, currentSession,
-    startWorkoutSession, completeWorkoutSession, logWorkoutSession, abandonWorkoutSession,
+    startWorkoutSession, completeWorkoutSession, logWorkoutSession, abandonWorkoutSession, addSetToSession,
     isWorkoutReadOnly, canModifyExercise, getSessionState
   }), [
     user, equipment, currentPlan, step, isLoading, history, activeView,
@@ -745,7 +760,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     startRestTimer, stopRestTimer, addTimerSeconds, moveExercise, replaceExerciseInPlan,
     sessionStartTime, exerciseTimestamps,
     sessionManager, currentSession,
-    startWorkoutSession, completeWorkoutSession, logWorkoutSession, abandonWorkoutSession,
+    startWorkoutSession, completeWorkoutSession, logWorkoutSession, abandonWorkoutSession, addSetToSession,
     isWorkoutReadOnly, canModifyExercise, getSessionState
   ]);
 

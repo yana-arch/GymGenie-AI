@@ -1,30 +1,49 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import {
+  persistStore,
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
+import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
 import sessionSlice from "@/features/session/store/sessionSlice";
 import workoutSlice from "@/features/workout/store/workoutSlice";
 import userSlice from "@/features/user/store/userSlice";
 import uiSlice from "@/features/ui/store/uiSlice";
 
+const rootReducer = combineReducers({
+  session: sessionSlice,
+  workout: workoutSlice,
+  user: userSlice,
+  ui: uiSlice,
+});
+
+const persistConfig = {
+  key: "root",
+  storage,
+  whitelist: ["user", "workout", "session"], // Persist important data
+  // ui slice is transient
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 export const store = configureStore({
-  reducer: {
-    session: sessionSlice,
-    workout: workoutSlice,
-    user: userSlice,
-    ui: uiSlice,
-  },
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignore these action types
-        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
-        // Ignore these field paths in all actions
-        ignoredActionsPaths: ["meta.arg", "payload.timestamp"],
-        // Ignore these paths in the state
-        ignoredPaths: ["items.dates"],
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }),
   devTools: process.env.NODE_ENV !== "production",
 });
+
+export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

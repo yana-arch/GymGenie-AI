@@ -1,16 +1,19 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Dumbbell, Sparkles } from "lucide-react";
+import { Dumbbell, Sparkles, Play } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { Exercise } from "@/types";
 import { exerciseCatalogService } from "../services/ExerciseCatalogService";
 import { toTitleCase } from "../../../utils/stringUtils";
 
 interface TodaysWorkoutProps {
-  onStartWorkout: () => void;
+  onStartWorkout: (weekId: string, dayId: string) => void;
 }
 
 const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
   const { currentPlan, currentSession, getSessionState } = useApp();
+
+
+
   const [catalogExercises, setCatalogExercises] = useState<Record<string, Exercise>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -25,7 +28,7 @@ const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
     loadCatalog();
   }, []);
 
-  const todaysWorkout = useMemo(() => {
+  const todaysWorkoutData = useMemo(() => {
     if (!currentPlan) return null;
     
     // Find next pending or active day
@@ -34,16 +37,18 @@ const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
         if (day.isRestDay) continue;
         const state = getSessionState(week.id, day.id);
         if (state !== 'logged') {
-          return day;
+          return { day, weekId: week.id };
         }
       }
     }
     return null;
   }, [currentPlan, getSessionState]);
 
-  if (!todaysWorkout) {
+  if (!todaysWorkoutData) {
     return null; // Or show finished state
   }
+
+  const { day: todaysWorkout, weekId } = todaysWorkoutData;
 
   const currentExercise = todaysWorkout.exercises[currentIndex];
 
@@ -130,8 +135,11 @@ const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
                )}
             </div>
           </div>
-          <button onClick={onStartWorkout} className="mt-4 w-full bg-blue-500 dark:bg-blue-600 text-white py-2 rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors">
-            Start
+          <button 
+            onClick={() => onStartWorkout(weekId, todaysWorkout.id)} 
+            className="mt-4 w-full bg-brand-600 text-white font-bold py-3 rounded-xl hover:bg-brand-700 transition-colors shadow-lg active:scale-95 flex items-center justify-center gap-2"
+          >
+            <Play size={20} fill="currentColor" /> Start Workout
           </button>
         </div>
         <button

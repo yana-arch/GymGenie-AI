@@ -1,122 +1,122 @@
 export enum Gender {
-  Male = 'Male',
-  Female = 'Female',
-  Other = 'Other'
+  Male = "Male",
+  Female = "Female",
+  Other = "Other",
 }
 
 export enum FitnessGoal {
-  WeightLoss = 'Weight Loss',
-  MuscleGain = 'Muscle Gain',
-  Endurance = 'Endurance',
-  Flexibility = 'Flexibility'
+  WeightLoss = "Weight Loss",
+  MuscleGain = "Muscle Gain",
+  Endurance = "Endurance",
+  Flexibility = "Flexibility",
 }
 
 export enum BodyPart {
-  Neck = 'neck',
-  LowerArms = 'lower arms',
-  Shoulders = 'shoulders',
-  Cardio = 'cardio',
-  UpperArms = 'upper arms',
-  Chest = 'chest',
-  LowerLegs = 'lower legs',
-  Back = 'back',
-  UpperLegs = 'upper legs',
-  Waist = 'waist'
+  Neck = "neck",
+  LowerArms = "lower arms",
+  Shoulders = "shoulders",
+  Cardio = "cardio",
+  UpperArms = "upper arms",
+  Chest = "chest",
+  LowerLegs = "lower legs",
+  Back = "back",
+  UpperLegs = "upper legs",
+  Waist = "waist",
 }
 
 export enum Muscle {
-  Shins = 'shins',
-  Hands = 'hands',
-  Sternocleidomastoid = 'sternocleidomastoid',
-  Soleus = 'soleus',
-  InnerThighs = 'inner thighs',
-  LowerAbs = 'lower abs',
-  GripMuscles = 'grip muscles',
-  Abdominals = 'abdominals',
-  WristExtensors = 'wrist extensors',
-  WristFlexors = 'wrist flexors',
-  LatissimusDorsi = 'latissimus dorsi',
-  UpperChest = 'upper chest',
-  RotatorCuff = 'rotator cuff',
-  Wrists = 'wrists',
-  Groin = 'groin',
-  Brachialis = 'brachialis',
-  Deltoids = 'deltoids',
-  Feet = 'feet',
-  Ankles = 'ankles',
-  Trapezius = 'trapezius',
-  RearDeltoids = 'rear deltoids',
-  Chest = 'chest',
-  Quadriceps = 'quadriceps',
-  Back = 'back',
-  Core = 'core',
-  Shoulders = 'shoulders',
-  AnkleStabilizers = 'ankle stabilizers',
-  Rhomboids = 'rhomboids',
-  Obliques = 'obliques',
-  LowerBack = 'lower back',
-  HipFlexors = 'hip flexors',
-  LevatorScapulae = 'levator scapulae',
-  Abductors = 'abductors',
-  SerratusAnterior = 'serratus anterior',
-  Traps = 'traps',
-  Forearms = 'forearms',
-  Delts = 'delts',
-  Biceps = 'biceps',
-  UpperBack = 'upper back',
-  Spine = 'spine',
-  CardiovascularSystem = 'cardiovascular system',
-  Triceps = 'triceps',
-  Adductors = 'adductors',
-  Hamstrings = 'hamstrings',
-  Glutes = 'glutes',
-  Pectorals = 'pectorals',
-  Calves = 'calves',
-  Lats = 'lats',
-  Quads = 'quads',
-  Abs = 'abs'
+  Shins = "shins",
+  Hands = "hands",
+  Sternocleidomastoid = "sternocleidomastoid",
+  Soleus = "soleus",
+  InnerThighs = "inner thighs",
+  LowerAbs = "lower abs",
+  GripMuscles = "grip muscles",
+  Abdominals = "abdominals",
+  WristExtensors = "wrist extensors",
+  WristFlexors = "wrist flexors",
+  LatissimusDorsi = "latissimus dorsi",
+  UpperChest = "upper chest",
+  RotatorCuff = "rotator cuff",
+  Wrists = "wrists",
+  Groin = "groin",
+  Brachialis = "brachialis",
+  Deltoids = "deltoids",
+  Feet = "feet",
+  Ankles = "ankles",
+  Trapezius = "trapezius",
+  RearDeltoids = "rear deltoids",
+  Chest = "chest",
+  Quadriceps = "quadriceps",
+  Back = "back",
+  Core = "core",
+  Shoulders = "shoulders",
+  AnkleStabilizers = "ankle stabilizers",
+  Rhomboids = "rhomboids",
+  Obliques = "obliques",
+  LowerBack = "lower back",
+  HipFlexors = "hip flexors",
+  LevatorScapulae = "levator scapulae",
+  Abductors = "abductors",
+  SerratusAnterior = "serratus anterior",
+  Traps = "traps",
+  Forearms = "forearms",
+  Delts = "delts",
+  Biceps = "biceps",
+  UpperBack = "upper back",
+  Spine = "spine",
+  CardiovascularSystem = "cardiovascular system",
+  Triceps = "triceps",
+  Adductors = "adductors",
+  Hamstrings = "hamstrings",
+  Glutes = "glutes",
+  Pectorals = "pectorals",
+  Calves = "calves",
+  Lats = "lats",
+  Quads = "quads",
+  Abs = "abs",
 }
 
 export enum Equipment {
-  StepmillMachine = 'stepmill machine',
-  EllipticalMachine = 'elliptical machine',
-  TrapBar = 'trap bar',
-  Tire = 'tire',
-  StationaryBike = 'stationary bike',
-  WheelRoller = 'wheel roller',
-  SmithMachine = 'smith machine',
-  Hammer = 'hammer',
-  SkiErgMachine = 'skierg machine',
-  Roller = 'roller',
-  ResistanceBand = 'resistance band',
-  BosuBall = 'bosu ball',
-  Weighted = 'weighted',
-  OlympicBarbell = 'olympic barbell',
-  Kettlebell = 'kettlebell',
-  UpperBodyErgometer = 'upper body ergometer',
-  SledMachine = 'sled machine',
-  EzBarbell = 'ez barbell',
-  Dumbbell = 'dumbbell',
-  Rope = 'rope',
-  Barbell = 'barbell',
-  Band = 'band',
-  StabilityBall = 'stability ball',
-  MedicineBall = 'medicine ball',
-  Assisted = 'assisted',
-  LeverageMachine = 'leverage machine',
-  Cable = 'cable',
-  BodyWeight = 'body weight'
+  StepmillMachine = "stepmill machine",
+  EllipticalMachine = "elliptical machine",
+  TrapBar = "trap bar",
+  Tire = "tire",
+  StationaryBike = "stationary bike",
+  WheelRoller = "wheel roller",
+  SmithMachine = "smith machine",
+  Hammer = "hammer",
+  SkiErgMachine = "skierg machine",
+  Roller = "roller",
+  ResistanceBand = "resistance band",
+  BosuBall = "bosu ball",
+  Weighted = "weighted",
+  OlympicBarbell = "olympic barbell",
+  Kettlebell = "kettlebell",
+  UpperBodyErgometer = "upper body ergometer",
+  SledMachine = "sled machine",
+  EzBarbell = "ez barbell",
+  Dumbbell = "dumbbell",
+  Rope = "rope",
+  Barbell = "barbell",
+  Band = "band",
+  StabilityBall = "stability ball",
+  MedicineBall = "medicine ball",
+  Assisted = "assisted",
+  LeverageMachine = "leverage machine",
+  Cable = "cable",
+  BodyWeight = "body weight",
 }
 
 export enum Difficulty {
-  Beginner = 'beginner',
-  Intermediate = 'intermediate',
-  Advanced = 'advanced'
+  Beginner = "beginner",
+  Intermediate = "intermediate",
+  Advanced = "advanced",
 }
 
 export enum Mechanics {
-  Compound = 'compound',
-  Isolation = 'isolation'
+  Compound = "compound",
+  Isolation = "isolation",
 }
 
 export interface Exercise {
@@ -162,7 +162,7 @@ export interface UserProfile {
   };
 }
 
-export type AiProvider = 'google';
+export type AiProvider = "google";
 
 export interface AiProviderConfig {
   provider: AiProvider;
@@ -235,7 +235,7 @@ export interface WorkoutHistoryEntry {
   durationMinutes: number;
   rpe?: number; // 1-10 intensity rating
   analysis?: WorkoutAnalysis;
-  syncStatus: 'pending' | 'synced';
+  syncStatus: "pending" | "synced";
 }
 
 // Session State Management Types
@@ -245,7 +245,7 @@ export enum SessionState {
   PAUSED = "paused",
   COMPLETED = "completed",
   LOGGED = "logged",
-  ABANDONED = "abandoned"
+  ABANDONED = "abandoned",
 }
 
 export interface WorkoutSession {
@@ -274,6 +274,7 @@ export interface SessionStateManager {
   getSessionForDay: (weekId: string, dayId: string) => WorkoutSession | null;
   isSessionActive: (weekId: string, dayId: string) => boolean;
   isSessionReadOnly: (weekId: string, dayId: string) => boolean;
+  addSet: (exerciseId: string, set: any) => Promise<void>;
 }
 
 export interface ExerciseState {
@@ -362,8 +363,18 @@ export interface Recipe {
   cookingTimeMinutes: number;
 }
 
-export type AppStep = 'onboarding' | 'scanning' | 'generatePlan' | 'dashboard' | 'session';
-export type ActiveView = 'workout' | 'kitchen' | 'progress' | 'profile' | 'createWorkoutDay';
+export type AppStep =
+  | "onboarding"
+  | "scanning"
+  | "generatePlan"
+  | "dashboard"
+  | "session";
+export type ActiveView =
+  | "workout"
+  | "kitchen"
+  | "progress"
+  | "profile"
+  | "createWorkoutDay";
 
 export interface AppState {
   user: UserProfile | null;
@@ -386,9 +397,14 @@ export interface AppContextType extends AppState {
   setLoading: (loading: boolean) => void;
   toggleExercise: (exerciseId: string) => Promise<boolean>;
   updateDayInPlan: (weekId: string, updatedDay: WorkoutDay) => void;
-  logWorkout: (weekId: string, dayId: string, rpe: number, analysis?: WorkoutAnalysis) => Promise<void>;
+  logWorkout: (
+    weekId: string,
+    dayId: string,
+    rpe: number,
+    analysis?: WorkoutAnalysis
+  ) => Promise<void>;
   resetApp: () => Promise<void>;
-  
+
   // Timer related
   timerSeconds: number;
   isTimerRunning: boolean;
@@ -397,8 +413,18 @@ export interface AppContextType extends AppState {
   addTimerSeconds: (seconds: number) => void;
 
   // Reorder & Swap
-  moveExercise: (weekId: string, dayId: string, exerciseId: string, direction: 'up' | 'down') => void;
-  replaceExerciseInPlan: (weekId: string, dayId: string, oldExerciseId: string, newExerciseData: Omit<Exercise, 'id' | 'isCompleted'>) => void;
+  moveExercise: (
+    weekId: string,
+    dayId: string,
+    exerciseId: string,
+    direction: "up" | "down"
+  ) => void;
+  replaceExerciseInPlan: (
+    weekId: string,
+    dayId: string,
+    oldExerciseId: string,
+    newExerciseData: Omit<Exercise, "id" | "isCompleted">
+  ) => void;
 
   // Session Tracking (existing)
   sessionStartTime: number | null;
@@ -413,6 +439,7 @@ export interface AppContextType extends AppState {
   completeWorkoutSession: () => Promise<void>;
   logWorkoutSession: (rpe: number, analysis?: WorkoutAnalysis) => Promise<void>;
   abandonWorkoutSession: () => Promise<void>;
+  addSetToSession: (exerciseId: string, set: any) => Promise<void>;
 
   // Session query methods
   isWorkoutReadOnly: (weekId: string, dayId: string) => boolean;

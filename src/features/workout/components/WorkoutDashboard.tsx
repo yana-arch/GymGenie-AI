@@ -10,6 +10,8 @@ const WorkoutDashboard = memo(() => {
   const {
     currentPlan,
     user,
+    startWorkoutSession,
+    setStep,
   } = useApp();
   const [isFinderOpen, setIsFinderOpen] = useState(false);
 
@@ -30,7 +32,12 @@ const WorkoutDashboard = memo(() => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <NextWorkout />
-          <TodaysWorkout onStartWorkout={() => setIsFinderOpen(true)} />
+          <TodaysWorkout 
+            onStartWorkout={async (weekId, dayId) => {
+              await startWorkoutSession(weekId, dayId);
+              setStep('session');
+            }} 
+          />
         </div>
         <div className="lg:col-span-1 space-y-6">
           <ProgramOverview />
