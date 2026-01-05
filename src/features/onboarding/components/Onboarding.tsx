@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Gender, FitnessGoal, UserProfile } from '@/types';
-import { ArrowRight, ArrowLeft, User, Target, Ruler, Check } from 'lucide-react';
+import { Gender, FitnessGoal, UserProfile, AiProviderConfig } from '@/types';
+import { ArrowRight, ArrowLeft, User, Target, Ruler, Check, Key, Globe } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateAiConfig } from '@/features/user/store/userSlice';
 
 const ProgressIndicator = ({ currentStep, totalSteps }: { currentStep: number, totalSteps: number }) => {
   const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
@@ -29,8 +31,10 @@ const ProgressIndicator = ({ currentStep, totalSteps }: { currentStep: number, t
 
 const Onboarding = () => {
   const { setUser, setStep: setAppStep } = useApp();
+  const dispatch = useDispatch();
+  const aiConfig = useSelector((state: any) => state.user.aiConfig) as AiProviderConfig;
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3; // Now includes the plan generation step
+  const totalSteps = 4; // Includes AI config step and plan generation step
 
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     name: '',
@@ -58,6 +62,10 @@ const Onboarding = () => {
 
   const handleNext = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps));
   const handleBack = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
+  const handleAiConfigChange = (field: keyof AiProviderConfig, value: any) => {
+    dispatch(updateAiConfig({ [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,14 +107,18 @@ const Onboarding = () => {
                 ? 'About You'
                 : currentStep === 2
                 ? 'Your Fitness Goal'
-                : 'Generate Your Plan'} {/* New title for step 3 */}
+                : currentStep === 3
+                ? 'AI Configuration'
+                : 'Generate Your Plan'}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm md:text-base leading-relaxed">
               {currentStep === 1
                 ? "Let's get some basic information to personalize your experience."
                 : currentStep === 2
                 ? "Tell us what you want to achieve. This helps the AI build the perfect plan for you."
-                : "Ready to get started? Let AI craft a personalized workout plan for you."} {/* New description for step 3 */}
+                : currentStep === 3
+                ? "Configure your AI settings to generate personalized workout plans."
+                : "Ready to get started? Let AI craft a personalized workout plan for you."}
             </p>
           </div>
         </div>
@@ -123,6 +135,13 @@ const Onboarding = () => {
               <div>
                 <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">Your Goal</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Workouts adapt based on whether you want to cut, bulk, or maintain.</p>
+              </div>
+           </div>
+           <div className={`flex gap-3 items-start p-4 rounded-xl transition-all duration-300 ${currentStep === 3 ? 'bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700' : 'bg-transparent'}`}>
+              <Key className="text-brand-500 shrink-0 mt-0.5" size={20} />
+              <div>
+                <p className="font-semibold text-sm text-gray-800 dark:text-gray-200">AI Setup</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Configure your AI settings for personalized workout plans.</p>
               </div>
            </div>
         </div>
@@ -179,6 +198,87 @@ const Onboarding = () => {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Injuries / Notes (Optional)</label>
                 <textarea className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900 dark:text-gray-100 min-h-[100px]" rows={2} placeholder="e.g. Lower back pain, left knee..." value={formData.injuries} onChange={e => setFormData({...formData, injuries: e.target.value})} />
+              </div>
+            </>
+          )}
+
+          {currentStep === 3 && (
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">AI Provider</label>
+                <select
+                  value={aiConfig?.provider || 'google'}
+                  onChange={(e) => handleAiConfigChange('provider', e.target.value)}
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm text-gray-900 dark:text-gray-100"
+                >
+                  <option value="google">Google Gemini</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1">
+                  <Key size={14} /> Gemini API Key
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={aiConfig?.apiKey || ''}
+                    onChange={(e) => handleAiConfigChange('apiKey', e.target.value)}
+                    placeholder="Paste your API key here (optional)"
+                    className="w-full pl-9 pr-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm font-mono text-gray-900 dark:text-gray-100"
+                  />
+                  <Key size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Get your API key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Google AI Studio</a>
+                </p>
+              </div>
+              <div>
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="useCustomUrl"
+                      checked={aiConfig?.useCustomUrl || false}
+                      onChange={(e) => handleAiConfigChange('useCustomUrl', e.target.checked)}
+                      className="w-4 h-4 text-brand-600 rounded border-gray-300 dark:border-gray-600 focus:ring-brand-500"
+                    />
+                    <label htmlFor="useCustomUrl" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                      Use custom base URL (Proxy)
+                    </label>
+                  </div>
+                </div>
+                {aiConfig?.useCustomUrl && (
+                  <div className="mt-2">
+                    <input
+                      type="text"
+                      value={aiConfig?.customUrl || ''}
+                      onChange={(e) => handleAiConfigChange('customUrl', e.target.value)}
+                      placeholder="https://your-proxy-url.com"
+                      className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm font-mono text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">AI Model</label>
+                <input
+                  type="text"
+                  list="model-suggestions"
+                  value={aiConfig?.model || ''}
+                  onChange={(e) => handleAiConfigChange('model', e.target.value)}
+                  placeholder="Enter model name (e.g. gemini-1.5-flash)"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm font-mono text-gray-900 dark:text-gray-100"
+                />
+                <datalist id="model-suggestions">
+                  <option value="gemini-2.0-flash" />
+                  <option value="gemini-2.0-pro-exp-02-05" />
+                  <option value="gemini-1.5-pro" />
+                  <option value="gemini-1.5-flash" />
+                  <option value="gemini-1.5-flash-8b" />
+                </datalist>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Leave empty to use default model
+                </p>
               </div>
             </>
           )}

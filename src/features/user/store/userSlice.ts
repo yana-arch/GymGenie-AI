@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserProfile, AppStep, AiProviderConfig } from "@/types";
 import { StorageService } from "@/services/storage/StorageService";
+import { geminiService } from "@/services/ai/GeminiService";
 
 interface UserSliceState {
   profile: UserProfile | null;
@@ -91,6 +92,8 @@ const userSlice = createSlice({
     ) => {
       state.aiConfig = { ...state.aiConfig, ...action.payload };
       StorageService.saveAiConfig(state.aiConfig);
+      // Refresh the Gemini service configuration
+      geminiService.refreshConfig();
     },
 
     updatePreferences: (

@@ -217,8 +217,7 @@ export class GeminiService {
   private model: string;
 
   private constructor() {
-    this.ai = this.getAiClient();
-    this.model = this.getModelName();
+    this.refreshConfig();
   }
 
   public static getInstance(): GeminiService {
@@ -226,6 +225,11 @@ export class GeminiService {
       GeminiService.instance = new GeminiService();
     }
     return GeminiService.instance;
+  }
+
+  public refreshConfig(): void {
+    this.ai = this.getAiClient();
+    this.model = this.getModelName();
   }
 
   private getAiClient(): GoogleGenAI {
