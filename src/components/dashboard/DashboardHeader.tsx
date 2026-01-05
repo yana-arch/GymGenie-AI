@@ -30,6 +30,12 @@ const DashboardHeader: React.FC = () => {
             Workout
           </button>
           <button
+            onClick={() => setActiveView('createWorkoutDay')}
+            className={getButtonClass('createWorkoutDay')}
+          >
+            Add Exercise
+          </button>
+          <button
             onClick={() => setActiveView('kitchen')}
             className={getButtonClass('kitchen')}
           >
