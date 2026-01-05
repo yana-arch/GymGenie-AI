@@ -14,10 +14,12 @@ import storage from "redux-persist/lib/storage"; // defaults to localStorage for
 import sessionSlice from "@/features/session/store/sessionSlice";
 import workoutSlice from "@/features/workout/store/workoutSlice";
 import userSlice from "@/features/user/store/userSlice";
+import liveSessionSlice from "@/features/session/store/liveSessionSlice";
 import uiSlice from "@/features/ui/store/uiSlice";
 
 const rootReducer = combineReducers({
   session: sessionSlice,
+  liveSession: liveSessionSlice,
   workout: workoutSlice,
   user: userSlice,
   ui: uiSlice,

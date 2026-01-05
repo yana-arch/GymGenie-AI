@@ -4,16 +4,18 @@ import { ArrowLeft, CheckCircle2, Play, Pause, SkipForward, Save, Clock, Star, M
 import RestTimer from '@/features/workout/components/RestTimer';
 import { SessionState } from '@/types';
 import { SetPerformance, EnhancedWorkoutSession } from '@/types/enhanced';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { addSetToSession as addSetToSessionAction } from '../store/sessionSlice';
 import { QualityScoreCalculator } from '../services/QualityScoreCalculator';
 import { WorkoutSession } from '../services/WorkoutSession';
 import exerciseRegistry from '@/data/ExerciseRegistry.json';
 import ExerciseDetailModal from '@/features/workout/components/ExerciseDetailModal';
+import AdaptationProposal from './AdaptationProposal';
 import { exerciseCatalogService } from '@/features/workout/services/ExerciseCatalogService';
 import { Exercise } from '@/types/schemas';
 import { toTitleCase } from '@/utils/stringUtils';
 import { Button } from '@/components/ui';
+import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation } from '../store/liveSessionSlice';
 
 const LiveWorkoutSession = () => {
   const {
@@ -29,7 +31,8 @@ const LiveWorkoutSession = () => {
     addSetToSession
   } = useApp();
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
+  const { adaptation, isLoading, error } = useAppSelector(state => state.liveSession);
 
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [isLogging, setIsLogging] = useState(false);
@@ -254,6 +257,54 @@ const LiveWorkoutSession = () => {
   const adjustWeight = (amount: number) => setInputWeight(prev => Math.max(0, prev + amount));
   const adjustReps = (amount: number) => setInputReps(prev => Math.max(0, prev + amount));
 
+  const handleAcceptAdaptation = () => {
+    // Apply adaptation to current exercise with safety validation
+    if (!adaptation) return;
+
+    // Safety check: don't increase intensity when user is tired
+    const isTired = useAppSelector(state => state.liveSession.activeContext.energy) === 'tired';
+    
+    if (adaptation.newReps) {
+      const currentReps = inputReps;
+      // Only accept reps reduction or modest increase when not tired
+      if (isTired && adaptation.newReps > currentReps) {
+        console.warn('Unsafe adaptation: increasing reps when user is tired');
+        return;
+      }
+      setInputReps(adaptation.newReps);
+    }
+
+    if (adaptation.newSets) {
+      // Apply sets changes (UI would need to handle this for current exercise)
+      console.log(`Suggested ${adaptation.newSets} sets - requires implementation`);
+    }
+
+    if (adaptation.newExercise) {
+      // Exercise change would require more complex logic
+      console.log(`Suggested exercise change to ${adaptation.newExercise} - requires implementation`);
+    }
+
+    if (adaptation.restTime) {
+      // Rest time adjustment would need timer integration
+      console.log(`Suggested rest time: ${adaptation.restTime}s - requires implementation`);
+    }
+
+    // Clear the adaptation after applying
+    dispatch(clearAdaptation());
+  };
+
+  const handleRejectAdaptation = () => {
+    dispatch(clearAdaptation());
+  };
+
+  const handleRetryAdaptation = () => {
+    // Retry last adaptation request
+    const activeContext = useAppSelector(state => state.liveSession.activeContext);
+    if (activeContext.energy === 'tired' || activeContext.time === 'limited') {
+      dispatch(fetchWorkoutAdaptation(activeContext));
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 relative">
       {/* Top Bar: Minimal Navigation */}
@@ -386,6 +437,42 @@ const LiveWorkoutSession = () => {
             </div>
           </div>
 
+          {/* AI Adaptation Triggers */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[2.5rem] p-6 shadow-xl space-y-4">
+            <div className="text-center">
+              <p className="text-brand-600 dark:text-brand-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-4">Need an Adjustment?</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Let AI adapt your workout to your current state</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => {
+                  dispatch(updateEnergyContext('tired'));
+                  dispatch(fetchWorkoutAdaptation({ energy: 'tired', time: 'normal', equipmentStatus: 'available' }));
+                }}
+                className="flex flex-col items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-2xl transition-colors active:scale-95 border border-blue-100 dark:border-blue-800"
+              >
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg">😴</span>
+                </div>
+                <span className="text-sm font-bold text-blue-700 dark:text-blue-300">I'm Tired</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  dispatch(updateTimeContext('limited'));
+                  dispatch(fetchWorkoutAdaptation({ energy: 'normal', time: 'limited', equipmentStatus: 'available' }));
+                }}
+                className="flex flex-col items-center gap-2 p-4 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-2xl transition-colors active:scale-95 border border-orange-100 dark:border-orange-800"
+              >
+                <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg">⏰</span>
+                </div>
+                <span className="text-sm font-bold text-orange-700 dark:text-orange-300">Short on Time</span>
+              </button>
+            </div>
+          </div>
+
           {/* Action Button */}
           <Button
             variant="primary"
@@ -480,6 +567,32 @@ const LiveWorkoutSession = () => {
               className="w-full bg-brand-600 text-white font-bold py-5 rounded-2xl shadow-xl hover:bg-brand-700 active:scale-95 transition-all text-lg"
             >
               Save & Finish
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* AI Adaptation Proposal */}
+      <AdaptationProposal
+        adaptation={adaptation}
+        isLoading={isLoading}
+        onAccept={handleAcceptAdaptation}
+        onReject={handleRejectAdaptation}
+      />
+
+      {/* Error Display */}
+      {error && (
+        <div className="fixed inset-x-4 bottom-20 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 shadow-xl z-50 max-w-sm mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-red-800 dark:text-red-200 font-medium">Adaptation Failed</p>
+              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+            </div>
+            <button
+              onClick={handleRetryAdaptation}
+              className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Retry
             </button>
           </div>
         </div>

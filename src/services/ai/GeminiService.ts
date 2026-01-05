@@ -546,6 +546,76 @@ export class GeminiService {
     }
   }
 
+  public async generateWorkoutAdaptation(context: {
+    energy: 'normal' | 'tired';
+    time: 'normal' | 'limited';
+    currentExercise?: string;
+    userProfile?: {
+      injuries?: string[];
+      goal: string;
+    };
+  }): Promise<any> {
+    // Safety-first prompt with privacy preservation
+    const safeContext = {
+      energy: context.energy,
+      time: context.time,
+      currentExercise: context.currentExercise || 'current exercise',
+      hasInjuries: context.userProfile?.injuries && context.userProfile.injuries.length > 0,
+      goal: context.userProfile?.goal || 'general fitness'
+    };
+
+    const prompt = `
+      The user is in a workout session with this context:
+      - Energy Level: ${safeContext.energy}
+      - Time Constraint: ${safeContext.time}
+      - Current Exercise: ${safeContext.currentExercise}
+      - Has Injuries: ${safeContext.hasInjuries}
+      - Fitness Goal: ${safeContext.goal}
+
+      CRITICAL SAFETY RULES:
+      1. If energy is 'tired', ONLY suggest lower intensity or shorter duration
+      2. If time is 'limited', ONLY suggest reducing sets/reps or shorter rest periods
+      3. NEVER increase weight or difficulty when user reports fatigue
+      4. If user has injuries, avoid exercises that stress those areas
+      5. Always maintain movement quality over intensity
+
+      Return a JSON adaptation that PRIORITIZES SAFETY:
+      {
+        "newExercise": "safer alternative (optional)",
+        "newReps": number (optional, should be ≤ current reps if tired),
+        "newSets": number (optional, should be ≤ current sets if tired),
+        "restTime": number (optional, in seconds),
+        "notes": "safety-focused explanation"
+      }
+    `;
+
+    const response = await this.ai.models.generateContent({
+      model: this.model,
+      contents: [{ parts: [{ text: prompt }] }],
+      config: {
+        responseMimeType: "application/json",
+      },
+    });
+
+    if (!response.text) {
+      throw new Error("No adaptation returned");
+    }
+
+    const adaptation = JSON.parse(response.text);
+    
+    // Validate adaptation safety
+    if (context.energy === 'tired') {
+      if (adaptation.newReps && adaptation.newReps > 20) {
+        throw new Error("Unsafe adaptation: too many reps for tired user");
+      }
+      if (adaptation.newSets && adaptation.newSets > 5) {
+        throw new Error("Unsafe adaptation: too many sets for tired user");
+      }
+    }
+
+    return adaptation;
+  }
+
   /**
    * Analyze a completed workout session
    */

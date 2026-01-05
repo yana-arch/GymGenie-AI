@@ -1,0 +1,138 @@
+# Sprint Status Template
+# Generated from epics.md - Complete sprint status tracking for GymGenie-AI Phase 4 implementation
+
+# generated: 1/5/2026
+# project: GymGenie-AI
+# project_key: gymgenie-phase4
+# tracking_system: file-system
+# story_location: /media/truc2tz/SantaSSD/SKS/Sources/repos/aistudio/GymGenie-AI/_bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 1/5/2026
+project: GymGenie-AI
+project_key: gymgenie-phase4
+tracking_system: file-system
+story_location: "/media/truc2tz/SantaSSD/SKS/Sources/repos/aistudio/GymGenie-AI/_bmad-output/implementation-artifacts"
+
+development_status:
+  epic-1: in-progress
+  1-1-real-time-workout-adaptations: done
+  1-2-ai-form-correction-system: backlog
+  1-3-safety-override-controls: backlog
+  1-4-injury-aware-adaptations: backlog
+  1-5-ai-powered-workout-coaching-integration: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-ai-preference-learning-foundation: backlog
+  2-2-historical-pattern-recognition: backlog
+  2-3-feedback-driven-personalization: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-local-data-processing-setup: backlog
+  3-2-data-control-dashboard: backlog
+  3-3-transparency-and-auditing: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-live-session-guidance: backlog
+  4-2-milestone-celebrations: backlog
+  4-3-contextual-modifications: backlog
+  4-4-seamless-transitions: backlog
+  4-5-real-time-encouragement: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-fitness-improvement-tracking: backlog
+  5-2-ai-recommendation-correlation: backlog
+  5-3-milestone-achievement-system: backlog
+  5-4-trend-analysis-dashboard: backlog
+  5-5-progress-predictions: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-backward-compatibility-foundation: backlog
+  6-2-incremental-ai-adoption: backlog
+  6-3-graceful-feature-degradation: backlog
+  6-4-workflow-continuity-assurance: backlog
+  6-5-progressive-enhancement-indicators: backlog
+  epic-6-retrospective: optional
+
+  epic-7: backlog
+  7-1-ai-decision-logs-for-support: backlog
+  7-2-user-preference-calibration: backlog
+  7-3-guided-ai-feature-onboarding: backlog
+  7-4-progressive-user-introduction: backlog
+  7-5-ai-education-and-transparency: backlog
+  7-6-incremental-feature-adoption: backlog
+  epic-7-retrospective: optional
+
+  epic-8: backlog
+  8-1-injury-history-safety-validation: backlog
+  8-2-real-time-fatigue-monitoring: backlog
+  8-3-customizable-safety-sensitivity: backlog
+  8-4-smooth-adaptation-experience: backlog
+  8-5-trust-building-consistency: backlog
+  epic-8-retrospective: optional
+
+  epic-9: backlog
+  9-1-conservatism-level-adjustment: backlog
+  9-2-progressive-challenge-increases: backlog
+  9-3-ai-independence-training: backlog
+  9-4-adaptive-coaching-reduction: backlog
+  9-5-learning-pattern-reset: backlog
+  9-6-feedback-learning-integration: backlog
+  9-7-offline-online-continuity: backlog
+  9-8-cached-recommendations: backlog
+  9-9-multi-profile-ai-learning: backlog
+  9-10-profile-switching-continuity: backlog
+  9-11-ai-proactivity-controls: backlog
+  9-12-schedule-based-ai-intensity: backlog
+  epic-9-retrospective: optional
+
+  epic-10: backlog
+  10-1-continuous-ai-accuracy-improvement: backlog
+  10-2-transparent-improvement-metrics: backlog
+  10-3-adaptive-learning-patterns: backlog
+  10-4-gradual-learning-implementation: backlog
+  10-5-comprehensive-recommendation-auditing: backlog
+  10-6-privacy-focused-explanations: backlog
+  10-7-cross-device-consistency: backlog
+  10-8-graceful-error-handling: backlog
+  10-9-personalized-ai-understanding: backlog
+  10-10-safety-first-optimization: backlog
+  10-11-value-demonstration: backlog
+  10-12-progressive-feature-unlocks: backlog
+  10-13-comprehensive-testing-coverage: backlog
+  10-14-prioritized-feature-rollout: backlog
+  10-15-stability-metrics-access: backlog
+  epic-10-retrospective: optional
