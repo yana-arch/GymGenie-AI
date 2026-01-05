@@ -28,3 +28,4 @@ package-lock.json
 samples/*
 reports/jscpd/
 android/
+AGENTS.md
