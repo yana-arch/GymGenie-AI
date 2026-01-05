@@ -87,7 +87,7 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 md:bg-white md:dark:bg-gray-800 animate-fade-in pb-24">
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 md:bg-white md:dark:bg-gray-800 animate-fade-in pb-20 md:pb-0">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-4">
@@ -198,7 +198,7 @@ const ProgressDashboard: React.FC<ProgressDashboardProps> = () => {
 
       {/* Mobile Day Details Modal */}
       {!isDesktop && selectedDayDetails && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={closeDayDetails}>
+          <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={closeDayDetails}>
               <div
                 className="bg-white dark:bg-gray-800 w-full rounded-t-3xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-slide-up"
                 onClick={e => e.stopPropagation()}

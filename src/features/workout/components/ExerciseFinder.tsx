@@ -86,7 +86,7 @@ const ExerciseFinder: React.FC<ExerciseFinderProps> = ({ onSelectExercise, onClo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-40 bg-gray-50 dark:bg-gray-900 flex flex-col animate-in slide-in-from-bottom-10 duration-200">
+    <div className="fixed inset-0 z-[60] bg-gray-50 dark:bg-gray-900 flex flex-col animate-in slide-in-from-bottom-10 duration-200">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 px-4 pt-4 pb-2 border-b border-gray-100 dark:border-gray-700 shadow-sm z-10">
         <div className="flex items-center justify-between mb-4">
