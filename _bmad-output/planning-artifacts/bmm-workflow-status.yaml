@@ -74,12 +74,14 @@ workflow_status:
         agent: "pm"
         command: "/bmad:bmm:workflows:create-prd"
         output: "Product Requirements Document with FRs and NFRs"
+        status: "_bmad-output/planning-artifacts/prd.md"
       - id: "create-ux-design"
         conditional: "if_has_ui"
         exec: "{project-root}/_bmad/bmm/workflows/2-plan-workflows/create-ux-design/workflow.md"
         agent: "ux-designer"
         command: "/bmad:bmm:workflows:create-ux-design"
         note: "Determined after PRD - user/agent decides if needed"
+        status: "_bmad-output/planning-artifacts/ux-design-specification.md"
   - phase: 3
     name: "Solutioning"
     required: true
