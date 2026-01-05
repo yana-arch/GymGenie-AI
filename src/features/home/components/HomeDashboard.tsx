@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { PlayCircle, Camera, Scale, Home, Calendar, Flame, Target, Zap } from 'lucide-react';
 import { SessionState } from '@/types';
+import { Button } from '@/components/ui';
 
 const HomeDashboard: React.FC = () => {
   const { user, currentPlan, getSessionState, startWorkoutSession, setStep, setActiveView } = useApp();
@@ -131,15 +132,17 @@ const HomeDashboard: React.FC = () => {
                         </p>
                       </div>
 
-                      <button
+                      <Button
+                        variant="primary"
+                        size="lg"
                         onClick={handleStartWorkout}
-                        className="w-full bg-brand-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-brand-700 transition-colors"
+                        className="w-full"
                       >
                         <PlayCircle size={20} />
                         {todayInfo.sessionState === SessionState.ACTIVE || todayInfo.sessionState === SessionState.COMPLETED
                           ? 'Continue Workout'
                           : 'Start Workout'}
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <div className="text-center py-8">
@@ -187,13 +190,15 @@ const HomeDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    <button
+                    <Button
+                      variant="primary"
+                      size="lg"
                       onClick={handleScanMeal}
-                      className="w-full bg-orange-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-orange-700 transition-colors"
+                      className="w-full"
                     >
                       <Camera size={20} />
                       Scan Meal
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -206,37 +211,45 @@ const HomeDashboard: React.FC = () => {
                 </h3>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
                     onClick={handleStartWorkout}
-                    className="bg-blue-600 text-white font-bold py-4 rounded-xl flex flex-col items-center gap-2 shadow-md hover:bg-blue-700 transition-colors"
+                    className="flex flex-col items-center gap-2 py-4"
                   >
                     <PlayCircle size={24} />
                     <span className="text-sm">Start Workout</span>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
                     onClick={handleScanMeal}
-                    className="bg-orange-600 text-white font-bold py-4 rounded-xl flex flex-col items-center gap-2 shadow-md hover:bg-orange-700 transition-colors"
+                    className="flex flex-col items-center gap-2 py-4"
                   >
                     <Camera size={24} />
                     <span className="text-sm">Scan Meal</span>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
                     onClick={handleLogWeight}
-                    className="bg-green-600 text-white font-bold py-4 rounded-xl flex flex-col items-center gap-2 shadow-md hover:bg-green-700 transition-colors"
+                    className="flex flex-col items-center gap-2 py-4"
                   >
                     <Scale size={24} />
                     <span className="text-sm">Log Weight</span>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
                     onClick={handleViewProgress}
-                    className="bg-purple-600 text-white font-bold py-4 rounded-xl flex flex-col items-center gap-2 shadow-md hover:bg-purple-700 transition-colors"
+                    className="flex flex-col items-center gap-2 py-4"
                   >
                     <Target size={24} />
                     <span className="text-sm">View Progress</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

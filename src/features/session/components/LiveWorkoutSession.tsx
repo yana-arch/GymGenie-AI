@@ -13,6 +13,7 @@ import ExerciseDetailModal from '@/features/workout/components/ExerciseDetailMod
 import { exerciseCatalogService } from '@/features/workout/services/ExerciseCatalogService';
 import { Exercise } from '@/types/schemas';
 import { toTitleCase } from '@/utils/stringUtils';
+import { Button } from '@/components/ui';
 
 const LiveWorkoutSession = () => {
   const {
@@ -107,12 +108,13 @@ const LiveWorkoutSession = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <p className="text-gray-500 dark:text-gray-400 mb-4">No active session found.</p>
-        <button
+        <Button
+          variant="primary"
+          size="lg"
           onClick={() => setStep("dashboard")}
-          className="px-6 py-3 bg-brand-600 text-white rounded-xl font-bold"
         >
           Return to Dashboard
-        </button>
+        </Button>
       </div>
     );
   }
@@ -256,18 +258,21 @@ const LiveWorkoutSession = () => {
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 relative">
       {/* Top Bar: Minimal Navigation */}
       <div className="flex items-center justify-between p-6 bg-transparent z-10">
-        <button
+        <Button
+          variant="secondary"
+          size="md"
           onClick={() => setStep("dashboard")}
-          className="p-3 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-all active:scale-95"
         >
           <ArrowLeft size={20} />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={handleFinishWorkout}
-          className="px-6 py-2.5 bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 font-black rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all active:scale-95 text-sm uppercase tracking-wider"
+          className="text-brand-600 dark:text-brand-400 font-black uppercase tracking-wider"
         >
           Finish
-        </button>
+        </Button>
       </div>
 
       {/* Main Content: Current Exercise */}
@@ -382,16 +387,16 @@ const LiveWorkoutSession = () => {
           </div>
 
           {/* Action Button */}
-          <button
+          <Button
+            variant="primary"
+            size="xl"
             onClick={handleLogSet}
             disabled={completedSetsCount >= currentExercise.sets}
-            className={`w-full text-white font-black py-6 rounded-[2rem] shadow-2xl flex items-center justify-center gap-3 active:scale-95 transition-all text-xl uppercase tracking-widest ${
-                completedSetsCount >= currentExercise.sets ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed' : 'bg-brand-600'
-            }`}
+            className={`w-full font-black text-xl uppercase tracking-widest ${completedSetsCount >= currentExercise.sets ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed' : ''}`}
           >
             <CheckCircle2 size={28} />
             {completedSetsCount >= currentExercise.sets ? 'Exercise Complete' : `Log Set ${completedSetsCount + 1}`}
-          </button>
+          </Button>
 
           {/* Navigation */}
           <div className="flex flex-col items-center gap-4 py-4">

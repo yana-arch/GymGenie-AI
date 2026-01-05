@@ -1,9 +1,10 @@
 import React, { memo, useState, useCallback } from 'react';
-import { Plus, X, Loader2 } from 'lucide-react'; // Added Loader2 icon
+import { Plus, X, Loader2 } from 'lucide-react';
 import ExerciseFinder from './ExerciseFinder';
 import { Exercise, WorkoutExercise, UserProfile } from '@/types';
 import { useApp } from '@/context/AppContext';
-import { generateSetsForExercises } from '../services/WorkoutGenerator'; // New import
+import { generateSetsForExercises } from '../services/WorkoutGenerator';
+import { Button } from '@/components/ui';
 
 const CreateWorkoutDay = memo(() => {
   const { user } = useApp();
@@ -45,13 +46,15 @@ const CreateWorkoutDay = memo(() => {
       <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Create Custom Workout Day</h2>
 
       {/* Button to Add Exercises */}
-      <button
+      <Button
+        variant="primary"
+        size="lg"
         onClick={() => setIsFinderOpen(true)}
-        className="w-full bg-brand-600 text-white py-3 px-4 rounded-xl font-semibold shadow-md hover:bg-brand-700 transition-colors flex items-center justify-center gap-2 mb-6"
+        className="w-full mb-6"
       >
         <Plus size={20} />
         Add Exercise
-      </button>
+      </Button>
 
       {/* Selected Exercises List / AI Generated List */}
       {selectedExercises.length === 0 ? (
@@ -65,12 +68,14 @@ const CreateWorkoutDay = memo(() => {
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-bold text-gray-900 dark:text-gray-100">{exercise.name}</h3>
                 {selectedExercises.includes(exercise as Exercise) && ( // Only show remove button for manually added exercises
-                  <button
+                  <Button
+                    variant="icon"
+                    size="sm"
                     onClick={() => handleRemoveExercise(exercise.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                    className="text-gray-400 hover:text-red-600"
                   >
                     <X size={20} />
-                  </button>
+                  </Button>
                 )}
               </div>
               {aiGeneratedExercises.length > 0 && (
@@ -88,20 +93,15 @@ const CreateWorkoutDay = memo(() => {
 
       {/* AI Suggest Sets Button */}
       {selectedExercises.length > 0 && (
-        <button
+        <Button
+          variant="primary"
+          size="lg"
           onClick={handleAISuggestSets}
-          className="w-full bg-blue-500 text-white py-3 px-4 rounded-xl font-semibold shadow-md hover:bg-blue-600 transition-colors mt-6 flex items-center justify-center gap-2"
-          disabled={isGenerating}
+          loading={isGenerating}
+          className="w-full mt-6"
         >
-          {isGenerating ? (
-            <>
-              <Loader2 size={20} className="animate-spin" />
-              Generating Suggestions...
-            </>
-          ) : (
-            'AI Suggest Sets for Day'
-          )}
-        </button>
+          {isGenerating ? 'Generating Suggestions...' : 'AI Suggest Sets for Day'}
+        </Button>
       )}
 
       {/* ExerciseFinder Modal */}
