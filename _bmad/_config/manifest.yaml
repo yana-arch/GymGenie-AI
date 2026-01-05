@@ -1,0 +1,18 @@
+installation:
+  version: 6.0.0-alpha.22
+  installDate: 2026-01-05T04:25:00.119Z
+  lastUpdated: 2026-01-05T04:25:00.119Z
+modules:
+  - core
+  - bmb
+  - bmm
+ides:
+  - cursor
+  - github-copilot
+  - antigravity
+  - opencode
+  - cline
+  - gemini
+  - kilo
+  - kiro-cli
+  - roo
