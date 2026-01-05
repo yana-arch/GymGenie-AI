@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import EquipmentScanner from '@/src/features/profile/components/EquipmentScanner';
+import EquipmentScanner from '@/features/profile/components/EquipmentScanner';
 import { useApp } from '@/context/AppContext';
-import { identifyEquipment } from '@/src/features/profile/services/EquipmentIdentifier';
-import { generateWorkoutPlanWithValidation as generateWorkoutPlan } from '@/services/enhanced-gemini-service';
+import { identifyEquipment } from '@/features/profile/services/EquipmentIdentifier';
+import { geminiService } from '@/services/ai/GeminiService';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock dependencies
@@ -15,12 +15,14 @@ vi.mock('@/context/AppContext', async (importOriginal) => {
   };
 });
 
-vi.mock('@/src/features/profile/services/EquipmentIdentifier', () => ({
+vi.mock('@/features/profile/services/EquipmentIdentifier', () => ({
   identifyEquipment: vi.fn(),
 }));
 
-vi.mock('@/services/enhanced-gemini-service', () => ({
-  generateWorkoutPlanWithValidation: vi.fn(),
+vi.mock('@/services/ai/GeminiService', () => ({
+  geminiService: {
+    generateWorkoutPlan: vi.fn(),
+  },
 }));
 
 describe('EquipmentScanner', () => {
@@ -42,10 +44,10 @@ describe('EquipmentScanner', () => {
   });
 
   it('displays error when generation fails', async () => {
-    (generateWorkoutPlan as any).mockRejectedValue(new Error('Network error'));
-    
+    (geminiService.generateWorkoutPlan as any).mockRejectedValue(new Error('Network error'));
+
     render(<EquipmentScanner />);
-    
+
     // Add a dummy item so we can generate
     const input = screen.getByPlaceholderText(/Add manually/i);
     fireEvent.change(input, { target: { value: 'Dumbbells' } });
@@ -84,7 +86,7 @@ describe('EquipmentScanner', () => {
         }]
       }]
     };
-    (generateWorkoutPlan as any).mockRejectedValueOnce(new Error('Fail')).mockResolvedValueOnce(mockValidPlan);
+    (geminiService.generateWorkoutPlan as any).mockRejectedValueOnce(new Error('Fail')).mockResolvedValueOnce(mockValidPlan);
     
     render(<EquipmentScanner />);
     

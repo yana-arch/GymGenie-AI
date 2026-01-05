@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act, waitFor } from './test-utils';
-import VirtualizedExerciseList from '@/src/features/workout/components/VirtualizedExerciseList';
+import { render, screen, fireEvent, act, waitFor } from '../test/test-utils';
+import VirtualizedExerciseList from '@/features/workout/components/VirtualizedExerciseList';
 import { useCurrentSession, useExerciseById } from '@/hooks/useSelectiveSubscription';
 import { useRenderPerformance } from '@/hooks/usePerformanceMonitor';
-import { optimizedMemo } from '@/utils/renderOptimizationSimple';
+import { optimizedMemo } from '@/utils/renderOptimization';
 import React from 'react';
 
 // Mock react-virtualized
@@ -39,7 +39,7 @@ describe('Performance Optimization Components', () => {
     }));
 
     beforeEach(() => {
-      (useExerciseById as vi.Mock).mockImplementation((exerciseId: string) => {
+      (useExerciseById as any).mockImplementation((exerciseId: string) => {
         const exercise = mockExercises.find(e => e.id === exerciseId);
         return exercise ? { exercise } : null;
       });
@@ -78,7 +78,7 @@ describe('Performance Optimization Components', () => {
         { id: '3', name: 'Ex 3', sets: 3, reps: '10', isCompleted: true },
       ];
 
-      (useExerciseById as vi.Mock).mockImplementation((exerciseId: string) => {
+      (useExerciseById as any).mockImplementation((exerciseId: string) => {
         const exercise = exercises.find(e => e.id === exerciseId);
         return exercise ? { exercise } : null;
       });

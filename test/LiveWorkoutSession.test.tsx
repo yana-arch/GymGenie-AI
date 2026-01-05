@@ -1,12 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from './test-utils';
-import LiveWorkoutSession from '../src/features/session/components/LiveWorkoutSession';
-import { useApp } from '../context/AppContext';
+import { render, screen, fireEvent, waitFor } from '../test/test-utils';
+import LiveWorkoutSession from '@/features/session/components/LiveWorkoutSession';
+import { useApp } from '../src/context/AppContext';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock context
-vi.mock('../context/AppContext', async (importOriginal) => {
-  const actual = await vi.importActual('../context/AppContext');
+vi.mock('../src/context/AppContext', async (importOriginal) => {
+  const actual = await vi.importActual('../src/context/AppContext');
   return {
     ...actual,
     useApp: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock('../context/AppContext', async (importOriginal) => {
 });
 
 // Mock child components
-vi.mock('@/src/features/workout/components/RestTimer', () => ({
+vi.mock('@/features/workout/components/RestTimer', () => ({
   default: () => <div data-testid="rest-timer">Rest Timer</div>,
 }));
 
