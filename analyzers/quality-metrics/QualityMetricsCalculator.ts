@@ -11,7 +11,7 @@ import {
   ComplexFunction,
   ComplexityDistribution,
 } from './types';
-import { logger } from '../utils/logger';
+import { defaultLogger as logger } from '../utils/logger';
 
 /**
  * Calculates quality metrics for a codebase

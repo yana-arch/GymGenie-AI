@@ -16,7 +16,7 @@ import {
   PipelineError,
   PipelineProgress,
 } from './types';
-import { Logger } from '../utils/Logger';
+import { defaultLogger as Logger } from '../utils/logger';
 
 /**
  * Orchestrates the execution of multiple analysis stages
@@ -228,7 +228,7 @@ export class AnalysisPipeline {
 
       case 'duplicate-code':
         const duplicateDetector = new DuplicateCodeDetector();
-        return await duplicateDetector.detectDuplicates(config);
+        return await duplicateDetector.analyze(config);
 
       case 'orphaned-files':
         const orphanedDetector = new OrphanedFileDetector();

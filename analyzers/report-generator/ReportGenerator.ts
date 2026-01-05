@@ -9,7 +9,7 @@ import {
   ReportSummary,
   ChartData,
 } from './types';
-import { logger } from '../utils/logger';
+import { defaultLogger as logger } from '../utils/logger';
 
 /**
  * Generates comprehensive reports from analysis and execution results

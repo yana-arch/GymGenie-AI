@@ -1,0 +1,33 @@
+{
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules/**", "dist/**", "**/*.test.*", "**/*.spec.*"],
+  "entryPoints": ["src/index.tsx", "src/App.tsx"],
+  "deadCode": {
+    "enabled": true,
+    "checkDynamicImports": true
+  },
+  "unusedImports": {
+    "enabled": true,
+    "autoFix": false
+  },
+  "duplicates": {
+    "enabled": true,
+    "minLines": 5,
+    "similarityThreshold": 0.85
+  },
+  "orphanedFiles": {
+    "enabled": true
+  },
+  "typeOptimization": {
+    "enabled": true
+  },
+  "serviceAnalysis": {
+    "enabled": true
+  },
+  "flowValidation": {
+    "enabled": true
+  },
+  "dependencies": {
+    "enabled": true
+  }
+}

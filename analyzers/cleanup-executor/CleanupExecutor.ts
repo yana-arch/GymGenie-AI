@@ -11,7 +11,7 @@ import {
   DryRunResult,
   FileModification,
 } from './types';
-import { logger } from '../utils/logger';
+import { defaultLogger as logger } from '../utils/logger';
 
 const execAsync = promisify(exec);
 

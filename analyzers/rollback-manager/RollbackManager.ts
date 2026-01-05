@@ -8,7 +8,7 @@ import {
   RollbackOptions,
   RollbackError,
 } from './types';
-import { logger } from '../utils/logger';
+import { defaultLogger as logger } from '../utils/logger';
 
 /**
  * Manages checkpoints and rollback functionality

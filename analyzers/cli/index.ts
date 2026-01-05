@@ -7,7 +7,7 @@ import { RollbackManager } from '../rollback-manager';
 import { ReportGenerator } from '../report-generator';
 import { QualityMetricsCalculator } from '../quality-metrics';
 import { ConfigParser } from '../config';
-import { logger } from '../utils/logger';
+import { defaultLogger as logger } from '../utils/logger';
 
 /**
  * Simple CLI for code cleanup and refactoring
@@ -48,8 +48,7 @@ class CleanupCLI {
     console.log('🔍 Running code analysis...\n');
 
     // Load configuration
-    const configParser = new ConfigParser();
-    const config = await configParser.loadConfig();
+    const config = ConfigParser.loadConfig();
 
     // Run analysis pipeline
     const pipeline = new AnalysisPipeline();
@@ -86,8 +85,7 @@ class CleanupCLI {
     console.log('🧹 Running cleanup...\n');
 
     // Load configuration
-    const configParser = new ConfigParser();
-    const config = await configParser.loadConfig();
+    const config = ConfigParser.loadConfig();
 
     // Run analysis
     const pipeline = new AnalysisPipeline();
@@ -133,8 +131,7 @@ class CleanupCLI {
     console.log('📊 Generating comprehensive report...\n');
 
     // Load configuration
-    const configParser = new ConfigParser();
-    const config = await configParser.loadConfig();
+    const config = ConfigParser.loadConfig();
 
     // Run analysis
     const pipeline = new AnalysisPipeline();
