@@ -93,12 +93,14 @@ workflow_status:
         command: "/bmad:bmm:workflows:create-architecture"
         output: "System architecture document"
         note: "Complete system design for greenfield projects"
+        status: "_bmad-output/planning-artifacts/architecture.md"
       - id: "create-epics-and-stories"
         required: true
         exec: "{project-root}/_bmad/bmm/workflows/3-solutioning/create-epics-and-stories/workflow.md"
         agent: "pm"
         command: "/bmad:bmm:workflows:create-epics-and-stories"
         note: "Required: Break down PRD into implementable epics and stories with full context (PRD + UX + Architecture)"
+        status: "_bmad-output/planning-artifacts/epics.md"
       - id: "test-design"
         optional: true
         workflow: "{project-root}/_bmad/bmm/workflows/testarch/test-design/workflow.yaml"
@@ -106,12 +108,14 @@ workflow_status:
         command: "/bmad:bmm:workflows:test-design"
         output: "System-level testability review"
         note: "Testability assessment before gate check - auto-detects system-level mode"
+        status: "_bmad-output/test-design-system.md"
       - id: "implementation-readiness"
         required: true
         exec: "{project-root}/_bmad/bmm/workflows/3-solutioning/check-implementation-readiness/workflow.md"
         agent: "architect"
         command: "/bmad:bmm:workflows:implementation-readiness"
         note: "Validates PRD + Architecture + Epics + UX (optional)"
+        status: "_bmad-output/test-design-system.md"
   - phase: 4
     name: "Implementation"
     required: true

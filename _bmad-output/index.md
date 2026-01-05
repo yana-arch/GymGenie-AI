@@ -40,7 +40,8 @@
 
 ### Technology & Architecture
 - [Technology Stack](./technology-stack-main.md) - Complete tech stack analysis with justifications
-- [Architecture Documentation](./architecture-main.md) _(To be generated)_ - System design and component overview
+- [Architecture Documentation](./planning-artifacts/architecture.md) - System design and component overview
+- [System-Level Test Design](./test-design-system.md) - Testability assessment and testing strategy
 - [API Contracts](./api-contracts-main.md) _(To be generated)_ - API endpoints and data contracts
 - [Data Models](./data-models-main.md) _(To be generated)_ - Database schema and entity relationships
 
