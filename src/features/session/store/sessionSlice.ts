@@ -263,4 +263,10 @@ export const {
   clearAllSessions,
 } = sessionSlice.actions;
 
+export const selectCurrentSession = (state: { session: SessionSliceState }) => 
+  state.session.currentSession;
+
+export const selectSessions = (state: { session: SessionSliceState }) => 
+  state.session.sessions;
+
 export default sessionSlice.reducer;
