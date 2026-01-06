@@ -16,6 +16,7 @@ import workoutSlice from "@/features/workout/store/workoutSlice";
 import userSlice from "@/features/user/store/userSlice";
 import liveSessionSlice from "@/features/session/store/liveSessionSlice";
 import uiSlice from "@/features/ui/store/uiSlice";
+import formCorrectionSlice from "@/features/form-correction/store/formCorrectionSlice";
 
 const rootReducer = combineReducers({
   session: sessionSlice,
@@ -23,12 +24,13 @@ const rootReducer = combineReducers({
   workout: workoutSlice,
   user: userSlice,
   ui: uiSlice,
+  formCorrection: formCorrectionSlice,
 });
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["user", "workout", "session"], // Persist important data
+   whitelist: ["user", "workout", "session", "formCorrection"], // Persist important data
   // ui slice is transient
 };
 
