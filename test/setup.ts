@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-const mockExerciseIndex = [];
+const mockExerciseIndex: any[] = [];
 
 // Mock the global fetch function
 global.fetch = vi.fn().mockImplementation((url) => {

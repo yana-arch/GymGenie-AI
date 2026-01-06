@@ -22,6 +22,7 @@ import {
   EquipmentIdentificationResponseSchema,
 } from "../api-validation";
 import { StorageService } from "../storage/StorageService";
+import { privacyValidationService } from "../privacy/PrivacyValidationService";
 
 // Schemas for AI Generation (Google GenAI SDK)
 // Recruited from enhanced-gemini-service.ts and AIGeneratorService.ts
@@ -554,15 +555,38 @@ export class GeminiService {
       injuries?: string[];
       goal: string;
     };
+    overrideHistory?: Array<{
+      type: string;
+      userAction: string;
+      reasoning: string;
+      timestamp: number;
+    }>;
   }): Promise<any> {
+    // Validate privacy before processing
+    const privacyCheck = privacyValidationService.validateDataForAI(context, 'GeminiService.generateWorkoutAdaptation');
+    
+    if (!privacyCheck.safeToSend) {
+      throw new Error(`Privacy validation failed: ${privacyCheck.violations.join(', ')}`);
+    }
+
+    // Use sanitized data if privacy issues were detected and fixed
+    const sanitizedContext = privacyCheck.sanitizedData || context;
+
     // Safety-first prompt with privacy preservation
     const safeContext = {
-      energy: context.energy,
-      time: context.time,
-      currentExercise: context.currentExercise || 'current exercise',
-      hasInjuries: context.userProfile?.injuries && context.userProfile.injuries.length > 0,
-      goal: context.userProfile?.goal || 'general fitness'
+      energy: sanitizedContext.energy,
+      time: sanitizedContext.time,
+      currentExercise: sanitizedContext.currentExercise || 'current exercise',
+      hasInjuries: sanitizedContext.userProfile?.injuries && sanitizedContext.userProfile.injuries.length > 0,
+      goal: sanitizedContext.userProfile?.goal || 'general fitness',
+      overrideHistory: sanitizedContext.overrideHistory || []
     };
+
+    const overrideContext = safeContext.overrideHistory.length > 0 
+      ? `\n      RECENT OVERRIDE HISTORY:\n      ${safeContext.overrideHistory.slice(-3).map((o: any) => 
+        `User ${o.userAction} "${o.type}" recommendation: ${o.reasoning}`
+      ).join('\n      ')}`
+      : '';
 
     const prompt = `
       The user is in a workout session with this context:
@@ -570,7 +594,7 @@ export class GeminiService {
       - Time Constraint: ${safeContext.time}
       - Current Exercise: ${safeContext.currentExercise}
       - Has Injuries: ${safeContext.hasInjuries}
-      - Fitness Goal: ${safeContext.goal}
+      - Fitness Goal: ${safeContext.goal}${overrideContext}
 
       CRITICAL SAFETY RULES:
       1. If energy is 'tired', ONLY suggest lower intensity or shorter duration
@@ -578,14 +602,16 @@ export class GeminiService {
       3. NEVER increase weight or difficulty when user reports fatigue
       4. If user has injuries, avoid exercises that stress those areas
       5. Always maintain movement quality over intensity
+      6. CRITICAL: Respect override history - if user consistently overrides certain types of recommendations, avoid suggesting similar ones
+      7. Apply conservative safety defaults after any user override pattern
 
-      Return a JSON adaptation that PRIORITIZES SAFETY:
+      Return a JSON adaptation that PRIORITIZES SAFETY AND USER PREFERENCES:
       {
         "newExercise": "safer alternative (optional)",
         "newReps": number (optional, should be ≤ current reps if tired),
         "newSets": number (optional, should be ≤ current sets if tired),
         "restTime": number (optional, in seconds),
-        "notes": "safety-focused explanation"
+        "notes": "safety-focused explanation accounting for user preferences"
       }
     `;
 

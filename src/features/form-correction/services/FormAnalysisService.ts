@@ -21,12 +21,26 @@ export interface FormAnalysis {
   score: number; // 0-100
   feedback: string;
   timestamp: number;
+  processingTime?: number; // Performance tracking
+}
+
+export interface PerformanceMetrics {
+  analysisCount: number;
+  averageProcessingTime: number;
+  maxProcessingTime: number;
+  slaCompliance: number; // Percentage of analyses under 500ms
 }
 
 export class FormAnalysisService {
   private exerciseRules: Map<string, ExerciseFormRule> = new Map();
   private analysisHistory: FormAnalysis[] = [];
   private maxHistorySize = 100;
+  private performanceMetrics: PerformanceMetrics = {
+    analysisCount: 0,
+    averageProcessingTime: 0,
+    maxProcessingTime: 0,
+    slaCompliance: 100
+  };
 
   constructor() {
     this.initializeExerciseRules();
@@ -96,6 +110,8 @@ export class FormAnalysisService {
    * Analyze form for a specific exercise
    */
   analyzeForm(poses: Pose[], exerciseType: string): FormAnalysis {
+    const startTime = performance.now();
+    
     if (poses.length === 0) {
       return this.createNoPoseAnalysis();
     }
@@ -108,7 +124,6 @@ export class FormAnalysisService {
     }
 
     const issues: FormIssue[] = [];
-    const startTime = Date.now();
 
     // Check keypoint angles
     this.checkKeypointAngles(pose, rule, issues);
@@ -123,18 +138,57 @@ export class FormAnalysisService {
     const score = this.calculateFormScore(issues);
     const isValid = score >= 80 && issues.filter(i => i.severity === 'high').length === 0;
 
+    const processingTime = performance.now() - startTime;
+    
+    // Update performance metrics
+    this.updatePerformanceMetrics(processingTime);
+
+    // Check 500ms SLA
+    if (processingTime > 500) {
+      console.warn(`Form analysis SLA breach: ${processingTime.toFixed(2)}ms > 500ms for exercise: ${exerciseType}`);
+    }
+
     const analysis: FormAnalysis = {
       isValid,
       issues,
       score,
       feedback: this.generateFeedback(isValid, issues, exerciseType),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      processingTime
     };
 
     // Store in history for trend analysis
     this.addToHistory(analysis);
 
     return analysis;
+  }
+
+  /**
+   * Update performance metrics for SLA tracking
+   */
+  private updatePerformanceMetrics(processingTime: number): void {
+    this.performanceMetrics.analysisCount++;
+    
+    // Update average processing time
+    const totalTime = this.performanceMetrics.averageProcessingTime * (this.performanceMetrics.analysisCount - 1) + processingTime;
+    this.performanceMetrics.averageProcessingTime = totalTime / this.performanceMetrics.analysisCount;
+    
+    // Update max processing time
+    if (processingTime > this.performanceMetrics.maxProcessingTime) {
+      this.performanceMetrics.maxProcessingTime = processingTime;
+    }
+    
+    // Update SLA compliance (percentage under 500ms)
+    const slaBreaches = this.analysisHistory.filter(a => a.processingTime && a.processingTime > 500).length;
+    const totalAnalyses = this.analysisHistory.filter(a => a.processingTime).length;
+    this.performanceMetrics.slaCompliance = totalAnalyses > 0 ? ((totalAnalyses - slaBreaches) / totalAnalyses) * 100 : 100;
+  }
+
+  /**
+   * Get current performance metrics
+   */
+  public getPerformanceMetrics(): PerformanceMetrics {
+    return { ...this.performanceMetrics };
   }
 
   /**

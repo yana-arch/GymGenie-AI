@@ -32,7 +32,8 @@ const LiveWorkoutSession = () => {
   } = useApp();
 
   const dispatch = useAppDispatch();
-  const { adaptation, isLoading, error } = useAppSelector(state => state.liveSession);
+  const liveSessionState = useAppSelector(state => state.liveSession);
+  const { adaptation, isLoading, error, performance, activeContext: reduxActiveContext, overrideHistory } = liveSessionState;
 
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [isLogging, setIsLogging] = useState(false);
@@ -173,9 +174,9 @@ const LiveWorkoutSession = () => {
          mood: "Good", // Could ask user
          summary: scoreResult.feedback,
          advice: scoreResult.feedback,
-         strengths: [],
-         improvements: [],
-         nextWorkoutRecommendations: []
+         strengths: [] as string[],
+         improvements: [] as string[],
+         nextWorkoutRecommendations: [] as string[]
       } : undefined;
 
       await logWorkout(activeContext.week.id, activeContext.day.id, rpe, analysis);
@@ -262,7 +263,7 @@ const LiveWorkoutSession = () => {
     if (!adaptation) return;
 
     // Safety check: don't increase intensity when user is tired
-    const isTired = useAppSelector(state => state.liveSession.activeContext.energy) === 'tired';
+    const isTired = reduxActiveContext.energy === 'tired';
     
     if (adaptation.newReps) {
       const currentReps = inputReps;
@@ -299,9 +300,11 @@ const LiveWorkoutSession = () => {
 
   const handleRetryAdaptation = () => {
     // Retry last adaptation request
-    const activeContext = useAppSelector(state => state.liveSession.activeContext);
-    if (activeContext.energy === 'tired' || activeContext.time === 'limited') {
-      dispatch(fetchWorkoutAdaptation(activeContext));
+    if (reduxActiveContext.energy === 'tired' || reduxActiveContext.time === 'limited') {
+      dispatch(fetchWorkoutAdaptation({ 
+        activeContext: reduxActiveContext, 
+        overrideHistory: overrideHistory || []
+      }));
     }
   };
 
@@ -448,7 +451,10 @@ const LiveWorkoutSession = () => {
               <button
                 onClick={() => {
                   dispatch(updateEnergyContext('tired'));
-                  dispatch(fetchWorkoutAdaptation({ energy: 'tired', time: 'normal', equipmentStatus: 'available' }));
+                  dispatch(fetchWorkoutAdaptation({ 
+                    activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
+                    overrideHistory: overrideHistory || []
+                  }));
                 }}
                 className="flex flex-col items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-2xl transition-colors active:scale-95 border border-blue-100 dark:border-blue-800"
               >
@@ -461,7 +467,10 @@ const LiveWorkoutSession = () => {
               <button
                 onClick={() => {
                   dispatch(updateTimeContext('limited'));
-                  dispatch(fetchWorkoutAdaptation({ energy: 'normal', time: 'limited', equipmentStatus: 'available' }));
+                  dispatch(fetchWorkoutAdaptation({ 
+                    activeContext: { energy: 'normal', time: 'limited', equipmentStatus: 'available' }, 
+                    overrideHistory: overrideHistory || []
+                  }));
                 }}
                 className="flex flex-col items-center gap-2 p-4 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-2xl transition-colors active:scale-95 border border-orange-100 dark:border-orange-800"
               >
@@ -580,23 +589,41 @@ const LiveWorkoutSession = () => {
         onReject={handleRejectAdaptation}
       />
 
-      {/* Error Display */}
-      {error && (
-        <div className="fixed inset-x-4 bottom-20 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 shadow-xl z-50 max-w-sm mx-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-red-800 dark:text-red-200 font-medium">Adaptation Failed</p>
-              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-            </div>
-            <button
-              onClick={handleRetryAdaptation}
-              className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      )}
+       {/* Performance Monitor (for development/testing) */}
+       {process.env.NODE_ENV === 'development' && performance.lastResponseTime && (
+         <div className="fixed inset-x-4 top-20 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 shadow-lg z-50 max-w-xs mx-auto">
+           <div className="flex items-center justify-between text-xs">
+             <div>
+               <p className="text-blue-800 dark:text-blue-200 font-medium">AI Response Time</p>
+               <p className={`font-bold ${performance.withinSLA ? 'text-green-600' : 'text-red-600'}`}>
+                 {performance.lastResponseTime}ms
+               </p>
+             </div>
+             <div className="text-right">
+               <p className="text-blue-600 dark:text-blue-400">Avg: {performance.averageResponseTime.toFixed(0)}ms</p>
+               <p className="text-blue-600 dark:text-blue-400">Requests: {performance.requestCount}</p>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Error Display */}
+       {error && (
+         <div className="fixed inset-x-4 bottom-20 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 shadow-xl z-50 max-w-sm mx-auto">
+           <div className="flex items-center justify-between">
+             <div>
+               <p className="text-red-800 dark:text-red-200 font-medium">Adaptation Failed</p>
+               <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+             </div>
+             <button
+               onClick={handleRetryAdaptation}
+               className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+             >
+               Retry
+             </button>
+           </div>
+         </div>
+       )}
     </div>
   );
 };
