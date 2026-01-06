@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { GeminiService } from '@/services/ai/GeminiService';
+import type { OverrideEvent, AIRecommendation } from '@/features/safety-override/services/OverrideDetectionService';
 
 // Define a type for the workout adaptation with safety constraints
 export interface WorkoutAdaptation {
@@ -19,6 +20,10 @@ interface LiveSessionState {
   isLoading: boolean;
   error: string | null;
   adaptation: WorkoutAdaptation | null;
+  // Override integration
+  currentRecommendations: AIRecommendation[];
+  recentOverride: OverrideEvent | null;
+  overrideApplied: boolean;
 }
 
 const initialState: LiveSessionState = {
@@ -30,6 +35,9 @@ const initialState: LiveSessionState = {
   isLoading: false,
   error: null,
   adaptation: null,
+  currentRecommendations: [],
+  recentOverride: null,
+  overrideApplied: false,
 };
 
 export const fetchWorkoutAdaptation = createAsyncThunk(
@@ -57,6 +65,24 @@ const liveSessionSlice = createSlice({
     },
     clearAdaptation(state) {
         state.adaptation = null;
+    },
+    // Override integration
+    addRecommendation(state, action: PayloadAction<AIRecommendation>) {
+      state.currentRecommendations.push(action.payload);
+    },
+    removeRecommendation(state, action: PayloadAction<string>) {
+      state.currentRecommendations = state.currentRecommendations.filter(r => r.id !== action.payload);
+    },
+    applyOverride(state, action: PayloadAction<OverrideEvent>) {
+      state.recentOverride = action.payload;
+      state.overrideApplied = true;
+    },
+    clearOverride(state) {
+      state.recentOverride = null;
+      state.overrideApplied = false;
+    },
+    clearRecommendations(state) {
+      state.currentRecommendations = [];
     }
   },
   extraReducers: (builder) => {
@@ -76,6 +102,6 @@ const liveSessionSlice = createSlice({
   },
 });
 
-export const { updateEnergyContext, updateTimeContext, clearAdaptation } = liveSessionSlice.actions;
+export const { updateEnergyContext, updateTimeContext, clearAdaptation, addRecommendation, removeRecommendation, applyOverride, clearOverride, clearRecommendations } = liveSessionSlice.actions;
 
 export default liveSessionSlice.reducer;
