@@ -15,9 +15,13 @@ import { exerciseCatalogService } from '@/features/workout/services/ExerciseCata
 import { Exercise } from '@/types/schemas';
 import { toTitleCase } from '@/utils/stringUtils';
 import { Button } from '@/components/ui';
+import { useToast, toast } from '@/components/ui/Toast';
+import { useErrorHandler, createApiError, createCameraError, createNetworkError } from '@/utils/errorHandler';
 import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation } from '../store/liveSessionSlice';
 
 const LiveWorkoutSession = () => {
+  const { showToast } = useToast();
+  const { handleError, handleAsyncError } = useErrorHandler();
   const {
     currentPlan,
     currentSession,
@@ -47,6 +51,9 @@ const LiveWorkoutSession = () => {
   // Track set timing
   const [setStartTime, setSetStartTime] = useState<number>(Date.now());
   const [lastRestTime, setLastRestTime] = useState<number>(0);
+
+  const [showHowTo, setShowHowTo] = useState(false);
+  const [currentCatalogExercise, setCurrentCatalogExercise] = useState<Exercise | null>(null);
 
   // Derived state for current workout context
   const activeContext = useMemo(() => {
@@ -126,23 +133,52 @@ const LiveWorkoutSession = () => {
   const { day, currentExercise, totalExercises } = activeContext;
 
   const handleFinishWorkout = async () => {
-    if (activeContext && currentSession) {
+    if (!activeContext || !currentSession) {
+      showToast(
+        toast.error(
+          "No Active Session", 
+          "Please start a workout before finishing.",
+          { persistent: false, duration: 4000 }
+        )
+      );
+      return;
+    }
+
+    try {
       // Calculate duration for display
       const duration = Math.max(1, Math.round((Date.now() - currentSession.startTime) / 60000));
       setLoggingStats({ duration });
       
       // Only complete if still active
       if (currentSession.state === SessionState.ACTIVE) {
-        try {
-          await sessionManager.completeSession();
-        } catch (error) {
-          console.error("Failed to complete session:", error);
-          // If error suggests invalid transition, it might be already completed
-          // We can proceed to logging UI
-        }
+        await sessionManager.completeSession();
+        showToast(
+          toast.success(
+            "Workout Completed", 
+            "Great job! Your workout has been finished.",
+            { persistent: false, duration: 3000 }
+          )
+        );
+      } else {
+        showToast(
+          toast.warning(
+            "Session Already Complete", 
+            "This workout session was already finished.",
+            { persistent: false, duration: 4000 }
+          )
+        );
       }
       
       setIsLogging(true);
+    } catch (error) {
+      console.error("Failed to complete session:", error);
+      showToast(
+        toast.error(
+          "Failed to Finish", 
+          "Could not complete workout. Please try again.",
+          { persistent: false, duration: 5000 }
+        )
+      );
     }
   };
 
@@ -195,65 +231,149 @@ const LiveWorkoutSession = () => {
   }, [activeExerciseIndex, totalExercises]);
 
   const handleLogSet = React.useCallback(async () => {
-    if (!activeContext) return;
+    if (!activeContext) {
+      showToast(
+        toast.error(
+          "No Active Exercise", 
+          "Please start a workout session first.",
+          { persistent: false, duration: 4000 }
+        )
+      );
+      return;
+    }
 
-    const now = Date.now();
-    const duration = now - setStartTime;
-    
-    const setPerformance: SetPerformance = {
-        id: crypto.randomUUID(),
-        setNumber: completedSetsCount + 1,
-        weight: inputWeight,
-        reps: inputReps,
-        completedAt: now,
-        targetRestTime: currentExercise.restSeconds,
-        actualRestTime: 0,
-        duration: duration
+    try {
+      const now = Date.now();
+      const duration = now - setStartTime;
+      
+      // Validate inputs
+      if (inputWeight <= 0 || inputReps <= 0) {
+        showToast(
+          toast.error(
+            "Invalid Input", 
+            "Weight and reps must be greater than 0.",
+            { persistent: false, duration: 4000 }
+          )
+        );
+        return;
+      }
+      
+      const setPerformance: SetPerformance = {
+          id: crypto.randomUUID(),
+          setNumber: completedSetsCount + 1,
+          weight: inputWeight,
+          reps: inputReps,
+          completedAt: now,
+          targetRestTime: currentExercise.restSeconds,
+          actualRestTime: 0,
+          duration: duration
+      };
+
+      // Use context method to ensure session manager is updated (and thus UI)
+      await addSetToSession(currentExercise.id, setPerformance);
+      
+      // Also dispatch to Redux for dual-state consistency if needed, or remove if fully migrating
+      dispatch(addSetToSessionAction({
+          exerciseId: currentExercise.id,
+          set: setPerformance
+      }));
+
+      // Reset for next set
+      setSetStartTime(now);
+
+      // Auto-start rest timer if defined
+      if (currentExercise.restSeconds > 0) {
+        startRestTimer(currentExercise.restSeconds);
+      }
+
+      // Success feedback
+      showToast(
+        toast.success(
+          "Set Logged", 
+          `Completed ${inputReps} reps at ${inputWeight}kg`,
+          { persistent: false, duration: 3000 }
+        )
+      );
+
+    } catch (error) {
+      console.error('Failed to log set:', error);
+      showToast(
+        toast.error(
+          "Failed to Log Set", 
+          "Could not save your set. Please try again.",
+          { persistent: false, duration: 5000 }
+        )
+      );
+    }
+  }, [activeContext, completedSetsCount, currentExercise, setStartTime, startRestTimer, dispatch, inputWeight, inputReps, addSetToSession, showToast]);
+
+  // Camera permission and form detection setup
+  useEffect(() => {
+    const setupCamera = async () => {
+      try {
+        // Request camera permission if available
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'user' }, 
+            audio: false 
+          });
+          
+          // Close stream immediately after permission check
+          stream.getTracks().forEach(track => track.stop());
+          
+          console.log('Camera permission granted');
+        } else {
+          showToast(toast.camera('Camera API not available in this browser'));
+        }
+      } catch (error) {
+        console.error('Camera setup error:', error);
+        
+        // Handle specific camera errors
+        if (error instanceof Error) {
+          if (error.name === 'NotAllowedError') {
+            showToast(toast.permission('camera access', 'Camera access is needed for form detection. Please enable camera permissions.'));
+          } else if (error.name === 'NotFoundError') {
+            showToast(toast.error('Camera Not Found', 'No camera device detected. Please connect a camera.'));
+          } else if (error.name === 'NotReadableError') {
+            showToast(toast.error('Camera Busy', 'Camera is already in use by another application.'));
+          } else {
+            showToast(toast.camera('Failed to access camera'));
+          }
+        }
+      }
     };
 
-    // Use context method to ensure session manager is updated (and thus UI)
-    try {
-        await addSetToSession(currentExercise.id, setPerformance);
-    } catch (error) {
-        console.error('Failed to log set:', error);
+    // Setup camera when component mounts
+    if (activeContext) {
+      setupCamera();
     }
-    
-    // Also dispatch to Redux for dual-state consistency if needed, or remove if fully migrating
-    dispatch(addSetToSessionAction({
-        exerciseId: currentExercise.id,
-        set: setPerformance
-    }));
-
-    // Reset for next set
-    setSetStartTime(now);
-
-    // Auto-start rest timer if defined
-    if (currentExercise.restSeconds > 0) {
-      startRestTimer(currentExercise.restSeconds);
-    }
-  }, [activeContext, completedSetsCount, currentExercise, setStartTime, startRestTimer, dispatch, inputWeight, inputReps, addSetToSession]);
-
-  const [showHowTo, setShowHowTo] = useState(false);
-  const [currentCatalogExercise, setCurrentCatalogExercise] = useState<Exercise | null>(null);
+  }, [activeContext, showToast]);
 
   useEffect(() => {
     const loadDetails = async () => {
-        if (activeContext?.registryData?.id) {
-            const results = await exerciseCatalogService.search(activeContext.currentExercise.name);
-            if (results.length > 0) {
-                const fullEx = await exerciseCatalogService.getById(results[0].id);
-                setCurrentCatalogExercise(fullEx);
+        try {
+            if (activeContext?.registryData?.id) {
+                const results = await exerciseCatalogService.search(activeContext.currentExercise.name);
+                if (results.length > 0) {
+                    const fullEx = await exerciseCatalogService.getById(results[0].id);
+                    setCurrentCatalogExercise(fullEx);
+                }
+            } else if (activeContext?.currentExercise.name) {
+                 const results = await exerciseCatalogService.search(activeContext.currentExercise.name);
+                 if (results.length > 0) {
+                     const fullEx = await exerciseCatalogService.getById(results[0].id);
+                     setCurrentCatalogExercise(fullEx);
+                 } else {
+                   // Exercise not found in catalog - this is okay, just log it
+                   console.log(`Exercise "${activeContext.currentExercise.name}" not found in catalog`);
+                 }
             }
-        } else if (activeContext?.currentExercise.name) {
-             const results = await exerciseCatalogService.search(activeContext.currentExercise.name);
-             if (results.length > 0) {
-                 const fullEx = await exerciseCatalogService.getById(results[0].id);
-                 setCurrentCatalogExercise(fullEx);
-             }
+        } catch (error) {
+            handleError(error, 'loading exercise details');
         }
     };
     loadDetails();
-  }, [activeContext]);
+  }, [activeContext, handleError]);
 
   const adjustWeight = (amount: number) => setInputWeight(prev => Math.max(0, prev + amount));
   const adjustReps = (amount: number) => setInputReps(prev => Math.max(0, prev + amount));
@@ -262,36 +382,78 @@ const LiveWorkoutSession = () => {
     // Apply adaptation to current exercise with safety validation
     if (!adaptation) return;
 
-    // Safety check: don't increase intensity when user is tired
-    const isTired = reduxActiveContext.energy === 'tired';
-    
-    if (adaptation.newReps) {
-      const currentReps = inputReps;
-      // Only accept reps reduction or modest increase when not tired
-      if (isTired && adaptation.newReps > currentReps) {
-        console.warn('Unsafe adaptation: increasing reps when user is tired');
-        return;
+    try {
+      // Safety check: don't increase intensity when user is tired
+      const isTired = reduxActiveContext.energy === 'tired';
+      
+      if (adaptation.newReps) {
+        const currentReps = inputReps;
+        // Only accept reps reduction or modest increase when not tired
+        if (isTired && adaptation.newReps > currentReps) {
+          showToast(
+            toast.error(
+              "Adaptation Unsafe", 
+              "Cannot increase reps when you're feeling tired for safety reasons.",
+              { persistent: false, duration: 4000 }
+            )
+          );
+          return;
+        }
+        setInputReps(adaptation.newReps);
+        showToast(
+          toast.success(
+            "Adaptation Applied",
+            `Reps adjusted to ${adaptation.newReps}`,
+            { persistent: false, duration: 3000 }
+          )
+        );
       }
-      setInputReps(adaptation.newReps);
-    }
 
-    if (adaptation.newSets) {
-      // Apply sets changes (UI would need to handle this for current exercise)
-      console.log(`Suggested ${adaptation.newSets} sets - requires implementation`);
-    }
+      if (adaptation.newSets) {
+        // Apply sets changes (UI would need to handle this for current exercise)
+        showToast(
+          toast.info(
+            "Feature Coming Soon",
+            `Suggested ${adaptation.newSets} sets - UI implementation needed`,
+            { persistent: false, duration: 3000 }
+          )
+        );
+      }
 
-    if (adaptation.newExercise) {
-      // Exercise change would require more complex logic
-      console.log(`Suggested exercise change to ${adaptation.newExercise} - requires implementation`);
-    }
+      if (adaptation.newExercise) {
+        // Exercise change would require more complex logic
+        showToast(
+          toast.info(
+            "Feature Coming Soon", 
+            `Exercise change to ${adaptation.newExercise} - implementation needed`,
+            { persistent: false, duration: 3000 }
+          )
+        );
+      }
 
-    if (adaptation.restTime) {
-      // Rest time adjustment would need timer integration
-      console.log(`Suggested rest time: ${adaptation.restTime}s - requires implementation`);
-    }
+      if (adaptation.restTime) {
+        // Rest time adjustment would need timer integration
+        showToast(
+          toast.info(
+            "Feature Coming Soon",
+            `Rest time adjusted to ${adaptation.restTime}s - timer integration needed`,
+            { persistent: false, duration: 3000 }
+          )
+        );
+      }
 
-    // Clear the adaptation after applying
-    dispatch(clearAdaptation());
+      // Clear adaptation after applying
+      dispatch(clearAdaptation());
+    } catch (error) {
+      showToast(
+        toast.error(
+          "Adaptation Failed",
+          "Could not apply adaptation. Please try again.",
+          { persistent: false, duration: 5000 }
+        )
+      );
+      console.error('Adaptation error:', error);
+    }
   };
 
   const handleRejectAdaptation = () => {
@@ -300,11 +462,36 @@ const LiveWorkoutSession = () => {
 
   const handleRetryAdaptation = () => {
     // Retry last adaptation request
-    if (reduxActiveContext.energy === 'tired' || reduxActiveContext.time === 'limited') {
-      dispatch(fetchWorkoutAdaptation({ 
-        activeContext: reduxActiveContext, 
-        overrideHistory: overrideHistory || []
-      }));
+    try {
+      if (reduxActiveContext.energy === 'tired' || reduxActiveContext.time === 'limited') {
+        dispatch(fetchWorkoutAdaptation({ 
+          activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
+          overrideHistory: overrideHistory || []
+        }));
+        showToast(
+          toast.info(
+            "Retrying Adaptation", 
+            "Requesting new AI recommendations...",
+            { persistent: false, duration: 3000 }
+          )
+        );
+      } else {
+        showToast(
+          toast.warning(
+            "No Adaptation Context", 
+            "Please set your current state (tired/short on time) first.",
+            { persistent: false, duration: 4000 }
+          )
+        );
+      }
+    } catch (error) {
+      showToast(
+        toast.error(
+          "Retry Failed", 
+          "Could not retry adaptation request.",
+          { persistent: false, duration: 4000 }
+        )
+      );
     }
   };
 
@@ -449,12 +636,30 @@ const LiveWorkoutSession = () => {
             
             <div className="grid grid-cols-2 gap-4">
               <button
-                onClick={() => {
-                  dispatch(updateEnergyContext('tired'));
-                  dispatch(fetchWorkoutAdaptation({ 
-                    activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
-                    overrideHistory: overrideHistory || []
-                  }));
+                onClick={async () => {
+                  try {
+                    dispatch(updateEnergyContext('tired'));
+                    
+                    const result = await handleAsyncError(
+                      () => dispatch(fetchWorkoutAdaptation({ 
+                        activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
+                        overrideHistory: overrideHistory || []
+                      })),
+                      'AI adaptation request'
+                    );
+                    
+                    if (result) {
+                      showToast(
+                        toast.info(
+                          "AI Analyzing", 
+                          "Checking for workout adaptations for tired state...",
+                          { persistent: false, duration: 3000 }
+                        )
+                      );
+                    }
+                  } catch (error) {
+                    handleError(error, 'AI adaptation trigger');
+                  }
                 }}
                 className="flex flex-col items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-2xl transition-colors active:scale-95 border border-blue-100 dark:border-blue-800"
               >
@@ -465,12 +670,30 @@ const LiveWorkoutSession = () => {
               </button>
               
               <button
-                onClick={() => {
-                  dispatch(updateTimeContext('limited'));
-                  dispatch(fetchWorkoutAdaptation({ 
-                    activeContext: { energy: 'normal', time: 'limited', equipmentStatus: 'available' }, 
-                    overrideHistory: overrideHistory || []
-                  }));
+                onClick={async () => {
+                  try {
+                    dispatch(updateTimeContext('limited'));
+                    
+                    const result = await handleAsyncError(
+                      () => dispatch(fetchWorkoutAdaptation({ 
+                        activeContext: { energy: 'normal', time: 'limited', equipmentStatus: 'available' }, 
+                        overrideHistory: overrideHistory || []
+                      })),
+                      'AI adaptation request'
+                    );
+                    
+                    if (result) {
+                      showToast(
+                        toast.info(
+                          "AI Analyzing", 
+                          "Checking for workout adaptations for limited time...",
+                          { persistent: false, duration: 3000 }
+                        )
+                      );
+                    }
+                  } catch (error) {
+                    handleError(error, 'AI adaptation trigger');
+                  }
                 }}
                 className="flex flex-col items-center gap-2 p-4 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-2xl transition-colors active:scale-95 border border-orange-100 dark:border-orange-800"
               >

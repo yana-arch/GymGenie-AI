@@ -1,4 +1,5 @@
 import { AppState, UserProfile, WorkoutPlan, WorkoutHistoryEntry, SessionStorageData, AiProviderConfig } from '@/types';
+import { toast } from '@/components/ui/Toast';
 
 const KEYS = {
   USER_PROFILE: 'gymgenie_user',
@@ -19,6 +20,7 @@ export const StorageService = {
       localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(user));
     } catch (e) {
       console.error('Failed to save user', e);
+      toast.error("Save Failed", "Could not save your data. Check your device storage space.");
     }
   },
 
@@ -75,6 +77,7 @@ export const StorageService = {
       localStorage.setItem(KEYS.AI_CONFIG, JSON.stringify(config));
     } catch (e) {
       console.error('Failed to save AI config', e);
+      toast.error("Configuration Save Failed", "Could not save AI settings. Please try again.");
     }
   },
 

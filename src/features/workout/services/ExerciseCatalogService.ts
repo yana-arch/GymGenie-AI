@@ -1,4 +1,5 @@
 import { Exercise } from '@/types';
+import { toast } from '@/components/ui/Toast';
 
 export class ExerciseCatalogService {
   private cache: Map<string, Exercise> = new Map();
@@ -10,6 +11,7 @@ export class ExerciseCatalogService {
       return await response.json();
     } catch (error) {
       console.error('Failed to load exercise index:', error);
+      toast.error("Exercise Library Failed", "Could not load exercise library. Please refresh the page.");
       return [];
     }
   }
@@ -29,6 +31,7 @@ export class ExerciseCatalogService {
       return exercises;
     } catch (error) {
       console.error(`Failed to load exercises for letter ${letter}:`, error);
+      toast.error("Exercise Loading Failed", `Could not load exercises starting with "${letter}". Please check your connection.`);
       return [];
     }
   }

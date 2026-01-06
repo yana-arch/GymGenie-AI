@@ -23,6 +23,7 @@ import {
 } from "../api-validation";
 import { StorageService } from "../storage/StorageService";
 import { privacyValidationService } from "../privacy/PrivacyValidationService";
+import { toast } from "@/components/ui/Toast";
 
 // Schemas for AI Generation (Google GenAI SDK)
 // Recruited from enhanced-gemini-service.ts and AIGeneratorService.ts
@@ -292,6 +293,7 @@ export class GeminiService {
       return [];
     } catch (error) {
       console.error("Equipment Identification Error:", error);
+      toast.error("Equipment Identification Failed", "Could not identify equipment from image. Please try again or enter manually.");
       return [];
     }
   }
@@ -343,6 +345,7 @@ export class GeminiService {
       return [];
     } catch (error) {
       console.error("Recipe Generation Error:", error);
+      toast.error("Recipe Generation Failed", "Could not generate recipes. Please try again with different ingredients.");
       return [];
     }
   }
@@ -415,6 +418,7 @@ export class GeminiService {
       };
     } catch (error) {
       console.error("Workout Planning Error:", error);
+      toast.error("Workout Planning Failed", "Could not generate workout plan. Please try again.");
       throw error;
     }
   }

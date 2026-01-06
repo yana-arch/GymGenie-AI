@@ -3,6 +3,7 @@ import { useApp } from '@/context/AppContext';
 import { PlayCircle, Camera, Scale, Home, Calendar, Flame, Target, Zap } from 'lucide-react';
 import { SessionState } from '@/types';
 import { Button } from '@/components/ui';
+import { toast } from '@/components/ui/Toast';
 
 const HomeDashboard: React.FC = () => {
   const { user, currentPlan, getSessionState, startWorkoutSession, setStep, setActiveView } = useApp();
@@ -61,6 +62,19 @@ const HomeDashboard: React.FC = () => {
         await startWorkoutSession(weekId, dayId);
       } catch (error) {
         console.error("Failed to start session:", error);
+        
+        // Handle session conflicts with user-friendly toast
+        if (error.message && error.message.includes('SESSION_CONFLICT_REQUIRES_USER_INPUT')) {
+          toast.warning('Active Workout Session', 'You have an active workout session that needs to be completed first. Please finish it or abandon it before starting a new one.', {
+            persistent: true,
+            duration: 10000
+          });
+          return;
+        }
+        
+        toast.error('Session Start Failed', 'Could not start workout session. Please try again.', {
+          duration: 5000
+        });
         return;
       }
     }

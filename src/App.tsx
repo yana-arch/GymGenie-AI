@@ -1,10 +1,12 @@
-import React, { memo, useCallback, Suspense } from 'react';
+import React, { memo, useCallback, Suspense, ErrorInfo } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { ReduxProvider } from './store/ReduxProvider';
 import SessionErrorBoundary from './features/session/components/SessionErrorBoundary';
+import { GlobalErrorBoundary } from './components/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 import ResponsiveNavigation from './components/ResponsiveNavigation';
 import ThemeProvider from './components/ThemeProvider';
+import { ToastProvider } from './components/ui/Toast';
 
 const Onboarding = React.lazy(() => import('./features/onboarding/components/Onboarding'));
 const EquipmentScanner = React.lazy(() => import('./features/profile/components/EquipmentScanner'));
@@ -64,16 +66,35 @@ const AppContent = memo(() => {
 });
 
 const App = memo(() => {
+  const handleGlobalError = (error: Error, errorInfo: ErrorInfo) => {
+    // Log to external service in production
+    if (process.env.NODE_ENV === 'production') {
+      // Example: sendToErrorReporting(error, errorInfo);
+      console.error('Production Error:', {
+        error: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href
+      });
+    }
+  };
+
   return (
-    <SessionErrorBoundary>
+    <GlobalErrorBoundary onError={handleGlobalError}>
       <ReduxProvider>
         <AppProvider>
           <ThemeProvider>
-            <AppContent />
+            <ToastProvider>
+              <SessionErrorBoundary>
+                <AppContent />
+              </SessionErrorBoundary>
+            </ToastProvider>
           </ThemeProvider>
         </AppProvider>
       </ReduxProvider>
-    </SessionErrorBoundary>
+    </GlobalErrorBoundary>
   );
 });
 

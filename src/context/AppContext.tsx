@@ -7,6 +7,7 @@ import SessionConflictModal from '@/features/session/components/modals/SessionCo
 import { SessionSequenceValidator } from '@/features/session/services/SessionSequenceValidator';
 import { SessionConflict } from '@/features/session/services/SessionConflictDetector';
 import { UserPromptConfig } from '@/features/session/services/SessionConflictResolver';
+import { toast } from '@/components/ui/Toast';
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -104,6 +105,21 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
         }
       } catch (error) {
         console.error('Failed to start session:', error);
+        
+        // Handle session conflicts specifically
+        if (error.message && error.message.includes('SESSION_CONFLICT_REQUIRES_USER_INPUT')) {
+          const conflictingSessionMessage = 'You have an active workout session that needs to be completed first. Please finish the current session or choose to abandon it.';
+          
+          // Show user-friendly toast for session conflict
+          toast.warning('Active Workout Session', conflictingSessionMessage, {
+            persistent: true,
+            duration: 8000
+          });
+          
+          // Don't re-throw the error - we've handled it
+          return;
+        }
+        
         throw error;
       }
     },
