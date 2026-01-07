@@ -20,6 +20,7 @@ import formCorrectionSlice from "@/features/form-correction/store/formCorrection
 import safetyOverrideSlice from "@/features/safety-override/store/safetyOverrideSlice";
 import injuryAwareSlice from "@/features/injury-aware/store/injuryAwareSlice";
 import unifiedCoachingSlice from "./unifiedCoachingSlice";
+import preferenceLearningSlice from "./preferenceLearningSlice";
 
 const rootReducer = combineReducers({
   session: sessionSlice,
@@ -31,12 +32,13 @@ const rootReducer = combineReducers({
   safetyOverride: safetyOverrideSlice,
   injuryAware: injuryAwareSlice,
   unifiedCoaching: unifiedCoachingSlice,
+  preferenceLearning: preferenceLearningSlice,
 });
 
 const persistConfig = {
   key: "root",
   storage,
-   whitelist: ["user", "workout", "session", "formCorrection", "safetyOverride", "injuryAware", "unifiedCoaching"], // Persist important data
+   whitelist: ["user", "workout", "session", "formCorrection", "safetyOverride", "injuryAware", "unifiedCoaching", "preferenceLearning"], // Persist important data
   // ui slice is transient
 };
 

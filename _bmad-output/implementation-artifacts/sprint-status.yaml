@@ -51,8 +51,8 @@ development_status:
   1-5-ai-powered-workout-coaching-integration: done
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-ai-preference-learning-foundation: backlog
+  epic-2: in-progress
+  2-1-ai-preference-learning-foundation: done
   2-2-historical-pattern-recognition: backlog
   2-3-feedback-driven-personalization: backlog
   epic-2-retrospective: optional
