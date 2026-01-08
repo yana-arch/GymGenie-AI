@@ -3,7 +3,8 @@
  * Comprehensive test suite for preference learning functionality
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, expect, beforeEach, afterEach, vi } from 'vitest';
+import { given, when, then, and, createComprehensiveTest } from '../../../test-utils';
 import { PreferenceLearningService } from '../PreferenceLearningService';
 import { PreferenceIntelligenceEngine } from '../PreferenceIntelligenceEngine';
 import { PreferenceEncryptionService } from '../services/PreferenceEncryptionService';
@@ -19,18 +20,21 @@ import type {
 
 // Mock dependencies for testing
 const mockPrivacyService = {
-  encrypt: vi.fn(),
-  decrypt: vi.fn(),
-  store: vi.fn(),
-  retrieve: vi.fn(),
-  delete: vi.fn(),
-  auditTrail: vi.fn()
+  encrypt: vi.fn().mockResolvedValue('encrypted'),
+  decrypt: vi.fn().mockResolvedValue({ data: {} }),
+  store: vi.fn().mockResolvedValue(undefined),
+  retrieve: vi.fn().mockResolvedValue(null),
+  delete: vi.fn().mockResolvedValue(undefined),
+  auditTrail: vi.fn().mockResolvedValue([])
 };
 
 const mockTensorFlowService = {
-  predictPattern: vi.fn(),
-  trainModel: vi.fn(),
-  validateModel: vi.fn()
+  predictPattern: vi.fn().mockResolvedValue({}),
+  trainModel: vi.fn().mockResolvedValue(undefined),
+  validateModel: vi.fn().mockResolvedValue(true),
+  loadModel: vi.fn().mockResolvedValue(undefined),
+  isModelLoaded: vi.fn().mockReturnValue(true),
+  getModelMetadata: vi.fn().mockReturnValue({})
 };
 
 const createMockPreference = (overrides: Partial<PreferencePattern> = {}): PreferencePattern => ({
@@ -82,7 +86,7 @@ const createMockWorkoutSession = (overrides: Partial<WorkoutSession> = {}): Work
   ...overrides
 });
 
-describe('PreferenceLearningService', () => {
+given('a PreferenceLearningService with configuration', () => {
   let service: PreferenceLearningService;
   let config: PreferenceLearningConfig;
 
@@ -109,14 +113,14 @@ describe('PreferenceLearningService', () => {
     });
 
     // Reset mock implementations
-    mockPrivacyService.encrypt.mockResolved('encrypted-data');
-    mockPrivacyService.decrypt.mockResolved({
+    mockPrivacyService.encrypt.mockResolvedValue('encrypted-data');
+    mockPrivacyService.decrypt.mockResolvedValue({
       type: 'preference-data',
       version: '1.0',
       timestamp: Date.now(),
       data: { preferences: [] }
     });
-    mockTensorFlowService.predictPattern.mockResolved({
+    mockTensorFlowService.predictPattern.mockResolvedValue({
       confidence: 0.8,
       patternType: 'exercise-selection',
       preferences: []
@@ -127,8 +131,9 @@ describe('PreferenceLearningService', () => {
     vi.clearAllMocks();
   });
 
-  describe('detectPreferences', () => {
-    it('should detect exercise selection preferences from workout sessions', async () => {
+  describe('WHEN detecting preferences', () => {
+    when('processing workout sessions with exercise data', () => {
+      then(createComprehensiveTest(1, 'should detect exercise selection preferences from workout sessions'), async () => {
       const mockInput: PreferenceLearningInput = {
         session: createMockWorkoutSession(),
         existingPatterns: [],
@@ -139,7 +144,7 @@ describe('PreferenceLearningService', () => {
         }
       };
 
-      mockTensorFlowService.predictPattern.mockResolved({
+      mockTensorFlowService.predictPattern.mockResolvedValue({
         confidence: 0.8,
         patternType: 'exercise-selection',
         preferences: [
@@ -163,6 +168,12 @@ describe('PreferenceLearningService', () => {
           exercises: [
             {
               exerciseId: 'squats',
+              exerciseType: 'strength',
+              duration: 300,
+              sets: 3,
+              reps: 10,
+              intensity: 0.5,
+              completionRate: 1.0,
               userFeedback: { difficulty: 2, satisfaction: 5, energy: 5 }
             }
           ]
@@ -170,7 +181,7 @@ describe('PreferenceLearningService', () => {
         existingPatterns: []
       };
 
-      mockTensorFlowService.predictPattern.mockResolved({
+      mockTensorFlowService.predictPattern.mockResolvedValue({
         confidence: 0.75,
         patternType: 'intensity-level',
         intensityRange: { min: 0.4, max: 0.6 },
@@ -189,7 +200,7 @@ describe('PreferenceLearningService', () => {
     it('should require minimum sessions before detecting patterns', async () => {
       // Override getUserSessionCount to return less than minSessions
       const originalGetUserSessionCount = service['getUserSessionCount'];
-      service['getUserSessionCount'] = vi.fn().mockResolved(2); // Less than minSessions (5)
+      service['getUserSessionCount'] = vi.fn().mockResolvedValue(2); // Less than minSessions (5)
 
       const mockInput: PreferenceLearningInput = {
         session: createMockWorkoutSession(),
@@ -215,7 +226,7 @@ describe('PreferenceLearningService', () => {
         existingPatterns: [existingPattern]
       };
 
-      mockTensorFlowService.predictPattern.mockResolved({
+      mockTensorFlowService.predictPattern.mockResolvedValue({
         confidence: 0.85,
         patternMatch: true
       });
@@ -241,7 +252,7 @@ describe('PreferenceLearningService', () => {
         existingPatterns: [contradictoryPattern]
       };
 
-      mockTensorFlowService.predictPattern.mockResolved({
+      mockTensorFlowService.predictPattern.mockResolvedValue({
         contradiction: true
       });
 
@@ -252,7 +263,7 @@ describe('PreferenceLearningService', () => {
     });
 
     it('should handle errors gracefully and provide fallback behavior', async () => {
-      mockTensorFlowService.predictPattern.mockRejected(new Error('TensorFlow prediction failed'));
+      mockTensorFlowService.predictPattern.mockRejectedValue(new Error('TensorFlow prediction failed'));
 
       const mockInput: PreferenceLearningInput = {
         session: createMockWorkoutSession(),
@@ -282,13 +293,14 @@ describe('PreferenceLearningService', () => {
       expect(endTime - startTime).toBeLessThan(2000); // 2 seconds
     });
   });
+});
 
   describe('getLearnedPreferences', () => {
     it('should retrieve and decrypt stored preferences', async () => {
       const mockPreferences = [createMockPreference()];
       
-      mockPrivacyService.retrieve.mockResolved('encrypted-data');
-      mockPrivacyService.auditTrail.mockResolved([]);
+      mockPrivacyService.retrieve.mockResolvedValue('encrypted-data');
+      mockPrivacyService.auditTrail.mockResolvedValue([]);
 
       const result = await service.getLearnedPreferences('test-user');
 
@@ -300,7 +312,7 @@ describe('PreferenceLearningService', () => {
     });
 
     it('should handle missing preferences gracefully', async () => {
-      mockPrivacyService.retrieve.mockResolved(null);
+      mockPrivacyService.retrieve.mockResolvedValue(null);
 
       const result = await service.getLearnedPreferences('test-user');
 
@@ -308,9 +320,9 @@ describe('PreferenceLearningService', () => {
     });
 
     it('should handle decryption errors', async () => {
-      mockPrivacyService.retrieve.mockResolved('encrypted-data');
-      mockPrivacyService.decrypt.mockRejected(new Error('Decryption failed'));
-      mockPrivacyService.auditTrail.mockResolved([]);
+      mockPrivacyService.retrieve.mockResolvedValue('encrypted-data');
+      mockPrivacyService.decrypt.mockRejectedValue(new Error('Decryption failed'));
+      mockPrivacyService.auditTrail.mockResolvedValue([]);
 
       await expect(service.getLearnedPreferences('test-user')).rejects.toThrow('Decryption failed');
     });
@@ -324,9 +336,9 @@ describe('PreferenceLearningService', () => {
 
       const updates = { confidence: 0.8 };
 
-      mockPrivacyService.retrieve.mockResolved([existingPattern]);
-      mockPrivacyService.encrypt.mockResolved('updated-encrypted');
-      mockPrivacyService.store.mockResolved();
+      mockPrivacyService.retrieve.mockResolvedValue([existingPattern]);
+      mockPrivacyService.encrypt.mockResolvedValue('updated-encrypted');
+      mockPrivacyService.store.mockResolvedValue(undefined);
 
       await service.updatePreferences('test-user', updates);
 
@@ -338,7 +350,7 @@ describe('PreferenceLearningService', () => {
     it('should reject invalid preference updates', async () => {
       const invalidUpdates = { confidence: 1.5 }; // Invalid: > 1.0
 
-      mockPrivacyService.retrieve.mockResolved([]);
+      mockPrivacyService.retrieve.mockResolvedValue([]);
 
       await expect(service.updatePreferences('test-user', invalidUpdates)).rejects.toThrow('Invalid preference data');
     });
@@ -348,15 +360,15 @@ describe('PreferenceLearningService', () => {
     it('should delete specific preference', async () => {
       const preferences = [createMockPreference()];
 
-      mockPrivacyService.retrieve.mockResolved(preferences);
-      mockPrivacyService.encrypt.mockResolved('remaining-encrypted');
-      mockPrivacyService.store.mockResolved();
+      mockPrivacyService.retrieve.mockResolvedValue(preferences);
+      mockPrivacyService.encrypt.mockResolvedValue('remaining-encrypted');
+      mockPrivacyService.store.mockResolvedValue(undefined);
 
       await service.deletePreference('test-user', 'test-pref-1');
 
       expect(mockPrivacyService.store).toHaveBeenCalledWith(
         'preferences-test-user',
-        expect.array.not.containing(expect.objectContaining({ id: 'test-pref-1' }))
+        expect.not.arrayContaining([expect.objectContaining({ id: 'test-pref-1' })])
       );
     });
   });
@@ -365,8 +377,8 @@ describe('PreferenceLearningService', () => {
     it('should export encrypted preference data', async () => {
       const preferences = [createMockPreference()];
 
-      mockPrivacyService.retrieve.mockResolved(preferences);
-      mockPrivacyService.encrypt.mockResolved('export-encrypted');
+      mockPrivacyService.retrieve.mockResolvedValue(preferences);
+      mockPrivacyService.encrypt.mockResolvedValue('export-encrypted');
 
       const result = await service.exportPreferences('test-user');
 
@@ -387,7 +399,7 @@ describe('PreferenceLearningService', () => {
         preferences: [createMockPreference()]
       };
 
-      mockPrivacyService.decrypt.mockResolved(decryptedData);
+      mockPrivacyService.decrypt.mockResolvedValue(decryptedData);
 
       const result = await service.importPreferences('test-user', 'mock-encrypted');
 
@@ -398,7 +410,7 @@ describe('PreferenceLearningService', () => {
     it('should reject invalid imported data', async () => {
       const invalidData = { invalid: 'data' };
 
-      mockPrivacyService.decrypt.mockRejected(new Error('Invalid JSON'));
+      mockPrivacyService.decrypt.mockRejectedValue(new Error('Invalid JSON'));
 
       await expect(service.importPreferences('test-user', 'invalid-encrypted')).rejects.toThrow();
     });
@@ -406,8 +418,8 @@ describe('PreferenceLearningService', () => {
 
   describe('resetPreferences', () => {
     it('should reset all user preferences', async () => {
-      mockPrivacyService.delete.mockResolved();
-      mockPrivacyService.auditTrail.mockResolved([]);
+      mockPrivacyService.delete.mockResolvedValue(undefined);
+      mockPrivacyService.auditTrail.mockResolvedValue([]);
 
       await service.resetPreferences('test-user');
 
@@ -419,7 +431,7 @@ describe('PreferenceLearningService', () => {
     it('should ensure all preference data is encrypted at rest', async () => {
       const preferences = [createMockPreference()];
 
-      await service.storePreferences('test-user', preferences);
+      await (service as any).storePreferences('test-user', preferences);
 
       expect(mockPrivacyService.encrypt).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -480,7 +492,7 @@ describe('PreferenceLearningService', () => {
         })]
       };
 
-      mockTensorFlowService.predictPattern.mockResolved({
+      mockTensorFlowService.predictPattern.mockResolvedValue({
         confidence: 0.9,
         patternType: 'exercise-selection',
         preference: 'preferred'
@@ -505,14 +517,20 @@ describe('PreferenceLearningService', () => {
           exercises: [
             {
               exerciseId: 'beginner-exercise',
-              userFeedback: { satisfaction: 1 } // Low satisfaction
+              exerciseType: 'strength',
+              duration: 300,
+              sets: 3,
+              reps: 10,
+              intensity: 0.5,
+              completionRate: 1.0,
+              userFeedback: { satisfaction: 1, difficulty: 3, energy: 3 } // Low satisfaction
             }
           ]
         }),
         existingPatterns: []
       };
 
-      mockTensorFlowService.predictPattern.mockResolved({
+      mockTensorFlowService.predictPattern.mockResolvedValue({
         confidence: 0.3, // Low confidence due to poor feedback
         patternType: 'exercise-selection'
       });

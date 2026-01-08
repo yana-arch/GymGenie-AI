@@ -23,6 +23,7 @@ import {
 } from "../api-validation";
 import { StorageService } from "../storage/StorageService";
 import { privacyValidationService } from "../privacy/PrivacyValidationService";
+import { performanceMonitoringService } from "../performance/PerformanceMonitoringService";
 import { toast } from "@/components/ui/Toast";
 
 // Schemas for AI Generation (Google GenAI SDK)
@@ -563,27 +564,61 @@ export class GeminiService {
       type: string;
       userAction: string;
       reasoning: string;
-      timestamp: number;
+      timestamp?: number;
+      relativeTime?: string;
+      timeBucket?: string;
     }>;
   }): Promise<any> {
-    // Validate privacy before processing
-    const privacyCheck = privacyValidationService.validateDataForAI(context, 'GeminiService.generateWorkoutAdaptation');
-    
-    if (!privacyCheck.safeToSend) {
-      throw new Error(`Privacy validation failed: ${privacyCheck.violations.join(', ')}`);
+    // Start performance monitoring
+    const monitoring = performanceMonitoringService.startMonitoring(
+      'GeminiService.generateWorkoutAdaptation', 
+      'generateWorkoutAdaptation',
+      JSON.stringify(context).length
+    );
+
+    try {
+      // Validate privacy before processing
+      const privacyCheck = privacyValidationService.validateDataForAI(context, 'GeminiService.generateWorkoutAdaptation');
+      
+      if (!privacyCheck.safeToSend) {
+        throw new Error(`Privacy validation failed: ${privacyCheck.violations.join(', ')}`);
+      }
+
+      // Use sanitized data if privacy issues were detected and fixed
+      const sanitizedContext = privacyCheck.sanitizedData || context;
+
+      const adaptation = await this.generateWorkoutAdaptationInternal(sanitizedContext);
+      
+      // Record successful performance metrics
+      performanceMonitoringService.endMonitoring(
+        monitoring.monitoringId,
+        monitoring.startTime,
+        true
+      );
+      
+      return adaptation;
+    } catch (error) {
+      // Record failed performance metrics
+      performanceMonitoringService.endMonitoring(
+        monitoring.monitoringId,
+        monitoring.startTime,
+        false,
+        error.toString()
+      );
+      
+      throw error;
     }
+  }
 
-    // Use sanitized data if privacy issues were detected and fixed
-    const sanitizedContext = privacyCheck.sanitizedData || context;
-
+  private async generateWorkoutAdaptationInternal(context: any): Promise<any> {
     // Safety-first prompt with privacy preservation
     const safeContext = {
-      energy: sanitizedContext.energy,
-      time: sanitizedContext.time,
-      currentExercise: sanitizedContext.currentExercise || 'current exercise',
-      hasInjuries: sanitizedContext.userProfile?.injuries && sanitizedContext.userProfile.injuries.length > 0,
-      goal: sanitizedContext.userProfile?.goal || 'general fitness',
-      overrideHistory: sanitizedContext.overrideHistory || []
+      energy: context.energy,
+      time: context.time,
+      currentExercise: context.currentExercise || 'current exercise',
+      hasInjuries: context.userProfile?.injuries && context.userProfile.injuries.length > 0,
+      goal: context.userProfile?.goal || 'general fitness',
+      overrideHistory: context.overrideHistory || []
     };
 
     const overrideContext = safeContext.overrideHistory.length > 0 

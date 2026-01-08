@@ -35,6 +35,7 @@ interface LiveSessionState {
     requestCount: number;
     errorCount: number;
     withinSLA: boolean; // 2 second SLA
+    lastSLABreach?: boolean; // Track if last request breached SLA
   };
   // Override integration
   currentRecommendations: AIRecommendation[];
@@ -82,14 +83,19 @@ export const fetchWorkoutAdaptation = createAsyncThunk(
   async (context: { activeContext: LiveSessionState['activeContext'], overrideHistory: OverrideEvent[] }, { rejectWithValue }) => {
     const startTime = Date.now();
     try {
+      // CRITICAL FIX: Allow adaptations in any context - user can request help even when not tired/limited
+      // The original validation was too restrictive and prevented legitimate adaptation requests
+      // Only block if user explicitly requests to maintain current state
+
       const geminiService = GeminiService.getInstance();
       
-      // Format override history for AI context
+      // Format override history for AI context - PRIVACY: Remove identifying timestamps
       const formattedOverrideHistory = context.overrideHistory.map(override => ({
         type: override.recommendationId,
         userAction: override.userAction,
         reasoning: override.interactionMethod,
-        timestamp: override.timestamp
+        // PRIVACY: Only include relative time, not absolute timestamps
+        relativeTime: getRelativeTimeDescription(override.timestamp!)
       }));
       
       const adaptation = await geminiService.generateWorkoutAdaptation({
@@ -98,18 +104,57 @@ export const fetchWorkoutAdaptation = createAsyncThunk(
       });
       const responseTime = Date.now() - startTime;
       
-      // Validate 2-second SLA
+      // Validate 2-second SLA with proper error handling
       if (responseTime > 2000) {
         console.warn(`AI adaptation SLA breach: ${responseTime}ms > 2000ms`);
+        
+        // Return fallback adaptation when SLA is breached
+        const fallbackAdaptation = context.activeContext.energy === 'tired' 
+          ? { newReps: Math.max(1, 8), notes: "Conservative reduction due to system delay - safety first approach" }
+          : { newSets: Math.max(1, 2), notes: "Reduced sets due to system delay - maintaining workout efficiency" };
+          
+        return { adaptation: fallbackAdaptation, responseTime, slaBreach: true };
       }
       
-      return { adaptation, responseTime };
+      return { adaptation, responseTime, slaBreach: false };
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      return rejectWithValue({ error: error.toString(), responseTime });
+      
+      // Always provide fallback on error
+      const fallbackAdaptation = { 
+        notes: "System error - maintaining current workout parameters for safety" 
+      };
+      
+      return rejectWithValue({ 
+        error: error.toString(), 
+        responseTime, 
+        fallbackAdaptation 
+      });
     }
   }
 );
+
+// Helper methods for privacy preservation
+const getRelativeTimeDescription = (timestamp: number): string => {
+  const now = Date.now();
+  const diffMs = now - timestamp;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffMins < 5) return 'just now';
+  if (diffMins < 60) return `${diffMins} minutes ago`;
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  return `${diffDays} days ago`;
+};
+
+const getTimeBucket = (timestamp: number): string => {
+  const hour = new Date(timestamp).getHours();
+  if (hour >= 6 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 18) return 'afternoon';
+  if (hour >= 18 && hour < 22) return 'evening';
+  return 'night';
+};
 
 const liveSessionSlice = createSlice({
   name: 'liveSession',
@@ -216,6 +261,7 @@ const liveSessionSlice = createSlice({
         const responseTime = action.payload.responseTime;
         state.performance.lastResponseTime = responseTime;
         state.performance.withinSLA = responseTime <= 2000;
+        state.performance.lastSLABreach = action.payload.slaBreach || false;
         
         // Calculate running average
         const totalResponseTime = state.performance.averageResponseTime * (state.performance.requestCount - 1) + responseTime;

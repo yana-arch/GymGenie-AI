@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { vi } from 'vitest';
+import { given, when, then, and, createSessionTest } from '../../../../test-utils';
 import LiveWorkoutSession from '../LiveWorkoutSession';
 import liveSessionSlice from '../../store/liveSessionSlice';
 import { GeminiService } from '../../../../services/ai/GeminiService';
@@ -77,7 +78,7 @@ const createTestStore = () => {
   });
 };
 
-describe('LiveWorkoutSession - Adaptation Triggers', () => {
+given('a LiveWorkoutSession component with adaptation controls', () => {
   let store: ReturnType<typeof createTestStore>;
   let mockGenerateWorkoutAdaptation: ReturnType<typeof vi.fn>;
 
@@ -94,102 +95,112 @@ describe('LiveWorkoutSession - Adaptation Triggers', () => {
     } as any);
   });
 
-  it('should render "I\'m Tired" and "Short on Time" buttons', () => {
-    render(
-      <Provider store={store}>
-        <LiveWorkoutSession />
-      </Provider>
-    );
+  when('the component is rendered', () => {
+    then(createSessionTest(1, 'should render adaptation trigger buttons'), () => {
+      render(
+        <Provider store={store}>
+          <LiveWorkoutSession />
+        </Provider>
+      );
 
-    expect(screen.getByText("I'm Tired")).toBeInTheDocument();
-    expect(screen.getByText('Short on Time')).toBeInTheDocument();
-  });
-
-  it('should dispatch updateEnergyContext when "I\'m Tired" is clicked', async () => {
-    render(
-      <Provider store={store}>
-        <LiveWorkoutSession />
-      </Provider>
-    );
-
-    const tiredButton = screen.getByText("I'm Tired");
-    fireEvent.click(tiredButton);
-
-    await waitFor(() => {
-      expect(store.getState().liveSession.activeContext.energy).toBe('tired');
+      expect(screen.getByText("I'm Tired")).toBeInTheDocument();
+      expect(screen.getByText('Short on Time')).toBeInTheDocument();
     });
   });
 
-  it('should dispatch updateTimeContext when "Short on Time" is clicked', async () => {
-    render(
-      <Provider store={store}>
-        <LiveWorkoutSession />
-      </Provider>
-    );
+  when('user indicates they are tired', () => {
+    then(createSessionTest(2, 'should dispatch energy context update'), async () => {
+      render(
+        <Provider store={store}>
+          <LiveWorkoutSession />
+        </Provider>
+      );
 
-    const timeButton = screen.getByText('Short on Time');
-    fireEvent.click(timeButton);
+      const tiredButton = screen.getByText("I'm Tired");
+      fireEvent.click(tiredButton);
 
-    await waitFor(() => {
-      expect(store.getState().liveSession.activeContext.time).toBe('limited');
+      await waitFor(() => {
+        expect(store.getState().liveSession.activeContext.energy).toBe('tired');
+      });
     });
-  });
 
-  it('should trigger AI adaptation when context changes', async () => {
-    render(
-      <Provider store={store}>
-        <LiveWorkoutSession />
-      </Provider>
-    );
+    and(createSessionTest(3, 'should trigger AI adaptation with tired context'), async () => {
+      render(
+        <Provider store={store}>
+          <LiveWorkoutSession />
+        </Provider>
+      );
 
-    const tiredButton = screen.getByText("I'm Tired");
-    fireEvent.click(tiredButton);
+      const tiredButton = screen.getByText("I'm Tired");
+      fireEvent.click(tiredButton);
 
-    await waitFor(() => {
-      expect(mockGeminiService().generateWorkoutAdaptation).toHaveBeenCalledWith({
-        energy: 'tired',
-        time: 'normal',
-        equipmentStatus: 'available'
+      await waitFor(() => {
+        expect(mockGeminiService().generateWorkoutAdaptation).toHaveBeenCalledWith({
+          energy: 'tired',
+          time: 'normal',
+          equipmentStatus: 'available'
+        });
       });
     });
   });
 
-  it('should show loading state during adaptation', async () => {
-    mockGenerateWorkoutAdaptation.mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({}), 100))
-    );
+  when('user indicates limited time', () => {
+    then(createSessionTest(4, 'should dispatch time context update'), async () => {
+      render(
+        <Provider store={store}>
+          <LiveWorkoutSession />
+        </Provider>
+      );
 
-    render(
-      <Provider store={store}>
-        <LiveWorkoutSession />
-      </Provider>
-    );
+      const timeButton = screen.getByText('Short on Time');
+      fireEvent.click(timeButton);
 
-    const tiredButton = screen.getByText("I'm Tired");
-    fireEvent.click(tiredButton);
-
-    await waitFor(() => {
-      expect(store.getState().liveSession.isLoading).toBe(true);
+      await waitFor(() => {
+        expect(store.getState().liveSession.activeContext.time).toBe('limited');
+      });
     });
   });
 
-  it('should handle adaptation errors gracefully', async () => {
-    mockGenerateWorkoutAdaptation.mockRejectedValue(
-      new Error('AI service unavailable')
-    );
+  when('AI adaptation is processing', () => {
+    then(createSessionTest(5, 'should show loading state during adaptation'), async () => {
+      mockGenerateWorkoutAdaptation.mockImplementation(
+        () => new Promise(resolve => setTimeout(() => resolve({}), 100))
+      );
 
-    render(
-      <Provider store={store}>
-        <LiveWorkoutSession />
-      </Provider>
-    );
+      render(
+        <Provider store={store}>
+          <LiveWorkoutSession />
+        </Provider>
+      );
 
-    const tiredButton = screen.getByText("I'm Tired");
-    fireEvent.click(tiredButton);
+      const tiredButton = screen.getByText("I'm Tired");
+      fireEvent.click(tiredButton);
 
-    await waitFor(() => {
-      expect(store.getState().liveSession.error).toBe('AI service unavailable');
-      expect(store.getState().liveSession.isLoading).toBe(false);
+      await waitFor(() => {
+        expect(store.getState().liveSession.isLoading).toBe(true);
+      });
+    });
+  });
+
+  when('AI adaptation fails', () => {
+    then(createSessionTest(6, 'should handle adaptation errors gracefully'), async () => {
+      mockGenerateWorkoutAdaptation.mockRejectedValue(
+        new Error('AI service unavailable')
+      );
+
+      render(
+        <Provider store={store}>
+          <LiveWorkoutSession />
+        </Provider>
+      );
+
+      const tiredButton = screen.getByText("I'm Tired");
+      fireEvent.click(tiredButton);
+
+      await waitFor(() => {
+        expect(store.getState().liveSession.error).toBe('AI service unavailable');
+        expect(store.getState().liveSession.isLoading).toBe(false);
+      });
     });
   });
 });

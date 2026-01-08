@@ -22,6 +22,7 @@ import injuryAwareSlice from "@/features/injury-aware/store/injuryAwareSlice";
 import unifiedCoachingSlice from "./unifiedCoachingSlice";
 import preferenceLearningSlice from "./preferenceLearningSlice";
 import historicalPatternsSlice from "./historicalPatternsSlice";
+import { feedbackPersonalizationReducer } from "@/features/feedback-driven-personalization/store/feedbackPersonalizationSlice";
 
 const rootReducer = combineReducers({
   session: sessionSlice,
@@ -35,12 +36,13 @@ const rootReducer = combineReducers({
   unifiedCoaching: unifiedCoachingSlice,
   preferenceLearning: preferenceLearningSlice,
   historicalPatterns: historicalPatternsSlice,
+  feedbackPersonalization: feedbackPersonalizationReducer,
 });
 
 const persistConfig = {
   key: "root",
   storage,
-   whitelist: ["user", "workout", "session", "formCorrection", "safetyOverride", "injuryAware", "unifiedCoaching", "preferenceLearning", "historicalPatterns"], // Persist important data
+   whitelist: ["user", "workout", "session", "formCorrection", "safetyOverride", "injuryAware", "unifiedCoaching", "preferenceLearning", "historicalPatterns", "feedbackPersonalization"], // Persist important data
   // ui slice is transient
 };
 
@@ -52,6 +54,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        ignoredPaths: ['feedbackPersonalization.service'],
       },
     }),
   devTools: process.env.NODE_ENV !== "production",

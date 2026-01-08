@@ -1,9 +1,9 @@
 /**
  * PreferenceLearningService Tests
- * Testing AI preference learning functionality with red-green-refactor approach
+ * Testing AI preference learning functionality with BDD structure
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { expect, beforeEach, vi, afterEach } from 'vitest';
 import { PreferenceLearningService } from '../PreferenceLearningService';
 import type { 
   PreferenceLearningInput, 
@@ -11,8 +11,20 @@ import type {
   WorkoutSession,
   PreferencePattern,
   PreferenceType,
-  ExerciseSession
+  ExerciseSession,
+  ModelMetadata
 } from '../types/preferenceLearning.types';
+import { 
+  given, 
+  when, 
+  then, 
+  and 
+} from '../../../test-utils/bdd/BDDFramework';
+import { 
+  createPreferenceTest,
+  TestCategory,
+  TestType 
+} from '../../../test-utils/ids/TestIdGenerator';
 
 // Mock dependencies
 const mockPrivacyService = {
@@ -26,11 +38,18 @@ const mockPrivacyService = {
 
 const mockTensorFlowService = {
   predictPattern: vi.fn(),
-  trainModel: vi.fn(),
-  validateModel: vi.fn()
+  loadModel: vi.fn(),
+  isModelLoaded: vi.fn(() => true),
+  getModelMetadata: vi.fn((): ModelMetadata => ({
+    version: '1.0.0',
+    trainedOn: new Date(),
+    accuracy: 0.85,
+    inputShape: [10],
+    outputShape: [5]
+  }))
 };
 
-describe('PreferenceLearningService', () => {
+given('a PreferenceLearningService with standard configuration', () => {
   let service: PreferenceLearningService;
   let mockInput: PreferenceLearningInput;
 
@@ -108,8 +127,8 @@ describe('PreferenceLearningService', () => {
     };
   });
 
-  describe('detectPreferences', () => {
-    it('should detect exercise selection preferences from completed sessions', async () => {
+  when('detecting preferences from completed workout sessions', () => {
+    then(createPreferenceTest(1, 'should detect exercise selection preferences from completed sessions'), async () => {
       // Mock TensorFlow pattern prediction
       mockTensorFlowService.predictPattern.mockResolvedValue({
         patternType: 'exercise-selection' as PreferenceType,
@@ -128,7 +147,7 @@ describe('PreferenceLearningService', () => {
       expect(result.detectedPatterns[0].userId).toBe('user-456');
     });
 
-    it('should detect intensity preferences from user feedback and performance', async () => {
+    and(createPreferenceTest(2, 'should detect intensity preferences from user feedback and performance'), async () => {
       // Add more sessions with varying intensity data
       const multiSessionInput: PreferenceLearningInput = {
         ...mockInput,
@@ -162,7 +181,7 @@ describe('PreferenceLearningService', () => {
       );
     });
 
-    it('should update existing patterns with new session data', async () => {
+    and(createPreferenceTest(3, 'should update existing patterns with new session data'), async () => {
       const existingPattern: PreferencePattern = {
         id: 'pattern-123',
         userId: 'user-456',
@@ -198,7 +217,7 @@ describe('PreferenceLearningService', () => {
       expect(result.updatedPatterns[0].confirmations).toBe(existingPattern.confirmations + 1);
     });
 
-    it('should invalidate patterns with too many contradictions', async () => {
+    and(createPreferenceTest(4, 'should invalidate patterns with too many contradictions'), async () => {
       const contradictoryPattern: PreferencePattern = {
         id: 'pattern-contradiction',
         userId: 'user-456',
@@ -250,7 +269,7 @@ describe('PreferenceLearningService', () => {
       expect(result.invalidatedPatterns).toContain('pattern-contradiction');
     });
 
-    it('should require minimum sessions before detecting patterns', async () => {
+    and(createPreferenceTest(5, 'should require minimum sessions before detecting patterns'), async () => {
       // Mock service with only 2 previous sessions (less than minSessions: 5)
       mockPrivacyService.retrieve.mockResolvedValue({
         sessionCount: 2
@@ -267,12 +286,16 @@ describe('PreferenceLearningService', () => {
       );
     });
 
-    it('should respect privacy settings with local-only processing', async () => {
+    and(createPreferenceTest(6, 'should respect privacy settings with local-only processing'), async () => {
       const privateService = new PreferenceLearningService({
         privacyService: mockPrivacyService,
         tensorFlowService: mockTensorFlowService,
         config: {
-          ...mockInput as any,
+          learningRate: 0.1,
+          confidenceThreshold: 0.7,
+          maxContradictions: 3,
+          minSessions: 5,
+          gradualAdaptationRate: 0.05,
           privacySettings: {
             localOnly: true,
             encryptionEnabled: true,
@@ -289,7 +312,7 @@ describe('PreferenceLearningService', () => {
       // Verify no network calls were attempted (would be mocked if they existed)
     });
 
-    it('should handle errors gracefully and provide fallback behavior', async () => {
+    and(createPreferenceTest(7, 'should handle errors gracefully and provide fallback behavior'), async () => {
       mockTensorFlowService.predictPattern.mockRejectedValue(new Error('TensorFlow prediction failed'));
 
       const result = await service.detectPreferences(mockInput);
@@ -305,8 +328,8 @@ describe('PreferenceLearningService', () => {
     });
   });
 
-  describe('getLearnedPreferences', () => {
-    it('should retrieve and decrypt stored preferences', async () => {
+  when('managing stored preferences', () => {
+    then(createPreferenceTest(8, 'should retrieve and decrypt stored preferences'), async () => {
       const encryptedData = 'encrypted-preference-data';
       const decryptedPreferences: PreferencePattern[] = [
         {
@@ -333,7 +356,7 @@ describe('PreferenceLearningService', () => {
       expect(result).toEqual(decryptedPreferences);
     });
 
-    it('should handle missing preferences gracefully', async () => {
+    and(createPreferenceTest(9, 'should handle missing preferences gracefully'), async () => {
       mockPrivacyService.retrieve.mockResolvedValue(null);
 
       const result = await service.getLearnedPreferences('user-456');
@@ -341,7 +364,7 @@ describe('PreferenceLearningService', () => {
       expect(result).toEqual([]);
     });
 
-    it('should handle decryption errors', async () => {
+    and(createPreferenceTest(10, 'should handle decryption errors'), async () => {
       mockPrivacyService.retrieve.mockResolvedValue('encrypted-data');
       mockPrivacyService.decrypt.mockRejectedValue(new Error('Decryption failed'));
 
@@ -349,8 +372,8 @@ describe('PreferenceLearningService', () => {
     });
   });
 
-  describe('updatePreferences', () => {
-    it('should validate and update existing preferences', async () => {
+  when('updating preference patterns', () => {
+    then(createPreferenceTest(11, 'should validate and update existing preferences'), async () => {
       const existingPattern: PreferencePattern = {
         id: 'pattern-123',
         userId: 'user-456',
@@ -363,7 +386,7 @@ describe('PreferenceLearningService', () => {
         contradictions: 0,
         data: {
           intensityPreferences: [
-            { intensityRange: { min: 0.5, max: 0.7 }, preference: 'comfortable', confidence: 0.6 }
+            { intensityRange: { min: 0.5, max: 0.7 }, preference: 'comfortable' as const, confidence: 0.6 }
           ]
         }
       };
@@ -373,7 +396,7 @@ describe('PreferenceLearningService', () => {
         strength: 0.7,
         data: {
           intensityPreferences: [
-            { intensityRange: { min: 0.4, max: 0.6 }, preference: 'comfortable', confidence: 0.8 }
+            { intensityRange: { min: 0.4, max: 0.6 }, preference: 'comfortable' as const, confidence: 0.8 }
           ]
         }
       };
@@ -395,7 +418,7 @@ describe('PreferenceLearningService', () => {
       );
     });
 
-    it('should reject invalid preference updates', async () => {
+    and(createPreferenceTest(12, 'should reject invalid preference updates'), async () => {
       const invalidUpdates = {
         confidence: 1.5 // Invalid: > 1.0
       };
@@ -404,8 +427,8 @@ describe('PreferenceLearningService', () => {
     });
   });
 
-  describe('exportPreferences', () => {
-    it('should export encrypted preference data', async () => {
+  when('exporting and importing preferences', () => {
+    then(createPreferenceTest(13, 'should export encrypted preference data'), async () => {
       const preferences: PreferencePattern[] = [
         {
           id: 'pattern-export',
@@ -429,10 +452,8 @@ describe('PreferenceLearningService', () => {
       expect(result).toBe('exported-encrypted-data');
       expect(mockPrivacyService.encrypt).toHaveBeenCalledWith(preferences);
     });
-  });
 
-  describe('importPreferences', () => {
-    it('should import and validate encrypted preference data', async () => {
+    and(createPreferenceTest(14, 'should import and validate encrypted preference data'), async () => {
       const importedPreferences: PreferencePattern[] = [
         {
           id: 'pattern-imported',
@@ -460,10 +481,10 @@ describe('PreferenceLearningService', () => {
       );
     });
 
-    it('should reject invalid imported data', async () => {
+    and(createPreferenceTest(15, 'should reject invalid imported data'), async () => {
       const invalidData = {
         invalidField: 'invalid',
-        patterns: [] // Missing required fields
+        patterns: [] as PreferencePattern[] // Missing required fields
       };
 
       mockPrivacyService.decrypt.mockResolvedValue(invalidData);
@@ -472,8 +493,8 @@ describe('PreferenceLearningService', () => {
     });
   });
 
-  describe('Performance Requirements', () => {
-    it('should complete preference detection within 2 seconds', async () => {
+  when('testing performance requirements', () => {
+    then(createPreferenceTest(16, 'should complete preference detection within 2 seconds'), async () => {
       mockTensorFlowService.predictPattern.mockResolvedValue({
         patternType: 'exercise-selection' as PreferenceType,
         confidence: 0.8
@@ -486,7 +507,7 @@ describe('PreferenceLearningService', () => {
       expect(endTime - startTime).toBeLessThan(2000); // 2 seconds
     });
 
-    it('should handle multiple concurrent preference detections', async () => {
+    and(createPreferenceTest(17, 'should handle multiple concurrent preference detections'), async () => {
       const promises = Array.from({ length: 10 }, (_, i) => 
         service.detectPreferences({
           ...mockInput,
@@ -511,8 +532,8 @@ describe('PreferenceLearningService', () => {
     });
   });
 
-  describe('Privacy and Security', () => {
-    it('should ensure all preference data is encrypted at rest', async () => {
+  when('ensuring privacy and security', () => {
+    then(createPreferenceTest(18, 'should ensure all preference data is encrypted at rest'), async () => {
       const preferences: PreferencePattern[] = [
         {
           id: 'pattern-security',
@@ -537,13 +558,13 @@ describe('PreferenceLearningService', () => {
       );
     });
 
-    it('should maintain audit trail for all preference operations', async () => {
+    and(createPreferenceTest(19, 'should maintain audit trail for all preference operations'), async () => {
       await service.getLearnedPreferences('user-456');
 
       expect(mockPrivacyService.auditTrail).toHaveBeenCalled();
     });
 
-    it('should never transmit preference data externally', async () => {
+    and(createPreferenceTest(20, 'should never transmit preference data externally'), async () => {
       // This test ensures no external API calls are made
       const originalFetch = global.fetch;
       const mockFetch = vi.fn();
@@ -558,8 +579,8 @@ describe('PreferenceLearningService', () => {
     });
   });
 
-  describe('Gradual Learning', () => {
-    it('should adapt preferences gradually to avoid overwhelming users', async () => {
+  when('implementing gradual learning', () => {
+    then(createPreferenceTest(21, 'should adapt preferences gradually to avoid overwhelming users'), async () => {
       const existingPattern: PreferencePattern = {
         id: 'pattern-gradual',
         userId: 'user-456',
@@ -572,7 +593,7 @@ describe('PreferenceLearningService', () => {
         contradictions: 0,
         data: {
           intensityPreferences: [
-            { intensityRange: { min: 0.5, max: 0.7 }, preference: 'comfortable', confidence: 0.6 }
+            { intensityRange: { min: 0.5, max: 0.7 }, preference: 'comfortable' as const, confidence: 0.6 }
           ]
         }
       };
@@ -600,7 +621,7 @@ describe('PreferenceLearningService', () => {
       );
     });
 
-    it('should limit adaptation rate based on user compliance', async () => {
+    and(createPreferenceTest(22, 'should limit adaptation rate based on user compliance'), async () => {
       // This tests ensures changes are gradual based on gradualAdaptationRate
       const serviceWithSlowAdaptation = new PreferenceLearningService({
         privacyService: mockPrivacyService,
