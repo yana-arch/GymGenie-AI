@@ -23,6 +23,7 @@ export interface StrengthGains {
   exerciseId: string;
   maxWeightTrend: { date: string; value: number }[];
   volumeTrend: { date: string; value: number }[];
+  repsTrend: { date: string; value: number }[];
 }
 
 export interface ConsistencyMetric {
@@ -150,7 +151,18 @@ export class AnalyticsService {
       };
     });
 
-    const result = { exerciseId, maxWeightTrend, volumeTrend };
+    const repsTrend = relevantSessions.map(s => {
+      const data = s.exerciseData![exerciseId];
+      const maxReps = data.sets.length > 0 
+        ? Math.max(...data.sets.map(set => set.reps || 0))
+        : 0;
+      return {
+        date: new Date(s.completedTime || s.startTime).toISOString().split('T')[0],
+        value: maxReps
+      };
+    });
+
+    const result = { exerciseId, maxWeightTrend, volumeTrend, repsTrend };
     this.cache.set(cacheKey, result);
     return result;
   }

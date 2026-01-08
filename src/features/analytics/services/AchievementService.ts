@@ -3,8 +3,10 @@ import { AnalyticsService } from './AnalyticsService';
 import { WorkoutHistoryEntry } from '@/types';
 import { EnhancedWorkoutSession } from '@/types/enhanced';
 import { v4 as uuidv4 } from 'uuid';
+import { PrivacyAuditService } from '@/features/privacy/services/PrivacyAuditService';
 
 export class AchievementService {
+
   private static instance: AchievementService;
   private analyticsService: AnalyticsService;
 
@@ -49,7 +51,8 @@ export class AchievementService {
   public checkAchievements(
     history: WorkoutHistoryEntry[], 
     sessions: Record<string, EnhancedWorkoutSession>,
-    existingAchievementIds: string[]
+    existingAchievementIds: string[],
+    userSkillLevel: string = 'beginner'
   ): Achievement[] {
     const newAchievements: Achievement[] = [];
 
@@ -59,7 +62,7 @@ export class AchievementService {
       .filter(d => d.type === 'CONSISTENCY' && totalWorkouts >= (d.threshold as number))
       .forEach(d => {
         if (!existingAchievementIds.includes(d.id)) {
-          newAchievements.push(this.createAchievement(d, totalWorkouts, this.getEncouragement(d)));
+          newAchievements.push(this.createAchievement(d, totalWorkouts, this.getEncouragement(d, userSkillLevel)));
         }
       });
 
@@ -69,7 +72,7 @@ export class AchievementService {
       .filter(d => d.type === 'VOLUME' && totalVolume >= (d.threshold as number))
       .forEach(d => {
         if (!existingAchievementIds.includes(d.id)) {
-          newAchievements.push(this.createAchievement(d, totalVolume, this.getEncouragement(d)));
+          newAchievements.push(this.createAchievement(d, totalVolume, this.getEncouragement(d, userSkillLevel)));
         }
       });
 
@@ -79,15 +82,21 @@ export class AchievementService {
       .filter(d => d.type === 'STREAK' && currentStreak >= (d.threshold as number))
       .forEach(d => {
         if (!existingAchievementIds.includes(d.id)) {
-          newAchievements.push(this.createAchievement(d, currentStreak, this.getEncouragement(d)));
+          newAchievements.push(this.createAchievement(d, currentStreak, this.getEncouragement(d, userSkillLevel)));
         }
       });
 
     // 4. Check Major Lift PBs
-    this.checkMajorLifts(sessions, existingAchievementIds, newAchievements);
+    this.checkMajorLifts(sessions, existingAchievementIds, newAchievements, userSkillLevel);
+
+    // Audit local processing for privacy compliance
+    if (newAchievements.length > 0) {
+      PrivacyAuditService.logAccess('Achievement Detection', 'success', `Detected ${newAchievements.length} new milestones locally`);
+    }
 
     return newAchievements;
   }
+
 
   private createAchievement(definition: AchievementDefinition, value: number | string, encouragement: string): Achievement {
     return {
@@ -102,8 +111,17 @@ export class AchievementService {
     };
   }
 
+  private volumeCache: { count: number, total: number } | null = null;
+
   private calculateTotalVolume(sessions: Record<string, EnhancedWorkoutSession>): number {
-    return Object.values(sessions).reduce((total, session) => {
+    const sessionCount = Object.keys(sessions).length;
+    
+    // Simple cache optimization
+    if (this.volumeCache && this.volumeCache.count === sessionCount) {
+      return this.volumeCache.total;
+    }
+
+    const total = Object.values(sessions).reduce((total, session) => {
       if (!session.exerciseData) return total;
       const sessionVolume = Object.values(session.exerciseData).reduce((sessionSum, exercise) => {
         const exerciseVolume = exercise.sets.reduce((setSum: number, set: any) => {
@@ -113,7 +131,11 @@ export class AchievementService {
       }, 0);
       return total + sessionVolume;
     }, 0);
+
+    this.volumeCache = { count: sessionCount, total };
+    return total;
   }
+
 
   private calculateCurrentStreak(history: WorkoutHistoryEntry[]): number {
     if (history.length === 0) return 0;
@@ -159,7 +181,8 @@ export class AchievementService {
   private checkMajorLifts(
     sessions: Record<string, EnhancedWorkoutSession>,
     existingAchievementIds: string[],
-    newAchievements: Achievement[]
+    newAchievements: Achievement[],
+    userSkillLevel: string
   ): void {
     const majorLifts = [
       { id: 'pb-bench-press', patterns: ['bench press', 'chest press'] },
@@ -171,53 +194,91 @@ export class AchievementService {
     majorLifts.forEach(lift => {
       if (existingAchievementIds.includes(lift.id)) return;
 
-      // Check if any session contains this lift with non-zero weight
-      const hasRecord = Object.values(sessions).some(session => {
-        if (!session.exerciseData) return false;
-        return Object.values(session.exerciseData).some(exercise => {
-          const name = exercise.exerciseId.toLowerCase().replace(/-/g, ' ');
-          const isMatch = lift.patterns.some(p => name.includes(p));
-          if (!isMatch) return false;
+      // Filter sessions that have this lift
+      const liftSessions = Object.values(sessions)
+        .filter(session => {
+          if (!session.exerciseData) return false;
+          return Object.values(session.exerciseData).some(exercise => {
+            const name = exercise.exerciseId.toLowerCase().replace(/-/g, ' ');
+            return lift.patterns.some(p => name.includes(p));
+          });
+        })
+        .sort((a, b) => (a.completedTime || 0) - (b.completedTime || 0));
 
-          const maxWeight = exercise.sets.reduce((max: number, set: any) => Math.max(max, set.weight || 0), 0);
-          return maxWeight > 0;
-        });
+      if (liftSessions.length === 0) return;
+
+      // A "First-time record" for an intermediate user shouldn't just be "anything > 0"
+      // Let's require a minimum weight threshold based on skill level if we wanted to be fancy,
+      // but for "first-time record", let's at least ensure they've completed a full session with it.
+      
+      const latestSession = liftSessions[liftSessions.length - 1];
+      const exerciseData = Object.values(latestSession.exerciseData!).find(exercise => {
+        const name = exercise.exerciseId.toLowerCase().replace(/-/g, ' ');
+        return lift.patterns.some(p => name.includes(p));
       });
 
-      if (hasRecord) {
+      if (!exerciseData) return;
+
+      const maxWeight = exerciseData.sets.reduce((max: number, set: any) => Math.max(max, set.weight || 0), 0);
+      
+      // Intermediate users should be lifting something meaningful to get a "Major Lift" achievement
+      const minThreshold = userSkillLevel === 'intermediate' ? 20 : userSkillLevel === 'advanced' ? 40 : 0;
+
+      if (maxWeight >= minThreshold) {
         const definition = this.DEFINITIONS.find(d => d.id === lift.id);
         if (definition) {
-          newAchievements.push(this.createAchievement(definition, 'Achieved', this.getEncouragement(definition)));
+          newAchievements.push(this.createAchievement(definition, `${maxWeight}kg`, this.getEncouragement(definition, userSkillLevel)));
         }
       }
     });
   }
 
-  private getEncouragement(definition: AchievementDefinition): string {
+  private getEncouragement(definition: AchievementDefinition, userSkillLevel: string): string {
+    const isIntermediate = userSkillLevel === 'intermediate' || userSkillLevel === 'advanced';
+
     const messages: Record<string, string[]> = {
-      CONSISTENCY: [
-        "Consistency is key! You're building a powerful habit.",
-        "Every workout counts. Keep up the amazing dedication!",
-        "You're making this look easy! Great work on staying consistent."
-      ],
-      VOLUME: [
-        "Incredible strength! That's a lot of weight moved.",
-        "You're becoming a powerhouse! Exceptional volume today.",
-        "Feel that pump? That's the result of all those kilograms lifted!"
-      ],
+      CONSISTENCY: isIntermediate 
+        ? [
+            "Your discipline is unmatched. Another milestone in your journey!",
+            "Professional level consistency. You're making this a lifestyle.",
+            "The grind never stops, and neither do you. Great work!"
+          ]
+        : [
+            "Consistency is key! You're building a powerful habit.",
+            "Every workout counts. Keep up the amazing dedication!",
+            "You're making this look easy! Great work on staying consistent."
+          ],
+      VOLUME: isIntermediate
+        ? [
+            "Moving serious weight now! Your power is incredible.",
+            "Elite level volume! You're turning into an absolute powerhouse.",
+            "That's a massive amount of steel moved. Your strength is showing!"
+          ]
+        : [
+            "Incredible strength! That's a lot of weight moved.",
+            "You're becoming a powerhouse! Exceptional volume today.",
+            "Feel that pump? That's the result of all those kilograms lifted!"
+          ],
       STREAK: [
         "You're on fire! Don't let that streak break.",
         "Unstoppable momentum! You're in the zone.",
         "What a run! Your discipline is truly inspiring."
       ],
-      PERSONAL_BEST: [
-        "A new record! You're stronger than you were yesterday.",
-        "Pushing boundaries! That's how progress is made.",
-        "Smashed it! Your hard work is paying off in real results."
-      ]
+      PERSONAL_BEST: isIntermediate
+        ? [
+            "Another record smashed! You're constantly pushing your limits.",
+            "New heights reached! This is what true progression looks like.",
+            "Exceptional performance. You're reaching elite status!"
+          ]
+        : [
+            "A new record! You're stronger than you were yesterday.",
+            "Pushing boundaries! That's how progress is made.",
+            "Smashed it! Your hard work is paying off in real results."
+          ]
     };
 
     const typeMessages = messages[definition.type] || ["Amazing achievement!"];
     return typeMessages[Math.floor(Math.random() * typeMessages.length)];
   }
+
 }

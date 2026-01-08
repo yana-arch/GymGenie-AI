@@ -71,13 +71,13 @@ development_status:
   4-5-real-time-encouragement: done
   epic-4-retrospective: optional
 
-  epic-5: in-progress
+  epic-5: done
   5-1-fitness-improvement-tracking: done
 
   5-2-ai-recommendation-correlation: done
-  5-3-milestone-achievement-system: review
+  5-3-milestone-achievement-system: done
   5-4-trend-analysis-dashboard: done
-  5-5-progress-predictions: backlog
+  5-5-progress-predictions: done
   epic-5-retrospective: optional
 
   epic-6: backlog

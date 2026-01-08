@@ -26,7 +26,8 @@ import {
   BrainCircuit,
   Trophy,
   Star,
-  LineChart
+  LineChart,
+  Sparkles
 } from 'lucide-react';
 import { AnalyticsService, TimePeriod } from '../services/AnalyticsService';
 import StrengthChart from './charts/StrengthChart';
@@ -35,6 +36,7 @@ import EnduranceChart from './charts/EnduranceChart';
 import CorrelationDashboard from './CorrelationDashboard';
 import AchievementList from './AchievementList';
 import TrendAnalysisTab from './trends/TrendAnalysisTab';
+import PredictionTab from './predictions/PredictionTab';
 import { selectSessions } from '@/features/session/store/sessionSlice';
 import { useApp } from '@/context/AppContext';
 import { RootState, useAppSelector } from '@/store';
@@ -134,6 +136,7 @@ const ProgressDashboard: React.FC = () => {
             <Tabs.List>
               <Tabs.Tab value="progress" leftSection={<BarChart2 size={16} />}>Progress</Tabs.Tab>
               <Tabs.Tab value="trends" leftSection={<LineChart size={16} />}>Trends</Tabs.Tab>
+              <Tabs.Tab value="predictions" leftSection={<Sparkles size={16} />}>Predictions</Tabs.Tab>
               <Tabs.Tab value="achievements" leftSection={<Trophy size={16} />}>Achievements</Tabs.Tab>
               <Tabs.Tab value="ai-impact" leftSection={<BrainCircuit size={16} />}>AI Impact</Tabs.Tab>
             </Tabs.List>
@@ -232,6 +235,8 @@ const ProgressDashboard: React.FC = () => {
           </Stack>
         ) : activeTab === 'trends' ? (
           <TrendAnalysisTab period={period} setPeriod={setPeriod} />
+        ) : activeTab === 'predictions' ? (
+          <PredictionTab period={period} setPeriod={setPeriod} />
         ) : activeTab === 'achievements' ? (
           <AchievementList />
         ) : (

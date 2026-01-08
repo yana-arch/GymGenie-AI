@@ -151,6 +151,7 @@ export interface UserProfile {
   weightKg: number;
   gender: Gender;
   goal: FitnessGoal;
+  fitnessLevel?: Difficulty; // Standardizing on Difficulty enum for level
   injuries?: string;
   equipment?: string[]; // New: List of equipment the user has
   bmi: number;
@@ -161,6 +162,7 @@ export interface UserProfile {
     lastWorkoutDate: string | null;
   };
 }
+
 
 export type AiProvider = "google";
 

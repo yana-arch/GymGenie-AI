@@ -876,6 +876,24 @@ export class GeminiService {
 
     return response.text ? response.text.trim() : "Focus on form.";
   }
+
+  /**
+   * Generate natural language explanation for progress predictions
+   */
+  public async generatePredictionExplanation(prompt: string): Promise<string> {
+    try {
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: prompt,
+      });
+
+      return response.text ? response.text.trim() : "Unable to generate explanation at this time.";
+    } catch (error) {
+      console.error("Prediction Explanation Error:", error);
+      return "Based on your current trend, keep up the consistency to reach your goals.";
+    }
+  }
+
   public async suggestMeals(user: UserProfile, privacyCategories?: DataCategories): Promise<string[]> {
     try {
       const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);

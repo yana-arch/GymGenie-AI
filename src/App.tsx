@@ -31,10 +31,13 @@ const AppContent = memo(() => {
   if (currentAppStep === 'session') {
     return (
       <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin text-brand-600" size={32} /></div>}>
+        <AchievementManager />
+        <AchievementCelebration />
         <LiveWorkoutSession />
       </Suspense>
     );
   }
+
 
   return (
     <div className="h-screen bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
@@ -50,6 +53,12 @@ const AppContent = memo(() => {
           </div>
         )}
 
+        {/* Achievement System (Always available for critical PBs) */}
+        <Suspense fallback={null}>
+          <AchievementManager />
+          <AchievementCelebration />
+        </Suspense>
+
         {/* Page content */}
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-brand-600" size={32} /></div>}>
           {currentAppStep === 'onboarding' && <Onboarding />}
@@ -63,15 +72,10 @@ const AppContent = memo(() => {
           {currentAppStep === 'dashboard' && activeView === 'createWorkoutDay' && <CreateWorkoutDay />}
         </Suspense>
       </ResponsiveNavigation>
-      
-      {/* Achievement System */}
-      <Suspense fallback={null}>
-        <AchievementManager />
-        <AchievementCelebration />
-      </Suspense>
     </div>
   );
 });
+
 
 import { MantineProvider, createTheme } from '@mantine/core';
 import '@mantine/core/styles.css';
