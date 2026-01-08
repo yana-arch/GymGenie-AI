@@ -25,7 +25,8 @@ import {
   BarChart2,
   BrainCircuit,
   Trophy,
-  Star
+  Star,
+  LineChart
 } from 'lucide-react';
 import { AnalyticsService, TimePeriod } from '../services/AnalyticsService';
 import StrengthChart from './charts/StrengthChart';
@@ -33,13 +34,14 @@ import ConsistencyChart from './charts/ConsistencyChart';
 import EnduranceChart from './charts/EnduranceChart';
 import CorrelationDashboard from './CorrelationDashboard';
 import AchievementList from './AchievementList';
+import TrendAnalysisTab from './trends/TrendAnalysisTab';
 import { selectSessions } from '@/features/session/store/sessionSlice';
 import { useApp } from '@/context/AppContext';
-import { useAppSelector } from '@/store';
+import { RootState, useAppSelector } from '@/store';
 import { SummaryCard } from '@/components/ui';
 
 const ProgressDashboard: React.FC = () => {
-  const history = useSelector((state: any) => state.workout.history);
+  const history = useAppSelector((state: RootState) => state.workout.history);
   const sessions = useSelector(selectSessions);
   const earnedAchievements = useAppSelector(state => state.achievement.earnedAchievements);
   const { setActiveView } = useApp();
@@ -131,6 +133,7 @@ const ProgressDashboard: React.FC = () => {
           <Tabs value={activeTab} onChange={setActiveTab} variant="pills" color="blue">
             <Tabs.List>
               <Tabs.Tab value="progress" leftSection={<BarChart2 size={16} />}>Progress</Tabs.Tab>
+              <Tabs.Tab value="trends" leftSection={<LineChart size={16} />}>Trends</Tabs.Tab>
               <Tabs.Tab value="achievements" leftSection={<Trophy size={16} />}>Achievements</Tabs.Tab>
               <Tabs.Tab value="ai-impact" leftSection={<BrainCircuit size={16} />}>AI Impact</Tabs.Tab>
             </Tabs.List>
@@ -227,6 +230,8 @@ const ProgressDashboard: React.FC = () => {
               </Grid.Col>
             </Grid>
           </Stack>
+        ) : activeTab === 'trends' ? (
+          <TrendAnalysisTab period={period} setPeriod={setPeriod} />
         ) : activeTab === 'achievements' ? (
           <AchievementList />
         ) : (

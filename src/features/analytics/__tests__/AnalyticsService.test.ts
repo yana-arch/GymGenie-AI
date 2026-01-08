@@ -171,4 +171,92 @@ describe('AnalyticsService', () => {
     expect(endurance.totalDuration).toBe(200 * 60);
     expect(end - start).toBeLessThan(50); // Should be very fast (< 50ms)
   });
+
+  it('should calculate trend trajectory correctly @p0', () => {
+    const data = [
+      { date: '2026-01-01', value: 100 },
+      { date: '2026-01-02', value: 110 },
+      { date: '2026-01-03', value: 120 }
+    ];
+    const trajectory = analyticsService.calculateTrendTrajectory(data);
+    expect(trajectory.trajectory).toBe('upward');
+    expect(trajectory.changePercentage).toBe(20);
+  });
+
+  it('should calculate moving average correctly @p1', () => {
+    const data = [
+      { value: 10 },
+      { value: 20 },
+      { value: 30 },
+      { value: 40 }
+    ];
+    const ma = analyticsService.calculateMovingAverage(data, 2);
+    expect(ma).toEqual([10, 15, 25, 35]);
+  });
+
+  it('should detect plateaus correctly @p0', () => {
+    const sessions: Record<string, EnhancedWorkoutSession> = {};
+    const baseDate = new Date('2026-01-01').getTime();
+    
+    // 4 sessions with same weight
+    for (let i = 0; i < 4; i++) {
+      const date = baseDate + i * 7 * 24 * 60 * 60 * 1000;
+      sessions[`s${i}`] = {
+        ...mockSessions['1-1'],
+        id: `s${i}`,
+        startTime: date,
+        completedTime: date + 3600000,
+        exerciseData: {
+          'bench-press': {
+            exerciseId: 'bench-press',
+            isCompleted: true,
+            sets: [{ 
+              id: `set${i}`, 
+              setNumber: 1, 
+              weight: 100, 
+              reps: 10, 
+              completedAt: date,
+              targetRestTime: 60,
+              actualRestTime: 60,
+              duration: 30000
+            }]
+          }
+        }
+      };
+    }
+    
+    const plateau = analyticsService.detectPlateaus(sessions, 'bench-press');
+    expect(plateau.isPlateau).toBe(true);
+    expect(plateau.weeksStalled).toBe(3);
+  });
+
+  it('should group by muscle group correctly @p1', () => {
+    const sessions: Record<string, EnhancedWorkoutSession> = {
+      's1': {
+        ...mockSessions['1-1'],
+        exerciseData: {
+          'bench-press': {
+            exerciseId: 'bench-press',
+            isCompleted: true,
+            sets: [{ 
+              id: 'set1', 
+              setNumber: 1, 
+              weight: 100, 
+              reps: 10, 
+              completedAt: Date.now(),
+              targetRestTime: 60,
+              actualRestTime: 60,
+              duration: 30000
+            }]
+          }
+        }
+      }
+    };
+    const db = {
+      'bench-press': { bodyPart: ['chest'] }
+    };
+    const groups = analyticsService.groupByMuscleGroup(sessions, db);
+    expect(groups['chest']).toBeDefined();
+    expect(groups['chest'].volume).toBe(1000);
+  });
 });
