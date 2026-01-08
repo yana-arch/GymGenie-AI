@@ -214,13 +214,44 @@ const workoutExerciseSchema: Schema = {
   },
 };
 
+import { EncryptionService } from "@/features/privacy/services/EncryptionService";
+import { PrivacyShieldService } from "@/features/privacy/services/PrivacyShieldService";
+import { recordSanitization, addAuditEntry } from "@/features/privacy/store/privacySlice";
+import { v4 as uuidv4 } from "uuid";
+
+// ... existing code ...
+
 export class GeminiService {
   private static instance: GeminiService;
   private ai: GoogleGenAI;
   private model: string;
+  private privacyShield: PrivacyShieldService;
+  private dispatch: any = null;
 
   private constructor() {
     this.refreshConfig();
+    this.privacyShield = new PrivacyShieldService(
+      EncryptionService.getInstance(),
+      () => this.handleSanitization()
+    );
+  }
+
+  public setDispatch(dispatch: any) {
+    this.dispatch = dispatch;
+  }
+
+  private handleSanitization() {
+    if (this.dispatch) {
+      this.dispatch(recordSanitization());
+      this.dispatch(addAuditEntry({
+        id: uuidv4(),
+        timestamp: Date.now(),
+        operation: 'transmission',
+        resource: 'external_ai_service',
+        status: 'success',
+        details: 'PII detected and anonymized before transmission'
+      }));
+    }
   }
 
   public static getInstance(): GeminiService {
@@ -359,14 +390,13 @@ export class GeminiService {
     equipment: string[]
   ): Promise<WorkoutPlan> {
     try {
+      const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user);
       const prompt = `
         Act as an elite Personal Trainer. Create a comprehensive **4-Week Progressive Workout Plan** for this user.
         
         User Profile:
-        - Age: ${user.age}, Gender: ${user.gender}
-        - BMI: ${user.bmi.toFixed(1)}
-        - Goal: ${user.goal}
-        - Injuries: ${user.injuries || "None"}
+        - Goal: ${sanitizedUser.goal}
+        - Has Injuries: ${sanitizedUser.injuries ? "Yes" : "No"}
         
         Available Equipment: ${
           equipment.length > 0 ? equipment.join(", ") : "Bodyweight only"
@@ -376,7 +406,7 @@ export class GeminiService {
         1. **Duration:** Exactly 4 Weeks.
         2. **Structure:** Each week must have 3-5 workout days and rest days.
         3. **Progression:** The difficulty should slightly increase week over week (Progressive Overload).
-        4. **Safety:** Adapt exercises for any injuries.
+        4. **Safety:** Adapt exercises for safety if injuries are present.
         5. **Specificity:** Return specific sets, reps, and rest times.
       `;
 
@@ -433,10 +463,11 @@ export class GeminiService {
     user: UserProfile
   ): Promise<WorkoutDay> {
     try {
+      const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user);
       const prompt = `
         You are an elite Personal Trainer. Modify this specific Workout Day based on the User's Request.
         
-        User Profile: Goal: ${user.goal}, Injuries: ${user.injuries || "None"}
+        User Profile: Goal: ${sanitizedUser.goal}
         User Request: "${userRequest}"
         
         Current Day Structure (JSON):
@@ -577,15 +608,12 @@ export class GeminiService {
     );
 
     try {
-      // Validate privacy before processing
-      const privacyCheck = privacyValidationService.validateDataForAI(context, 'GeminiService.generateWorkoutAdaptation');
-      
-      if (!privacyCheck.safeToSend) {
-        throw new Error(`Privacy validation failed: ${privacyCheck.violations.join(', ')}`);
+      // Validate privacy before processing using PrivacyShieldService
+      if (this.privacyShield.isSensitive(context)) {
+        console.log('[GeminiService] Sensitive data detected, sanitizing for adaptation...');
       }
-
-      // Use sanitized data if privacy issues were detected and fixed
-      const sanitizedContext = privacyCheck.sanitizedData || context;
+      
+      const sanitizedContext = this.privacyShield.sanitizeForExternalUse(context);
 
       const adaptation = await this.generateWorkoutAdaptationInternal(sanitizedContext);
       
@@ -616,7 +644,7 @@ export class GeminiService {
       energy: context.energy,
       time: context.time,
       currentExercise: context.currentExercise || 'current exercise',
-      hasInjuries: context.userProfile?.injuries && context.userProfile.injuries.length > 0,
+      hasInjuries: context.userProfile?.injuries ? "Yes" : "No",
       goal: context.userProfile?.goal || 'general fitness',
       overrideHistory: context.overrideHistory || []
     };
