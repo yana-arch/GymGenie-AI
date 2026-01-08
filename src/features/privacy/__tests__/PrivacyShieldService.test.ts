@@ -96,4 +96,28 @@ describe('PrivacyShieldService', () => {
     expect(result.success).toBe(true);
     expect(mockTransmit).toHaveBeenCalledWith(nonSensitiveData);
   });
+
+  it('should sanitize based on granular data categories', () => {
+    const data = {
+      injuryHistory: 'ACL Tear',
+      workoutPatterns: 'Morning runner',
+      biologicalData: { heartRate: 75 }
+    };
+
+    const categories = {
+      injuryHistory: false, // Blocked
+      biologicalData: false, // Blocked
+      locationData: false,
+      workoutPatterns: true, // Allowed
+      usageAnalytics: true,
+    };
+
+    // We'll need to update the service to accept categories
+    // @ts-ignore
+    const sanitized = privacyShieldService.sanitizeForExternalUse(data, categories);
+
+    expect(sanitized.injuryHistory).toBe('[REDACTED]');
+    expect(sanitized.biologicalData).toBeUndefined();
+    expect(sanitized.workoutPatterns).toBe('Morning runner');
+  });
 });

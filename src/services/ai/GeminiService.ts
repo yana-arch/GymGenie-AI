@@ -25,6 +25,11 @@ import { StorageService } from "../storage/StorageService";
 import { privacyValidationService } from "../privacy/PrivacyValidationService";
 import { performanceMonitoringService } from "../performance/PerformanceMonitoringService";
 import { toast } from "@/components/ui/Toast";
+import { EncryptionService } from "@/features/privacy/services/EncryptionService";
+import { PrivacyShieldService } from "@/features/privacy/services/PrivacyShieldService";
+import { recordSanitization, addAuditEntry } from "@/features/privacy/store/privacySlice";
+import { DataCategories } from "@/features/privacy/types/privacy.types";
+import { v4 as uuidv4 } from "uuid";
 
 // Schemas for AI Generation (Google GenAI SDK)
 // Recruited from enhanced-gemini-service.ts and AIGeneratorService.ts
@@ -214,13 +219,6 @@ const workoutExerciseSchema: Schema = {
   },
 };
 
-import { EncryptionService } from "@/features/privacy/services/EncryptionService";
-import { PrivacyShieldService } from "@/features/privacy/services/PrivacyShieldService";
-import { recordSanitization, addAuditEntry } from "@/features/privacy/store/privacySlice";
-import { v4 as uuidv4 } from "uuid";
-
-// ... existing code ...
-
 export class GeminiService {
   private static instance: GeminiService;
   private ai: GoogleGenAI;
@@ -232,7 +230,7 @@ export class GeminiService {
     this.refreshConfig();
     this.privacyShield = new PrivacyShieldService(
       EncryptionService.getInstance(),
-      () => this.handleSanitization()
+      (categories: DataCategories | undefined) => this.handleSanitization(categories)
     );
   }
 
@@ -240,16 +238,19 @@ export class GeminiService {
     this.dispatch = dispatch;
   }
 
-  private handleSanitization() {
+  private handleSanitization(categories?: DataCategories) {
     if (this.dispatch) {
-      this.dispatch(recordSanitization());
+      const categoriesShared = categories ? Object.entries(categories).filter(([_, v]) => v).map(([k]) => k) : [];
+      const categoriesProtected = categories ? Object.entries(categories).filter(([_, v]) => !v).map(([k]) => k) : [];
+
+      this.dispatch(recordSanitization({ categoriesShared, categoriesProtected }));
       this.dispatch(addAuditEntry({
         id: uuidv4(),
         timestamp: Date.now(),
         operation: 'transmission',
         resource: 'external_ai_service',
         status: 'success',
-        details: 'PII detected and anonymized before transmission'
+        details: `PII detected and anonymized. Protected: ${categoriesProtected.join(', ') || 'PII Only'}`
       }));
     }
   }
@@ -285,13 +286,12 @@ export class GeminiService {
     }
 
     // Fallback to env var (build time)
-    // Note: In Vite, we should use import.meta.env, but trying process.env for compatibility with existing code
     return new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
   }
 
   private getModelName(): string {
     const config = StorageService.getAiConfig();
-    return config && config.model ? config.model : "gemini-2.0-flash-exp"; // Updated default model to faster one
+    return config && config.model ? config.model : "gemini-2.0-flash-exp";
   }
 
   /**
@@ -335,16 +335,18 @@ export class GeminiService {
    */
   public async generateRecipes(
     base64Image: string,
-    user: UserProfile
+    user: UserProfile,
+    privacyCategories?: DataCategories
   ): Promise<Recipe[]> {
     try {
+      const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
       const prompt = `
         Analyze the food ingredients in this image.
         Based on the ingredients found AND the user's profile below, suggest 3 healthy recipes.
         
         User Profile:
-        - TDEE: ${user.tdee} calories
-        - Goal: ${user.goal}
+        - TDEE: ${sanitizedUser.tdee} calories
+        - Goal: ${sanitizedUser.goal}
         
         Requirements:
         1. Recipes must use the detected ingredients as main components.
@@ -387,10 +389,11 @@ export class GeminiService {
    */
   public async generateWorkoutPlan(
     user: UserProfile,
-    equipment: string[]
+    equipment: string[],
+    privacyCategories?: DataCategories
   ): Promise<WorkoutPlan> {
     try {
-      const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user);
+      const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
       const prompt = `
         Act as an elite Personal Trainer. Create a comprehensive **4-Week Progressive Workout Plan** for this user.
         
@@ -460,10 +463,11 @@ export class GeminiService {
   public async modifyWorkoutDay(
     currentDay: WorkoutDay,
     userRequest: string,
-    user: UserProfile
+    user: UserProfile,
+    privacyCategories?: DataCategories
   ): Promise<WorkoutDay> {
     try {
-      const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user);
+      const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
       const prompt = `
         You are an elite Personal Trainer. Modify this specific Workout Day based on the User's Request.
         
@@ -599,7 +603,7 @@ export class GeminiService {
       relativeTime?: string;
       timeBucket?: string;
     }>;
-  }): Promise<any> {
+  }, privacyCategories?: DataCategories): Promise<any> {
     // Start performance monitoring
     const monitoring = performanceMonitoringService.startMonitoring(
       'GeminiService.generateWorkoutAdaptation', 
@@ -608,12 +612,7 @@ export class GeminiService {
     );
 
     try {
-      // Validate privacy before processing using PrivacyShieldService
-      if (this.privacyShield.isSensitive(context)) {
-        console.log('[GeminiService] Sensitive data detected, sanitizing for adaptation...');
-      }
-      
-      const sanitizedContext = this.privacyShield.sanitizeForExternalUse(context);
+      const sanitizedContext = this.privacyShield.sanitizeForExternalUse(context, privacyCategories);
 
       const adaptation = await this.generateWorkoutAdaptationInternal(sanitizedContext);
       
@@ -756,18 +755,21 @@ export class GeminiService {
    */
   public async generateSetsForExercises(
     user: UserProfile,
-    exercises: Exercise[]
+    exercises: Exercise[],
+    privacyCategories?: DataCategories
   ): Promise<any> {
     if (exercises.length === 0) return [];
+
+    const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
 
     const prompt = `
         Based on the user's profile and the provided list of exercises, suggest appropriate sets, reps, and rest times for a single workout day.
         
         User Profile:
-        - Age: ${user.age}
-        - Gender: ${user.gender}
-        - Weight: ${user.weightKg}kg
-        - Goal: ${user.goal}
+        - Age: ${sanitizedUser.age}
+        - Gender: ${sanitizedUser.gender}
+        - Weight: ${sanitizedUser.weightKg}kg
+        - Goal: ${sanitizedUser.goal}
         
         Exercises:
         ${exercises.map((ex) => `- ${ex.name}`).join("\n")}
@@ -812,13 +814,14 @@ export class GeminiService {
 
     return response.text ? response.text.trim() : "Focus on form.";
   }
-  public async suggestMeals(user: UserProfile): Promise<string[]> {
+  public async suggestMeals(user: UserProfile, privacyCategories?: DataCategories): Promise<string[]> {
     try {
+      const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
       const prompt = `
         Based on the user's profile, suggest 3 simple, healthy meal ideas (e.g., "Grilled Chicken Salad", "Oatmeal with Berries").
         User Profile:
-        - TDEE: ${user.tdee} calories
-        - Goal: ${user.goal}
+        - TDEE: ${sanitizedUser.tdee} calories
+        - Goal: ${sanitizedUser.goal}
         Return a simple JSON array of strings.
       `;
 

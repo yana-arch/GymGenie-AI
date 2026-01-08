@@ -23,9 +23,12 @@ import { updateSettings as updateFormSettings } from '@/features/form-correction
 const LiveWorkoutSession = () => {
   const { showToast } = useToast();
   const { handleError, handleAsyncError } = useErrorHandler();
+  
+  const dispatch = useAppDispatch();
+  const currentPlan = useAppSelector(state => state.workout.currentPlan);
+  const currentSession = useAppSelector(state => state.session.currentSession);
+  
   const {
-    currentPlan,
-    currentSession,
     sessionManager,
     logWorkout,
     setStep,
@@ -34,7 +37,6 @@ const LiveWorkoutSession = () => {
     addSetToSession
   } = useApp();
 
-  const dispatch = useAppDispatch();
   const liveSessionState = useAppSelector(state => state.liveSession);
   const cameraEnabled = useAppSelector((state: any) => state.formCorrection?.settings?.cameraEnabled ?? true);
   
@@ -366,8 +368,17 @@ const LiveWorkoutSession = () => {
     try {
       if (reduxActiveContext.energy === 'tired' || reduxActiveContext.time === 'limited') {
         dispatch(fetchWorkoutAdaptation({ 
-          activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
-          overrideHistory: overrideHistory || []
+          activeContext: { 
+            energy: reduxActiveContext.energy, 
+            time: reduxActiveContext.time, 
+            equipmentStatus: 'available' 
+          }, 
+          overrideHistory: overrideHistory || [],
+          currentExercise: activeContext?.currentExercise ? {
+            reps: activeContext.currentExercise.reps,
+            sets: activeContext.currentExercise.sets,
+            restSeconds: activeContext.currentExercise.restSeconds
+          } : undefined
         }));
       }
     } catch (error) {}
@@ -476,19 +487,17 @@ const LiveWorkoutSession = () => {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <button
-                    onClick={async () => {
-                      try {
-                        dispatch(updateEnergyContext('tired'));
-                        await handleAsyncError(
-                          () => dispatch(fetchWorkoutAdaptation({ 
-                            activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
-                            overrideHistory: overrideHistory || []
-                          })),
-                          'AI adaptation request'
-                        );
-                      } catch (error) {
-                        handleError(error, 'AI adaptation trigger');
-                      }
+                    onClick={() => {
+                      dispatch(updateEnergyContext('tired'));
+                      dispatch(fetchWorkoutAdaptation({ 
+                        activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
+                        overrideHistory: overrideHistory || [],
+                        currentExercise: activeContext?.currentExercise ? {
+                          reps: activeContext.currentExercise.reps,
+                          sets: activeContext.currentExercise.sets,
+                          restSeconds: activeContext.currentExercise.restSeconds
+                        } : undefined
+                      }));
                     }}
                     className="flex flex-col items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-2xl transition-colors active:scale-95 border border-blue-100 dark:border-blue-800"
                   >
@@ -497,19 +506,17 @@ const LiveWorkoutSession = () => {
                   </button>
                   
                   <button
-                    onClick={async () => {
-                      try {
-                        dispatch(updateTimeContext('limited'));
-                        await handleAsyncError(
-                          () => dispatch(fetchWorkoutAdaptation({ 
-                            activeContext: { energy: 'normal', time: 'limited', equipmentStatus: 'available' }, 
-                            overrideHistory: overrideHistory || []
-                          })),
-                          'AI adaptation request'
-                        );
-                      } catch (error) {
-                        handleError(error, 'AI adaptation trigger');
-                      }
+                    onClick={() => {
+                      dispatch(updateTimeContext('limited'));
+                      dispatch(fetchWorkoutAdaptation({ 
+                        activeContext: { energy: 'normal', time: 'limited', equipmentStatus: 'available' }, 
+                        overrideHistory: overrideHistory || [],
+                        currentExercise: activeContext?.currentExercise ? {
+                          reps: activeContext.currentExercise.reps,
+                          sets: activeContext.currentExercise.sets,
+                          restSeconds: activeContext.currentExercise.restSeconds
+                        } : undefined
+                      }));
                     }}
                     className="flex flex-col items-center gap-2 p-4 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-2xl transition-colors active:scale-95 border border-orange-100 dark:border-orange-800"
                   >
@@ -562,7 +569,7 @@ const LiveWorkoutSession = () => {
             <div className="absolute inset-0 z-50 bg-white dark:bg-gray-900 animate-fade-in flex flex-col items-center justify-center p-6">
               <div className="w-full max-w-md space-y-8 text-center">
                 <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 size={40} className="text-green-600 dark:text-green-400" />
+                   <CheckCircle2 size={40} className="text-green-600 dark:text-green-400" />
                 </div>
                 
                 <div>
@@ -587,7 +594,13 @@ const LiveWorkoutSession = () => {
             </div>
           )}
 
-          <AdaptationProposal adaptation={adaptation} isLoading={isLoading} onAccept={handleAcceptAdaptation} onReject={handleRejectAdaptation} />
+          <AdaptationProposal 
+            adaptation={adaptation} 
+            isLoading={isLoading} 
+            onAccept={handleAcceptAdaptation} 
+            onReject={handleRejectAdaptation}
+            exerciseId={currentExercise?.id}
+          />
 
            {process.env.NODE_ENV === 'development' && performance.lastResponseTime && (
              <div className="fixed inset-x-4 top-20 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 shadow-lg z-50 max-w-xs mx-auto">

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Button } from '@/components/ui';
 import { Check, X } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { useAppDispatch } from '@/store';
 import { clearAdaptation, applyInjuryFiltering } from '../store/liveSessionSlice';
 import { useApp } from '@/context/AppContext';
+import { updateExerciseInPlan } from '@/features/workout/store/workoutSlice';
 
 interface AdaptationProposalProps {
   adaptation: {
@@ -16,16 +17,18 @@ interface AdaptationProposalProps {
   onAccept: () => void;
   onReject: () => void;
   isLoading?: boolean;
+  exerciseId?: string;
 }
 
 const AdaptationProposal: React.FC<AdaptationProposalProps> = ({
   adaptation,
   onAccept,
   onReject,
-  isLoading = false
+  isLoading = false,
+  exerciseId
 }) => {
   const dispatch = useAppDispatch();
-  const { currentPlan, currentSession, addSetToSession } = useApp();
+  const { currentPlan, currentSession } = useApp();
 
   if (!adaptation && !isLoading) return null;
 
@@ -35,46 +38,30 @@ const AdaptationProposal: React.FC<AdaptationProposalProps> = ({
   };
 
   const handleAccept = () => {
-    if (!adaptation) return;
+    if (!adaptation || !exerciseId) return;
     
-    // Apply adaptation to current workout state
     try {
-      // Get current exercise from session
       if (!currentSession || !currentPlan) return;
       
       const week = currentPlan.weeks.find(w => w.id === currentSession.weekId);
       const day = week?.days.find(d => d.id === currentSession.dayId);
-      if (!day || !day.exercises.length) return;
+      if (!day) return;
       
-      // Find the current active exercise - this should come from LiveWorkoutSession context
-      // For now, we'll use the first exercise as a fallback
-      const currentExerciseIndex = 0;
-      const currentExercise = day.exercises[currentExerciseIndex];
+      const updates: any = {};
+      if (adaptation.newReps && adaptation.newReps > 0) updates.reps = adaptation.newReps.toString();
+      if (adaptation.newSets && adaptation.newSets > 0) updates.sets = adaptation.newSets;
+      if (adaptation.restTime && adaptation.restTime > 0) updates.restSeconds = adaptation.restTime;
       
-      // CRITICAL FIX: Actually modify the workout plan data structure
-      if (adaptation.newReps && adaptation.newReps > 0) {
-        currentExercise.reps = adaptation.newReps.toString();
+      if (Object.keys(updates).length > 0) {
+        dispatch(updateExerciseInPlan({
+          weekId: currentSession.weekId,
+          dayId: currentSession.dayId,
+          exerciseId,
+          updates
+        }));
       }
       
-      if (adaptation.newSets && adaptation.newSets > 0) {
-        currentExercise.sets = adaptation.newSets;
-      }
-      
-      if (adaptation.restTime && adaptation.restTime > 0) {
-        currentExercise.restSeconds = adaptation.restTime;
-      }
-      
-      // Apply injury filtering to the adaptation
       dispatch(applyInjuryFiltering(adaptation));
-      
-      // Update the plan in the app context (assuming there's a method)
-      if (addSetToSession && typeof addSetToSession === 'function') {
-        // This is a hack - we need proper integration with app context
-        // In a proper implementation, this would update the exercise in the plan
-        console.log('Adaptation applied:', adaptation);
-      }
-      
-      // Clear adaptation after applying
       dispatch(clearAdaptation());
       onAccept();
       

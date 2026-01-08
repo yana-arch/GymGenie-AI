@@ -102,13 +102,11 @@ BMad Dev-Story Agent (v6.0.0-alpha.22)
 - `src/features/session/store/liveSessionSlice.ts` (Modified - added performance monitoring, override history, injury filtering)
 - `src/features/session/components/LiveWorkoutSession.tsx` (Modified - added adaptation triggers and performance display)
 - `src/services/ai/GeminiService.ts` (Modified - added privacy validation and override history integration)
-- `src/features/session/components/AdaptationProposal.tsx` (New - created adaptation feedback UI)
-- `src/features/form-correction/services/FormAnalysisService.ts` (Modified - added performance tracking and SLA validation)
-- `src/services/privacy/PrivacyValidationService.ts` (New - privacy validation and PII detection)
-- `src/services/performance/PerformanceMonitoringService.ts` (New - comprehensive performance monitoring)
-- `src/features/session/store/__tests__/LiveWorkoutSession.test.tsx` (New - test file created)
-- `src/features/session/store/__tests__/adaptationValidation.test.ts` (New - validation tests created)
-- `test/LiveWorkoutSession.Adaptation.test.tsx` (New - git discovered test file)
+- `src/features/workout/store/workoutSlice.ts` (Modified - added updateExerciseInPlan action)
+- `src/features/session/components/AdaptationProposal.tsx` (Modified - fixed broken exercise mapping and plan mutation anti-pattern)
+- `src/features/session/components/LiveWorkoutSession.tsx` (Modified - fixed state synchronization and cleaned up redundant error handling)
+- `src/features/session/store/liveSessionSlice.ts` (Modified - improved SLA fallback logic with context awareness)
+- `src/features/session/store/__tests__/adaptationValidation.test.ts` (Modified - added fallback logic verification tests)
 
 ## Change Log
 - 2026-01-05: Implemented real-time AI workout adaptation interface with "I'm Tired" and "Short on Time" triggers
@@ -116,3 +114,5 @@ BMad Dev-Story Agent (v6.0.0-alpha.22)
 - 2026-01-05: Integrated Redux state management for adaptation context and loading states
 - 2026-01-05: Ensured privacy compliance by limiting AI context to non-PII data only
 - 2026-01-05: Added optimistic UI updates and loading states for 2-second response requirement
+- 2026-01-08: Fixed broken adaptation mapping, fixed plan mutation anti-pattern, and improved contextual SLA fallbacks after adversarial code review.
+

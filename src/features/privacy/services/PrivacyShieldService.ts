@@ -1,4 +1,5 @@
 import { EncryptionService } from './EncryptionService';
+import { DataCategories } from '../types/privacy.types';
 
 /**
  * PrivacyShieldService
@@ -6,48 +7,75 @@ import { EncryptionService } from './EncryptionService';
  * Compliant with FR18, FR19, NFR17, NFR20
  */
 export class PrivacyShieldService {
-  private readonly SENSITIVE_KEYS = [
-    'userId', 'email', 'name', 'phone', 'address', 
-    'heartRate', 'injuryHistory', 'medicalConditions',
-    'location', 'gps', 'identity', 'pii', 'health', 'fitness'
-  ];
+  private readonly CATEGORY_MAPPINGS: Record<keyof DataCategories, string[]> = {
+    injuryHistory: ['injuryHistory', 'medicalConditions'],
+    biologicalData: ['heartRate', 'biologicalData', 'health', 'age', 'gender', 'weight', 'height', 'tdee'],
+    locationData: ['location', 'gps', 'address'],
+    workoutPatterns: ['workoutPatterns', 'exerciseHistory'],
+    usageAnalytics: ['usageAnalytics', 'analytics'],
+  };
+
+  private readonly PII_KEYS = ['userId', 'email', 'name', 'phone', 'identity', 'pii', 'age', 'gender', 'weight', 'height'];
 
   constructor(
     private encryptionService: EncryptionService,
-    private onSanitize?: () => void
+    private onSanitize?: (categories?: DataCategories) => void
   ) {}
 
   /**
-   * Checks if a data object contains sensitive information
+   * Checks if a data object contains sensitive information based on categories
    */
-  isSensitive(data: any): boolean {
+  isSensitive(data: any, categories?: DataCategories): boolean {
     if (!data || typeof data !== 'object') return false;
 
+    const blockedKeys = this.getBlockedKeys(categories);
     const keys = Object.keys(data);
+
     return keys.some(key => 
-      this.SENSITIVE_KEYS.some(sensitiveKey => 
+      blockedKeys.some(sensitiveKey => 
         key.toLowerCase().includes(sensitiveKey.toLowerCase())
-      ) || (typeof data[key] === 'object' && this.isSensitive(data[key]))
+      ) || (typeof data[key] === 'object' && this.isSensitive(data[key], categories))
     );
+  }
+
+  private getBlockedKeys(categories?: DataCategories): string[] {
+    let blockedKeys = [...this.PII_KEYS];
+
+    if (categories) {
+      (Object.keys(this.CATEGORY_MAPPINGS) as Array<keyof DataCategories>).forEach(category => {
+        if (!categories[category]) {
+          blockedKeys = [...blockedKeys, ...this.CATEGORY_MAPPINGS[category]];
+        }
+      });
+    } else {
+      // Default to blocking everything if no categories provided (Zero Trust)
+      Object.values(this.CATEGORY_MAPPINGS).forEach(keys => {
+        blockedKeys = [...blockedKeys, ...keys];
+      });
+    }
+
+    return blockedKeys;
   }
 
   /**
    * Redacts sensitive information from an object
    */
-  sanitizeForExternalUse(data: any): any {
+  sanitizeForExternalUse(data: any, categories?: DataCategories): any {
     if (!data || typeof data !== 'object') return data;
 
-    if (this.isSensitive(data) && this.onSanitize) {
-      this.onSanitize();
+    if (this.isSensitive(data, categories) && this.onSanitize) {
+      this.onSanitize(categories);
     }
 
     if (Array.isArray(data)) {
-      return data.map(item => this.sanitizeForExternalUse(item));
+      return data.map(item => this.sanitizeForExternalUse(item, categories));
     }
 
+    const blockedKeys = this.getBlockedKeys(categories);
     const sanitized: any = {};
+
     for (const key of Object.keys(data)) {
-      const isSensitiveKey = this.SENSITIVE_KEYS.some(sensitiveKey => 
+      const isSensitiveKey = blockedKeys.some(sensitiveKey => 
         key.toLowerCase().includes(sensitiveKey.toLowerCase())
       );
 
@@ -60,7 +88,7 @@ export class PrivacyShieldService {
           sanitized[key] = undefined;
         }
       } else if (typeof data[key] === 'object') {
-        sanitized[key] = this.sanitizeForExternalUse(data[key]);
+        sanitized[key] = this.sanitizeForExternalUse(data[key], categories);
       } else {
         sanitized[key] = data[key];
       }
@@ -71,8 +99,8 @@ export class PrivacyShieldService {
   /**
    * Protects data and attempts to transmit it (fails if sensitive)
    */
-  async protectAndTransmit(url: string, data: any): Promise<any> {
-    if (this.isSensitive(data)) {
+  async protectAndTransmit(url: string, data: any, categories?: DataCategories): Promise<any> {
+    if (this.isSensitive(data, categories)) {
       throw new Error('Privacy Violation: Cannot transmit non-anonymized sensitive data');
     }
     
@@ -84,9 +112,9 @@ export class PrivacyShieldService {
   /**
    * Helper to safely execute a transmission function
    */
-  async safeTransmit<T>(transmitFn: (data: any) => Promise<T>, data: any): Promise<T> {
-    if (this.isSensitive(data)) {
-      const sanitized = this.sanitizeForExternalUse(data);
+  async safeTransmit<T>(transmitFn: (data: any) => Promise<T>, data: any, categories?: DataCategories): Promise<T> {
+    if (this.isSensitive(data, categories)) {
+      const sanitized = this.sanitizeForExternalUse(data, categories);
       return transmitFn(sanitized);
     }
     return transmitFn(data);

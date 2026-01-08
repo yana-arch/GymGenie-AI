@@ -57,4 +57,11 @@ export class PrivacyAuditService {
   static logTransmission(resource: string, status: 'success' | 'failure' = 'success', details?: string): void {
     this.log('transmission', resource, status, details);
   }
+
+  /**
+   * Helper for logging privacy setting changes
+   */
+  static logSettingChange(settingName: string, newValue: any): void {
+    this.log('setting_change', settingName, 'success', `Changed to: ${JSON.stringify(newValue)}`);
+  }
 }

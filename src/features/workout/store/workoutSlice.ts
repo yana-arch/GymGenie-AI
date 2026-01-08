@@ -137,6 +137,30 @@ const workoutSlice = createSlice({
       day.exercises[index] = newExercise;
     },
     
+    updateExerciseInPlan: (state, action: PayloadAction<{
+      weekId: string;
+      dayId: string;
+      exerciseId: string;
+      updates: Partial<WorkoutExercise>;
+    }>) => {
+      const { weekId, dayId, exerciseId, updates } = action.payload;
+
+      if (!state.currentPlan) return;
+
+      const week = state.currentPlan.weeks.find(w => w.id === weekId);
+      const day = week?.days.find(d => d.id === dayId);
+
+      if (!day) return;
+
+      const index = day.exercises.findIndex(e => e.id === exerciseId);
+      if (index === -1) return;
+
+      day.exercises[index] = {
+        ...day.exercises[index],
+        ...updates
+      };
+    },
+    
     setExerciseTimestamps: (state, action: PayloadAction<Record<string, number>>) => {
       state.exerciseTimestamps = action.payload;
     },
@@ -167,6 +191,7 @@ export const {
   setLoading,
   toggleExercise,
   updateDayInPlan,
+  updateExerciseInPlan,
   moveExercise,
   replaceExerciseInPlan,
   setExerciseTimestamps,

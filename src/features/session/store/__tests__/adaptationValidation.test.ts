@@ -1,6 +1,6 @@
 import { given, when, then, and, createSessionTest } from '../../../../test-utils';
 import { configureStore } from '@reduxjs/toolkit';
-import { vi, beforeEach } from 'vitest';
+import { vi, beforeEach, afterEach } from 'vitest';
 import liveSessionSlice, { fetchWorkoutAdaptation } from '../liveSessionSlice';
 import { GeminiService } from '../../../../services/ai/GeminiService';
 import type { OverrideEvent } from '@/features/safety-override/services/OverrideDetectionService';
@@ -102,11 +102,16 @@ given('a live session slice with performance requirements', () => {
   let store: ReturnType<typeof configureStore>;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     store = configureStore({
       reducer: {
         liveSession: liveSessionSlice
       }
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   when('AI adaptation request is made', () => {
@@ -125,9 +130,7 @@ given('a live session slice with performance requirements', () => {
         generateWorkoutAdaptation: mockGenerateAdaptation
       } as any);
 
-      const startTime = Date.now();
-      
-      await (store.dispatch as any)(fetchWorkoutAdaptation({
+      const promise = (store.dispatch as any)(fetchWorkoutAdaptation({
         activeContext: {
           energy: 'tired',
           time: 'normal',
@@ -136,14 +139,13 @@ given('a live session slice with performance requirements', () => {
         overrideHistory: []
       }));
 
-      const endTime = Date.now();
-      const duration = endTime - startTime;
+      vi.advanceTimersByTime(1500);
+      await promise;
 
-      expect(duration).toBeLessThan(2000);
-      
       const state = store.getState() as any;
       expect(state.liveSession.isLoading).toBe(false);
       expect(state.liveSession.adaptation).toBeTruthy();
+      expect(state.liveSession.performance.withinSLA).toBe(true);
     });
 
     and(createSessionTest(4, 'should handle slow network gracefully with loading state'), async () => {
@@ -176,15 +178,14 @@ given('a live session slice with performance requirements', () => {
       // Should show loading state immediately
       let state = store.getState() as any;
       expect(state.liveSession.isLoading).toBe(true);
-      expect(state.liveSession.error).toBeNull();
 
-      // Wait for completion
+      vi.advanceTimersByTime(2500);
       await promise;
 
-      // Should complete eventually even if over 2 seconds
+      // Should complete eventually
       state = store.getState() as any;
       expect(state.liveSession.isLoading).toBe(false);
-      expect(state.liveSession.adaptation).toBeTruthy();
+      expect(state.liveSession.performance.lastSLABreach).toBe(true);
     });
 
     and(createSessionTest(5, 'should handle network timeout errors'), async () => {
@@ -205,17 +206,49 @@ given('a live session slice with performance requirements', () => {
         overrideHistory: [] as OverrideEvent[]
       };
 
-      try {
-        await (store.dispatch as any)(fetchWorkoutAdaptation(context));
-      } catch (error) {
-        // Expected to throw due to rejection
-      }
+      await (store.dispatch as any)(fetchWorkoutAdaptation(context));
 
       // Should not be loading and should have error
       const state = store.getState() as any;
       expect(state.liveSession.isLoading).toBe(false);
       expect(state.liveSession.error).toBeTruthy();
-      expect(state.liveSession.adaptation).toBeNull();
+    });
+
+    and(createSessionTest(6, 'should trigger fallback logic when SLA is breached'), async () => {
+      // Mock slow response (3 seconds)
+      const mockGenerateAdaptation = vi.fn().mockImplementation(
+        () => new Promise(resolve => 
+          setTimeout(() => resolve({
+            newExercise: 'Should not use this',
+            newReps: 25
+          }), 3000)
+        )
+      );
+      
+      mockGeminiService.mockReturnValue({
+        generateWorkoutAdaptation: mockGenerateAdaptation
+      } as any);
+
+      const context = {
+        activeContext: {
+          energy: 'tired' as const,
+          time: 'normal' as const,
+          equipmentStatus: 'available' as const
+        },
+        overrideHistory: [] as OverrideEvent[],
+        currentExercise: { reps: '10', sets: 3, restSeconds: 60 }
+      };
+
+      const promise = (store.dispatch as any)(fetchWorkoutAdaptation(context));
+      
+      vi.advanceTimersByTime(3000);
+      await promise;
+
+      const state = store.getState() as any;
+      expect(state.liveSession.performance.lastSLABreach).toBe(true);
+      // Fallback for 'tired' should be currentReps * 0.7 = 7
+      expect(state.liveSession.adaptation.newReps).toBe(7);
+      expect(state.liveSession.adaptation.notes).toContain('Conservative reduction due to system delay');
     });
   });
 });

@@ -127,25 +127,41 @@ describe('Privacy Integration & Validation', () => {
     });
   });
 
-  describe('Zero-Trust Metadata Anonymization', () => {
-    it('should completely remove specific sensitive categories', () => {
-      const complexData = {
-        exercise: 'Pushups',
-        health: {
-          heartRate: 150,
-          bloodPressure: '120/80'
-        },
-        location: {
-          lat: 40.7128,
-          lng: -74.0060
-        }
+  describe('Granular Privacy Controls', () => {
+    it('should respect user-defined data categories when sanitizing', () => {
+      const data = {
+        injuryHistory: 'Shoulder impingement',
+        workoutPatterns: 'Loves squats',
+        biologicalData: { heartRate: 140 },
+        locationData: { city: 'New York' }
       };
 
-      const anonymized = privacyShield.sanitizeForExternalUse(complexData);
-      
-      expect(anonymized.exercise).toBe('Pushups');
-      expect(anonymized.health).toBeUndefined(); // Entire health object should be removed if it matches sensitive patterns
-      expect(anonymized.location).toBeUndefined();
+      const categories = {
+        injuryHistory: false,   // PROTECT
+        biologicalData: false,  // PROTECT
+        locationData: true,     // SHARE
+        workoutPatterns: true,  // SHARE
+        usageAnalytics: true
+      };
+
+      const sanitized = privacyShield.sanitizeForExternalUse(data, categories);
+
+      expect(sanitized.injuryHistory).toBe('[REDACTED]');
+      expect(sanitized.biologicalData).toBeUndefined();
+      expect(sanitized.locationData.city).toBe('New York');
+      expect(sanitized.workoutPatterns).toBe('Loves squats');
+    });
+
+    it('should default to zero-trust (protect everything) if no categories provided', () => {
+      const data = {
+        injuryHistory: 'Back pain',
+        locationData: { city: 'London' }
+      };
+
+      const sanitized = privacyShield.sanitizeForExternalUse(data);
+
+      expect(sanitized.injuryHistory).toBe('[REDACTED]');
+      expect(sanitized.locationData).toBeUndefined();
     });
   });
 });

@@ -80,21 +80,19 @@ const initialState: LiveSessionState = {
 
 export const fetchWorkoutAdaptation = createAsyncThunk(
   'liveSession/fetchWorkoutAdaptation',
-  async (context: { activeContext: LiveSessionState['activeContext'], overrideHistory: OverrideEvent[] }, { rejectWithValue }) => {
+  async (context: { 
+    activeContext: LiveSessionState['activeContext'], 
+    overrideHistory: OverrideEvent[],
+    currentExercise?: { reps: string; sets: number; restSeconds: number }
+  }, { rejectWithValue }) => {
     const startTime = Date.now();
     try {
-      // CRITICAL FIX: Allow adaptations in any context - user can request help even when not tired/limited
-      // The original validation was too restrictive and prevented legitimate adaptation requests
-      // Only block if user explicitly requests to maintain current state
-
       const geminiService = GeminiService.getInstance();
       
-      // Format override history for AI context - PRIVACY: Remove identifying timestamps
       const formattedOverrideHistory = context.overrideHistory.map(override => ({
         type: override.recommendationId,
         userAction: override.userAction,
         reasoning: override.interactionMethod,
-        // PRIVACY: Only include relative time, not absolute timestamps
         relativeTime: getRelativeTimeDescription(override.timestamp!)
       }));
       
@@ -108,10 +106,19 @@ export const fetchWorkoutAdaptation = createAsyncThunk(
       if (responseTime > 2000) {
         console.warn(`AI adaptation SLA breach: ${responseTime}ms > 2000ms`);
         
-        // Return fallback adaptation when SLA is breached
+        // Return fallback adaptation based on current exercise context if provided
+        const currentReps = context.currentExercise ? parseInt(context.currentExercise.reps) || 10 : 10;
+        const currentSets = context.currentExercise?.sets || 3;
+
         const fallbackAdaptation = context.activeContext.energy === 'tired' 
-          ? { newReps: Math.max(1, 8), notes: "Conservative reduction due to system delay - safety first approach" }
-          : { newSets: Math.max(1, 2), notes: "Reduced sets due to system delay - maintaining workout efficiency" };
+          ? { 
+              newReps: Math.max(1, Math.floor(currentReps * 0.7)), 
+              notes: "Conservative reduction due to system delay - safety first approach" 
+            }
+          : { 
+              newSets: Math.max(1, currentSets - 1), 
+              notes: "Reduced sets due to system delay - maintaining workout efficiency" 
+            };
           
         return { adaptation: fallbackAdaptation, responseTime, slaBreach: true };
       }
