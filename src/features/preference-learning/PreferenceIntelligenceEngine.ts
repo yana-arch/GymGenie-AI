@@ -131,9 +131,16 @@ export class PreferenceIntelligenceEngine implements IPreferenceIntelligenceEngi
   async generateRecommendations(patterns: PreferencePattern[]): Promise<PreferenceRecommendation[]> {
     const recommendations: PreferenceRecommendation[] = [];
 
+    // Filter for strong patterns only
+    const strongPatterns = patterns.filter(p => 
+      p.confidence >= (this.config.confidenceThreshold || 0.7) && 
+      p.strength >= 0.5 &&
+      p.contradictions < (this.config.maxContradictions || 3)
+    );
+
     try {
       // Analyze patterns by type
-      const patternTypes = this.groupPatternsByType(patterns);
+      const patternTypes = this.groupPatternsByType(strongPatterns);
 
       for (const [type, typePatterns] of patternTypes.entries()) {
         const typeRecommendations = await this.generateTypeSpecificRecommendations(type, typePatterns);

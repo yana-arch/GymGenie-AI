@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import React, { useState, useEffect, createContext, useContext, ReactNode, useCallback, useRef } from 'react';
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -35,8 +35,18 @@ interface ToastProviderProps {
 
 export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const timeoutsRef = useRef<Record<string, NodeJS.Timeout>>({});
 
-  const showToast = (toast: Omit<Toast, 'id'>) => {
+  const hideToast = useCallback((id: string) => {
+    if (timeoutsRef.current[id]) {
+      clearTimeout(timeoutsRef.current[id]);
+      delete timeoutsRef.current[id];
+    }
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
+  const showToast = useCallback((toast: Omit<Toast, 'id'>) => {
+    // Basic deduplication: if a toast with exact same title and message exists, don't add it
     const id = crypto.randomUUID();
     const newToast: Toast = {
       id,
@@ -44,25 +54,33 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
       ...toast
     };
     
-    setToasts(prev => [...prev, newToast]);
+    setToasts(prev => {
+      const isDuplicate = prev.some(t => t.title === toast.title && t.message === toast.message);
+      if (isDuplicate) return prev;
+      return [...prev, newToast];
+    });
     
-    // Auto-hide if not persistent
     if (!newToast.persistent && newToast.duration && newToast.duration > 0) {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         hideToast(id);
       }, newToast.duration);
+      timeoutsRef.current[id] = timeout;
     }
     
     return id;
-  };
+  }, [hideToast]);
 
-  const hideToast = (id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
-
-  const clearAllToasts = () => {
+  const clearAllToasts = useCallback(() => {
+    Object.values(timeoutsRef.current).forEach(clearTimeout);
+    timeoutsRef.current = {};
     setToasts([]);
-  };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      Object.values(timeoutsRef.current).forEach(clearTimeout);
+    };
+  }, []);
 
   return (
     <ToastContext.Provider value={{ toasts, showToast, hideToast, clearAllToasts }}>
@@ -76,9 +94,11 @@ const ToastContainer: React.FC = () => {
   const { toasts, hideToast } = useToast();
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
       {toasts.map(toast => (
-        <ToastItem key={toast.id} toast={toast} onClose={() => hideToast(toast.id)} />
+        <div key={toast.id} className="pointer-events-auto">
+          <ToastItem toast={toast} onClose={() => hideToast(toast.id)} />
+        </div>
       ))}
     </div>
   );
@@ -91,98 +111,70 @@ const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({ toast, onC
     setIsVisible(true);
   }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsVisible(false);
-    setTimeout(onClose, 300); // Wait for exit animation
-  };
+    setTimeout(onClose, 300);
+  }, [onClose]);
 
   const getIcon = () => {
     switch (toast.type) {
-      case 'success':
-        return <CheckCircle className="text-green-500" size={20} />;
-      case 'error':
-        return <AlertCircle className="text-red-500" size={20} />;
-      case 'warning':
-        return <AlertTriangle className="text-yellow-500" size={20} />;
-      case 'info':
-        return <Info className="text-blue-500" size={20} />;
-      default:
-        return <Info className="text-blue-500" size={20} />;
+      case 'success': return <CheckCircle className="text-green-500" size={20} />;
+      case 'error': return <AlertCircle className="text-red-500" size={20} />;
+      case 'warning': return <AlertTriangle className="text-yellow-500" size={20} />;
+      case 'info': return <Info className="text-blue-500" size={20} />;
+      default: return <Info className="text-blue-500" size={20} />;
     }
   };
 
   const getBackgroundStyles = () => {
     switch (toast.type) {
-      case 'success':
-        return 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800';
-      case 'error':
-        return 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800';
-      case 'warning':
-        return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800';
-      case 'info':
-        return 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800';
-      default:
-        return 'bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800';
+      case 'success': return 'bg-white dark:bg-gray-800 border-green-500/20 shadow-green-500/5';
+      case 'error': return 'bg-white dark:bg-gray-800 border-red-500/20 shadow-red-500/5';
+      case 'warning': return 'bg-white dark:bg-gray-800 border-yellow-500/20 shadow-yellow-500/5';
+      case 'info': return 'bg-white dark:bg-gray-800 border-blue-500/20 shadow-blue-500/5';
+      default: return 'bg-white dark:bg-gray-800 border-gray-500/20 shadow-gray-500/5';
     }
   };
 
-  const getTextStyles = () => {
+  const getIndicatorStyles = () => {
     switch (toast.type) {
-      case 'success':
-        return 'text-green-800 dark:text-green-200';
-      case 'error':
-        return 'text-red-800 dark:text-red-200';
-      case 'warning':
-        return 'text-yellow-800 dark:text-yellow-200';
-      case 'info':
-        return 'text-blue-800 dark:text-blue-200';
-      default:
-        return 'text-gray-800 dark:text-gray-200';
+      case 'success': return 'bg-green-500';
+      case 'error': return 'bg-red-500';
+      case 'warning': return 'bg-yellow-500';
+      case 'info': return 'bg-blue-500';
+      default: return 'bg-gray-500';
     }
   };
 
   return (
     <div
       className={`
-        transform transition-all duration-300 ease-in-out
-        ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
+        relative overflow-hidden
+        transform transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]
+        ${isVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-8 opacity-0 scale-95'}
         ${getBackgroundStyles()}
-        border rounded-lg shadow-lg p-4 flex items-start gap-3 min-w-0
+        border rounded-2xl shadow-2xl p-4 flex items-start gap-3 min-w-[280px]
       `}
     >
-      <div className="flex-shrink-0 mt-0.5">
-        {getIcon()}
-      </div>
+      <div className={`absolute left-0 top-0 bottom-0 w-1 ${getIndicatorStyles()}`} />
       
+      <div className="flex-shrink-0 mt-0.5">{getIcon()}</div>
       <div className="flex-1 min-w-0">
-        <h4 className={`font-semibold text-sm ${getTextStyles()}`}>
-          {toast.title}
-        </h4>
-        {toast.message && (
-          <p className={`text-xs mt-1 ${getTextStyles()} opacity-80`}>
-            {toast.message}
-          </p>
-        )}
+        <h4 className="font-bold text-sm text-gray-900 dark:text-gray-100">{toast.title}</h4>
+        {toast.message && <p className="text-xs mt-1 text-gray-500 dark:text-gray-400 leading-relaxed">{toast.message}</p>}
       </div>
-      
       {!toast.persistent && (
-        <button
-          onClick={handleClose}
-          className={`
-            flex-shrink-0 ml-2 p-1 rounded-full hover:bg-black/5 
-            dark:hover:bg-white/5 transition-colors
-            ${getTextStyles()} opacity-60 hover:opacity-100
-          `}
+        <button 
+          onClick={handleClose} 
+          className="flex-shrink-0 -mr-1 -mt-1 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
         >
-          <X size={16} />
+          <X size={14} />
         </button>
       )}
     </div>
   );
 };
 
-// Convenience functions for common toast types
-// Enhanced error handling for different error types
 export const toast = {
   success: (title: string, message?: string, options?: Partial<Omit<Toast, 'id' | 'type' | 'title' | 'message'>>) => ({
     type: 'success' as ToastType,
@@ -208,8 +200,6 @@ export const toast = {
     message,
     ...options
   }),
-
-  // Specific error types for better UX
   network: (message?: string) => ({
     type: 'error' as ToastType,
     title: 'Network Error',
@@ -217,43 +207,38 @@ export const toast = {
     persistent: true,
     duration: 8000
   }),
-
   api: (message?: string) => ({
     type: 'error' as ToastType,
-    title: 'API Error',
-    message: message || 'Server request failed. Please try again.',
+    title: 'System Error',
+    message: message || 'An unexpected error occurred. Please try again.',
     persistent: false,
     duration: 6000
   }),
-
   validation: (field: string, message?: string) => ({
     type: 'warning' as ToastType,
-    title: 'Validation Error',
-    message: message || `Please check your ${field} input.`,
+    title: 'Validation Needed',
+    message: message || `Please verify your ${field} input.`,
     persistent: false,
     duration: 4000
   }),
-
   camera: (message?: string) => ({
     type: 'warning' as ToastType,
-    title: 'Camera Access',
-    message: message || 'Camera access is needed for form detection features.',
-    persistent: true,
-    duration: 8000
-  }),
-
-  ai: (message?: string) => ({
-    type: 'error' as ToastType,
-    title: 'AI Service Error',
-    message: message || 'AI service unavailable. Please try again.',
+    title: 'Camera Connection',
+    message: message || 'Camera access is required for AI form detection.',
     persistent: false,
     duration: 6000
   }),
-
+  ai: (message?: string) => ({
+    type: 'error' as ToastType,
+    title: 'AI Insight Error',
+    message: message || 'AI processing is currently unavailable.',
+    persistent: false,
+    duration: 6000
+  }),
   permission: (permission: string, message?: string) => ({
     type: 'warning' as ToastType,
-    title: 'Permission Required',
-    message: message || `Please allow ${permission} to use this feature.`,
+    title: 'Access Denied',
+    message: message || `Please enable ${permission} in your settings to use this feature.`,
     persistent: true,
     duration: 10000
   })

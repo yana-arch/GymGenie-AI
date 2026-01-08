@@ -16,6 +16,7 @@ interface FormCorrectionSliceState extends FormCorrectionState {
   isInitialized: boolean;
   currentExercise: string;
   settings: {
+    cameraEnabled: boolean;
     audioEnabled: boolean;
     visualFeedbackEnabled: boolean;
     correctionSensitivity: 'strict' | 'normal' | 'lenient';
@@ -44,6 +45,7 @@ const initialState: FormCorrectionSliceState = {
   isInitialized: false,
   currentExercise: '',
   settings: {
+    cameraEnabled: true,
     audioEnabled: true,
     visualFeedbackEnabled: true,
     correctionSensitivity: 'normal'

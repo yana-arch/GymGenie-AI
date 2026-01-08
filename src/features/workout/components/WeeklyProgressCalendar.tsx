@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { CheckCircle2, Circle, Activity, Trophy, Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { SessionState } from '@/types';
+import { useToast, toast } from '@/components/ui/Toast';
 
 interface WeeklyProgressCalendarProps {
   selectedWeekIndex: number;
@@ -15,12 +16,8 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
   onDaySelect
 }) => {
   const { currentPlan, getSessionState } = useApp();
+  const { showToast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
-
-  // Default to showing only the selected week (or current week if not provided) when collapsed
-  // But the UI requirement says "Current Week" by default. 
-  // We'll stick to selectedWeekIndex as the "current" view context for simplicity in this component,
-  // but allow expansion to see others.
 
   if (!currentPlan) return null;
 
@@ -70,42 +67,10 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
     return { completed, total, active };
   };
 
-  // Helper to determine if a day is accessible
-  const isDayAccessible = (weekIndex: number, dayIndex: number) => {
-      // In a real app, this would check against current date or if previous days are done
-      // For now, we'll allow all days up to the first future/locked day?
-      // Or simply: Previous days + current active day are accessible. Future days are locked.
-      // Simplification: All days in past weeks are accessible.
-      // In current week, days are accessible sequentially?
-      // Let's implement a simple logic: Day is accessible if it's logged, active, or the immediate next available workout.
-      // Or even simpler: Don't restrict viewing details, but maybe restrict *starting* them (which is handled elsewhere).
-      // BUT requirement says: "Validate... interact with past or current days... future days disabled"
-      
-      // Let's assume sequential unlock for now based on state
-      // Actually, standard logic: Any day with state !== inactive is accessible.
-      // Plus the first inactive day (next workout).
-      
-      // For the purpose of "Calendar View", usually you can see the plan for future.
-      // But the requirement specifically asks to disable "Future (not arrived) days".
-      // Since we don't have real dates mapped to plan days yet in this schema (it's Week 1 Day 1 etc),
-      // We will treat "Future" as "Days after the current active day".
-      
-      // Find the latest active/logged day
-      // All days before and including it are accessible.
-      // Plus one day ahead?
-      
-      // Let's stick to the prompt's "Validate date" logic.
-      // Since we don't have `date` field in Day schema visible here, we'll simulate.
-      // If we assume linear progression:
-      
-      return true; // Placeholder: Real validation needs date-based logic or sequence-based
-  };
-
   const visibleWeeks = useMemo(() => {
     if (isExpanded) {
       return currentPlan.weeks.map((week, index) => ({ week, index }));
     }
-    // Show only the selected week when collapsed
     const selectedWeek = currentPlan.weeks[selectedWeekIndex];
     return selectedWeek ? [{ week: selectedWeek, index: selectedWeekIndex }] : [];
   }, [currentPlan, selectedWeekIndex, isExpanded]);
@@ -131,7 +96,6 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
         </button>
       </div>
 
-      {/* Week List */}
       <div className="space-y-3 mb-6">
         {visibleWeeks.map(({ week, index }) => {
           const progress = getWeekProgress(index);
@@ -168,7 +132,6 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
                   </div>
                 </div>
 
-                {/* Progress Bar */}
                 <div className="w-full bg-gray-100 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all duration-500 ${
@@ -187,7 +150,6 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
         })}
       </div>
 
-      {/* Selected Week Day Grid - Always Visible for Context */}
       <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
         <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center justify-between">
           <span>Week {currentPlan.weeks[selectedWeekIndex]?.weekNumber} Overview</span>
@@ -201,38 +163,16 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
               day.id
             );
             
-            // Validation Logic:
-            // A day is "future/locked" if it's not a rest day AND state is inactive AND it's far ahead?
-            // Simplified for Minimalist/Workout-First:
-            // - Past/Done days: Accessible
-            // - Active/Today: Accessible
-            // - Immediate Next: Accessible
-            // - Far future: Locked/Grayed out (Visual only, or disabled interaction)
-            
-            // For this UI fix, let's enable all for viewing (User might want to see what's coming),
-            // BUT if requirement says "Disable future", we'll style them as disabled.
-            // Let's assume we can view details of any day, but visual emphasis is on past/current.
-            // Wait, requirement: "Ensure user can only view/interact with past or current... Future... disabled".
-            // Okay, we need to enforce disable.
-            
-            // Heuristic: Find index of first "Inactive" day. All days after that are disabled.
-            // We need to calculate this outside the loop effectively, but for small arrays here it's fine.
             const week = currentPlan.weeks[selectedWeekIndex];
             const firstInactiveIndex = week.days.findIndex(d =>
                 !d.isRestDay && getSessionState(week.id, d.id) === SessionState.INACTIVE
             );
-            
-            // If all done, firstInactive is -1.
-            // If we are before the first inactive day, we are unlocked.
-            // If we are AT the first inactive day, we are unlocked (it's the next workout).
-            // If we are AFTER the first inactive day, we are locked.
             
             let isLocked = false;
             if (firstInactiveIndex !== -1 && dayIndex > firstInactiveIndex) {
                  isLocked = true;
             }
             
-            // Override: Rest days are always "locked" for interaction in this context (can't click to view workout)
             if (day.isRestDay) isLocked = true;
 
             return (
@@ -240,20 +180,30 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
                 key={day.id}
                 onClick={() => {
                     if (isLocked && !day.isRestDay) {
-                        // Toast notification could go here
-                        alert("You can't jump ahead! Complete previous workouts first.");
+                        showToast(toast.warning(
+                          "Access Restricted",
+                          "You can't jump ahead! Complete previous workouts first to stay on track with your plan.",
+                          { persistent: false, duration: 5000 }
+                        ));
+                        return;
+                    }
+                    if (day.isRestDay) {
+                        showToast(toast.info(
+                          "Rest Day",
+                          "Enjoy your rest! Your muscles grow when you recover.",
+                          { persistent: false, duration: 4000 }
+                        ));
                         return;
                     }
                     onDaySelect(selectedWeekIndex, dayIndex);
                 }}
                 className={`aspect-square p-1 rounded-lg border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                   day.isRestDay
-                    ? 'bg-gray-50 dark:bg-gray-700 border-gray-100 dark:border-gray-600 cursor-default opacity-40'
+                    ? 'bg-gray-50 dark:bg-gray-700 border-gray-100 dark:border-gray-600 cursor-pointer opacity-40 hover:opacity-60'
                     : isLocked
-                        ? 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 opacity-50 cursor-not-allowed grayscale'
+                        ? 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600 opacity-50 cursor-pointer grayscale hover:opacity-70'
                         : `${getSessionStateColor(sessionState)} hover:scale-105 active:scale-95 cursor-pointer`
                 }`}
-                disabled={day.isRestDay} // We handle custom click for locked non-rest days to show toast
                 title={day.isRestDay ? 'Rest Day' : isLocked ? 'Complete previous workouts to unlock' : `${day.dayName} - ${day.title}`}
               >
                   <div className="text-[10px] font-bold uppercase tracking-wider opacity-70">
@@ -272,7 +222,6 @@ const WeeklyProgressCalendar: React.FC<WeeklyProgressCalendarProps> = ({
         </div>
       </div>
 
-      {/* Simplified Legend */}
       {isExpanded && (
         <div className="border-t border-gray-100 dark:border-gray-700 pt-3 mt-4 animate-fade-in">
           <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400">

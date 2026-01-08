@@ -492,7 +492,8 @@ export class SessionStateManager implements ISessionStateManager {
         sessionData.lastActivity &&
         Date.now() - sessionData.lastActivity > this.STALE_SESSION_THRESHOLD;
 
-      // Convert stored data back to WorkoutSession instances
+      // Filter out non-serializable properties before storing or loading
+      // (This should ideally happen during save, but adding safety here)
       for (const [key, sessionDataItem] of Object.entries(
         sessionData.sessions
       )) {

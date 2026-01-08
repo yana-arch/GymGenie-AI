@@ -2,9 +2,11 @@ import React, { useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { PlayCircle, CheckCircle } from 'lucide-react';
 import { SessionState } from '@/types';
+import { useToast, toast } from '@/components/ui/Toast';
 
 const NextWorkout: React.FC = () => {
   const { currentPlan, getSessionState, startWorkoutSession, setStep } = useApp();
+  const { showToast } = useToast();
 
   const nextWorkoutInfo = useMemo(() => {
     if (!currentPlan) return null;
@@ -28,7 +30,7 @@ const NextWorkout: React.FC = () => {
       }
     }
 
-    return null; // All workouts completed
+    return null;
   }, [currentPlan, getSessionState]);
 
   if (!nextWorkoutInfo) {
@@ -48,9 +50,19 @@ const NextWorkout: React.FC = () => {
     if (!isSessionActive) {
       try {
         await startWorkoutSession(weekId, dayId);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to start session:", error);
-        return; // Don't navigate if start failed
+        
+        if (error.message && error.message.includes('SEQUENCE_ERROR')) {
+          showToast(toast.warning(
+            "Plan Sequence",
+            "Please follow the plan order for optimal results. Complete previous sessions first.",
+            { persistent: false, duration: 6000 }
+          ));
+        } else {
+          showToast(toast.api("Failed to start workout session. Please try again."));
+        }
+        return;
       }
     }
     setStep('session');
