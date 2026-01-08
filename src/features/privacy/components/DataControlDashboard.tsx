@@ -2,19 +2,22 @@ import React from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { toggleDataCategory } from '../store/privacySlice';
 import { PrivacyAuditService } from '../services/PrivacyAuditService';
-import { Shield, Activity, MapPin, Database, Heart, AlertTriangle, Check, X, Info } from 'lucide-react';
+import PrivacyAuditLog from './PrivacyAuditLog';
+import { Shield, Activity, MapPin, Database, Heart, AlertTriangle, Check, X, Info, History } from 'lucide-react';
 import { DataCategories } from '../types/privacy.types';
 import Card from '@/components/ui/Card';
+import { Button } from '@/components/ui';
 
 /**
  * DataControlDashboard Component
  * Provides granular controls for data categories used in AI recommendations.
- * Compliant with FR18, AC1, AC2, AC5
+ * Compliant with FR18, AC1, AC2, AC5, AC4
  */
 const DataControlDashboard: React.FC = () => {
   const dispatch = useAppDispatch();
   const { settings } = useAppSelector((state) => state.privacy);
   const { dataCategories } = settings;
+  const [activeTab, setActiveTab] = React.useState<'controls' | 'history'>('controls');
 
   const handleToggle = (category: keyof DataCategories) => {
     dispatch(toggleDataCategory(category));
@@ -85,54 +88,83 @@ const DataControlDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid gap-4">
-          {categories.map((cat) => (
-            <div 
-              key={cat.id} 
-              className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-                dataCategories[cat.id] 
-                  ? 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 shadow-sm' 
-                  : 'bg-gray-50/50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-800'
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-2.5 rounded-lg ${
+        <div className="flex p-1 bg-gray-100 dark:bg-gray-900 rounded-xl mb-6">
+          <button
+            onClick={() => setActiveTab('controls')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${
+              activeTab === 'controls' 
+                ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm' 
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <Shield className="w-3.5 h-3.5" />
+            Data Controls
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${
+              activeTab === 'history' 
+                ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 shadow-sm' 
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            Audit History
+          </button>
+        </div>
+
+        {activeTab === 'controls' ? (
+          <div className="grid gap-4">
+            {categories.map((cat) => (
+              <div 
+                key={cat.id} 
+                className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                   dataCategories[cat.id] 
-                    ? 'bg-white dark:bg-gray-700 shadow-sm' 
-                    : 'bg-gray-100 dark:bg-gray-800 opacity-60'
-                }`}>
-                  {cat.icon}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{cat.label}</h3>
-                    {cat.sensitive && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 font-medium">
-                        Sensitive
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 max-w-sm">
-                    {cat.description}
-                  </p>
-                </div>
-              </div>
-              
-              <button
-                onClick={() => handleToggle(cat.id)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                  dataCategories[cat.id] ? 'bg-brand-600' : 'bg-gray-300 dark:bg-gray-700'
+                    ? 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 shadow-sm' 
+                    : 'bg-gray-50/50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-800'
                 }`}
               >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    dataCategories[cat.id] ? 'translate-x-6' : 'translate-x-1'
+                <div className="flex items-center gap-4">
+                  <div className={`p-2.5 rounded-lg ${
+                    dataCategories[cat.id] 
+                      ? 'bg-white dark:bg-gray-700 shadow-sm' 
+                      : 'bg-gray-100 dark:bg-gray-800 opacity-60'
+                  }`}>
+                    {cat.icon}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{cat.label}</h3>
+                      {cat.sensitive && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 font-medium">
+                          Sensitive
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 max-w-sm">
+                      {cat.description}
+                    </p>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => handleToggle(cat.id)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                    dataCategories[cat.id] ? 'bg-brand-600' : 'bg-gray-300 dark:bg-gray-700'
                   }`}
-                />
-              </button>
-            </div>
-          ))}
-        </div>
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      dataCategories[cat.id] ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <PrivacyAuditLog />
+        )}
 
         <div className="mt-8 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 flex gap-4">
           <Info className="w-5 h-5 text-blue-500 shrink-0" />

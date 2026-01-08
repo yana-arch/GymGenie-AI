@@ -27,6 +27,7 @@ import { performanceMonitoringService } from "../performance/PerformanceMonitori
 import { toast } from "@/components/ui/Toast";
 import { EncryptionService } from "@/features/privacy/services/EncryptionService";
 import { PrivacyShieldService } from "@/features/privacy/services/PrivacyShieldService";
+import { PrivacyAuditService } from "@/features/privacy/services/PrivacyAuditService";
 import { recordSanitization, addAuditEntry } from "@/features/privacy/store/privacySlice";
 import { DataCategories } from "@/features/privacy/types/privacy.types";
 import { v4 as uuidv4 } from "uuid";
@@ -224,7 +225,6 @@ export class GeminiService {
   private ai: GoogleGenAI;
   private model: string;
   private privacyShield: PrivacyShieldService;
-  private dispatch: any = null;
 
   private constructor() {
     this.refreshConfig();
@@ -234,25 +234,13 @@ export class GeminiService {
     );
   }
 
-  public setDispatch(dispatch: any) {
-    this.dispatch = dispatch;
-  }
+  private async handleSanitization(categories?: DataCategories) {
+    const categoriesShared = categories ? Object.entries(categories).filter(([_, v]) => v).map(([k]) => k) : [];
+    const categoriesProtected = categories ? Object.entries(categories).filter(([_, v]) => !v).map(([k]) => k) : [];
 
-  private handleSanitization(categories?: DataCategories) {
-    if (this.dispatch) {
-      const categoriesShared = categories ? Object.entries(categories).filter(([_, v]) => v).map(([k]) => k) : [];
-      const categoriesProtected = categories ? Object.entries(categories).filter(([_, v]) => !v).map(([k]) => k) : [];
-
-      this.dispatch(recordSanitization({ categoriesShared, categoriesProtected }));
-      this.dispatch(addAuditEntry({
-        id: uuidv4(),
-        timestamp: Date.now(),
-        operation: 'transmission',
-        resource: 'external_ai_service',
-        status: 'success',
-        details: `PII detected and anonymized. Protected: ${categoriesProtected.join(', ') || 'PII Only'}`
-      }));
-    }
+    // Use dynamic import to avoid circular dependency
+    const { store } = await import('@/store');
+    store.dispatch(recordSanitization({ categoriesShared, categoriesProtected }));
   }
 
   public static getInstance(): GeminiService {
@@ -319,6 +307,15 @@ export class GeminiService {
       });
 
       if (response.text) {
+        // Log AI inference - equipment ID usually doesn't need personal data categories
+        // but we log it as success with default empty categories if none specified
+        PrivacyAuditService.logAiInference(this.model, {
+          injuryHistory: false,
+          biologicalData: false,
+          locationData: false,
+          workoutPatterns: false,
+          usageAnalytics: false,
+        }, 'success', 'Equipment identification');
         const rawData = JSON.parse(response.text);
         return ValidatedApiHandlers.equipment(rawData);
       }
@@ -369,6 +366,18 @@ export class GeminiService {
       });
 
       if (response.text) {
+        PrivacyAuditService.logAiInference(
+          this.model, 
+          privacyCategories || {
+            injuryHistory: false,
+            biologicalData: false,
+            locationData: false,
+            workoutPatterns: false,
+            usageAnalytics: false,
+          }, 
+          'success', 
+          'Recipe generation'
+        );
         const rawData = JSON.parse(response.text);
         const validatedRecipes = ValidatedApiHandlers.recipes(rawData);
         return validatedRecipes.map((r: any) => ({
@@ -423,6 +432,19 @@ export class GeminiService {
       });
 
       if (!response.text) throw new Error("No response from AI");
+
+      PrivacyAuditService.logAiInference(
+        this.model, 
+        privacyCategories || {
+          injuryHistory: false,
+          biologicalData: false,
+          locationData: false,
+          workoutPatterns: false,
+          usageAnalytics: false,
+        }, 
+        'success', 
+        'Workout planning'
+      );
 
       const rawData = JSON.parse(response.text);
       const validatedPlan = ValidatedApiHandlers.workoutPlan(rawData);
@@ -494,6 +516,19 @@ export class GeminiService {
       });
 
       if (!response.text) throw new Error("No response from AI");
+
+      PrivacyAuditService.logAiInference(
+        this.model, 
+        privacyCategories || {
+          injuryHistory: false,
+          biologicalData: false,
+          locationData: false,
+          workoutPatterns: false,
+          usageAnalytics: false,
+        }, 
+        'success', 
+        'Workout modification'
+      );
 
       const rawData = JSON.parse(response.text);
       const validatedDay =
@@ -616,6 +651,19 @@ export class GeminiService {
 
       const adaptation = await this.generateWorkoutAdaptationInternal(sanitizedContext);
       
+      PrivacyAuditService.logAiInference(
+        this.model, 
+        privacyCategories || {
+          injuryHistory: false,
+          biologicalData: false,
+          locationData: false,
+          workoutPatterns: false,
+          usageAnalytics: false,
+        }, 
+        'success', 
+        'Workout adaptation'
+      );
+
       // Record successful performance metrics
       performanceMonitoringService.endMonitoring(
         monitoring.monitoringId,
@@ -793,6 +841,20 @@ export class GeminiService {
     });
 
     if (!response.text) return [];
+
+    PrivacyAuditService.logAiInference(
+      this.model, 
+      privacyCategories || {
+        injuryHistory: false,
+        biologicalData: false,
+        locationData: false,
+        workoutPatterns: false,
+        usageAnalytics: false,
+      }, 
+      'success', 
+      'Exercise set generation'
+    );
+
     return JSON.parse(response.text);
   }
 
@@ -838,6 +900,18 @@ export class GeminiService {
       });
 
       if (response.text) {
+        PrivacyAuditService.logAiInference(
+          this.model, 
+          privacyCategories || {
+            injuryHistory: false,
+            biologicalData: false,
+            locationData: false,
+            workoutPatterns: false,
+            usageAnalytics: false,
+          }, 
+          'success', 
+          'Meal suggestions'
+        );
         return JSON.parse(response.text) as string[];
       }
       return [];

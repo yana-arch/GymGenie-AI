@@ -1,4 +1,5 @@
 import { EncryptionService } from './EncryptionService';
+import { PrivacyAuditService } from './PrivacyAuditService';
 import { DataCategories } from '../types/privacy.types';
 
 /**
@@ -63,8 +64,11 @@ export class PrivacyShieldService {
   sanitizeForExternalUse(data: any, categories?: DataCategories): any {
     if (!data || typeof data !== 'object') return data;
 
-    if (this.isSensitive(data, categories) && this.onSanitize) {
-      this.onSanitize(categories);
+    if (this.isSensitive(data, categories)) {
+      if (this.onSanitize) {
+        this.onSanitize(categories);
+      }
+      PrivacyAuditService.logAccess('Data Sanitization', 'success', categories ? 'Selective categories applied' : 'Full zero-trust sanitization');
     }
 
     if (Array.isArray(data)) {
@@ -115,8 +119,10 @@ export class PrivacyShieldService {
   async safeTransmit<T>(transmitFn: (data: any) => Promise<T>, data: any, categories?: DataCategories): Promise<T> {
     if (this.isSensitive(data, categories)) {
       const sanitized = this.sanitizeForExternalUse(data, categories);
+      await PrivacyAuditService.logTransmission('Safe External Transmission', 'success', 'Data sanitized before transmission');
       return transmitFn(sanitized);
     }
+    await PrivacyAuditService.logTransmission('External Transmission', 'success', 'No sensitive data detected');
     return transmitFn(data);
   }
 
@@ -124,6 +130,7 @@ export class PrivacyShieldService {
    * Encrypts sensitive data for local storage
    */
   async encryptForStorage(data: any): Promise<string> {
+    PrivacyAuditService.logEncryption('Local Storage');
     return this.encryptionService.encrypt(data);
   }
 
@@ -131,6 +138,7 @@ export class PrivacyShieldService {
    * Decrypts sensitive data from local storage
    */
   async decryptFromStorage(encryptedData: string): Promise<any> {
+    PrivacyAuditService.logDecryption('Local Storage');
     return this.encryptionService.decrypt(encryptedData);
   }
 }

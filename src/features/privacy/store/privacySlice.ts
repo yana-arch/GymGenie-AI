@@ -44,7 +44,7 @@ const privacySlice = createSlice({
     },
     addAuditEntry(state, action: PayloadAction<PrivacyAuditEntry>) {
       state.auditLog.unshift(action.payload);
-      if (state.auditLog.length > 100) {
+      if (state.auditLog.length > 1000) {
         state.auditLog.pop();
       }
       if (action.payload.operation === 'transmission' && action.payload.details?.includes('anonymized')) {

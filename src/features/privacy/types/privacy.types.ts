@@ -21,10 +21,11 @@ export interface PrivacySettings {
 export interface PrivacyAuditEntry {
   id: string;
   timestamp: number;
-  operation: 'encrypt' | 'decrypt' | 'access' | 'transmission' | 'consent_change' | 'setting_change';
+  operation: 'encrypt' | 'decrypt' | 'access' | 'transmission' | 'consent_change' | 'setting_change' | 'ai_inference';
   resource: string;
   status: 'success' | 'failure';
   details?: string;
+  dataCategories?: DataCategories;
 }
 
 export interface EncryptionResult {
