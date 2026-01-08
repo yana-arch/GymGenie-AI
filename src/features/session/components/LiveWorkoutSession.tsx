@@ -17,8 +17,12 @@ import { toTitleCase } from '@/utils/stringUtils';
 import { Button } from '@/components/ui';
 import { useToast, toast } from '@/components/ui/Toast';
 import { useErrorHandler } from '@/utils/errorHandler';
-import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation } from '../store/liveSessionSlice';
+import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation, setIsActive } from '../store/liveSessionSlice';
 import { updateSettings as updateFormSettings } from '@/features/form-correction/store/formCorrectionSlice';
+import { useGuidanceLoop } from '../hooks/useGuidanceLoop';
+import LiveGuidanceOverlay from './LiveGuidanceOverlay';
+import MilestoneCelebration from './MilestoneCelebration';
+import TransitionPrep from './TransitionPrep';
 
 const LiveWorkoutSession = () => {
   const { showToast } = useToast();
@@ -55,6 +59,11 @@ const LiveWorkoutSession = () => {
 
   const [showHowTo, setShowHowTo] = useState(false);
   const [currentCatalogExercise, setCurrentCatalogExercise] = useState<Exercise | null>(null);
+  const [transitionState, setTransitionState] = useState<{ active: boolean; seconds: number; nextName: string }>({ 
+    active: false, 
+    seconds: 0, 
+    nextName: '' 
+  });
 
   // Safety: Track if camera error has already been shown to avoid infinite notification loops
   const hasShownCameraError = useRef<boolean>(false);
@@ -256,6 +265,15 @@ const LiveWorkoutSession = () => {
         )
       );
 
+      // Trigger transition if it was the last set
+      if (completedSetsCount + 1 >= activeContext.currentExercise.sets && activeExerciseIndex < activeContext.totalExercises - 1) {
+        setTransitionState({
+          active: true,
+          seconds: 5,
+          nextName: activeContext.day.exercises[activeExerciseIndex + 1].name
+        });
+      }
+
     } catch (error) {
       console.error('Failed to log set:', error);
       showToast(
@@ -266,7 +284,46 @@ const LiveWorkoutSession = () => {
         )
       );
     }
-  }, [activeContext, completedSetsCount, setStartTime, startRestTimer, dispatch, inputWeight, inputReps, addSetToSession, showToast]);
+  }, [activeContext, completedSetsCount, activeExerciseIndex, setStartTime, startRestTimer, dispatch, inputWeight, inputReps, addSetToSession, showToast]);
+
+  const { day, currentExercise, totalExercises } = activeContext || { day: null, currentExercise: null, totalExercises: 0 };
+
+  // Calculate session progress (0 to 1)
+  const sessionProgress = useMemo(() => {
+    if (!activeContext || !day) return 0;
+    const exerciseProgress = activeExerciseIndex / totalExercises;
+    const currentExerciseWeight = 1 / totalExercises;
+    const setProgress = (completedSetsCount / (currentExercise?.sets || 1)) * currentExerciseWeight;
+    return Math.min(1, exerciseProgress + setProgress);
+  }, [activeExerciseIndex, totalExercises, completedSetsCount, currentExercise?.sets, activeContext, day]);
+
+  // Guidance Loop Integration
+  const { activeGuidance, milestoneHistory } = useGuidanceLoop(
+    liveSessionState.isActive, 
+    sessionProgress
+  );
+
+  useEffect(() => {
+    // Set active state when component mounts
+    dispatch(setIsActive(true));
+    return () => {
+      dispatch(setIsActive(false));
+    };
+  }, [dispatch]);
+
+  // Handle transition countdown
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (transitionState.active && transitionState.seconds > 0) {
+      timer = setInterval(() => {
+        setTransitionState(prev => ({ ...prev, seconds: prev.seconds - 1 }));
+      }, 1000);
+    } else if (transitionState.active && transitionState.seconds <= 0) {
+      setTransitionState(prev => ({ ...prev, active: false }));
+      handleNextExercise();
+    }
+    return () => clearInterval(timer);
+  }, [transitionState, handleNextExercise]);
 
   const setupCamera = useCallback(async () => {
     if (!cameraEnabled) return;
@@ -383,8 +440,6 @@ const LiveWorkoutSession = () => {
       }
     } catch (error) {}
   };
-
-  const { day, currentExercise, totalExercises } = activeContext || { day: null, currentExercise: null, totalExercises: 0 };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 relative">
@@ -628,6 +683,15 @@ const LiveWorkoutSession = () => {
                </div>
              </div>
            )}
+
+          <LiveGuidanceOverlay guidance={activeGuidance} />
+          <MilestoneCelebration milestones={milestoneHistory} />
+          {transitionState.active && (
+            <TransitionPrep 
+              nextExercise={toTitleCase(transitionState.nextName)} 
+              secondsRemaining={transitionState.seconds} 
+            />
+          )}
         </>
       )}
     </div>

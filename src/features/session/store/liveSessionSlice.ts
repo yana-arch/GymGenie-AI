@@ -2,6 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { GeminiService } from '@/services/ai/GeminiService';
 import type { OverrideEvent, AIRecommendation } from '@/features/safety-override/services/OverrideDetectionService';
 import { InjuryFilterService } from '@/features/injury-aware/services/InjuryFilterService';
+import { CoachingDecision } from '@/features/unified-coaching/types/unifiedCoaching.types';
 
 // Performance monitoring interface
 interface PerformanceMetrics {
@@ -25,6 +26,7 @@ interface LiveSessionState {
     time: 'normal' | 'limited';
     equipmentStatus: 'available' | 'unavailable';
   };
+  isActive: boolean;
   isLoading: boolean;
   error: string | null;
   adaptation: WorkoutAdaptation | null;
@@ -48,6 +50,10 @@ interface LiveSessionState {
     injuryAreas: string[];
     safetyLevel: 'normal' | 'conservative' | 'restricted';
   };
+  // Live Guidance
+  activeGuidance: CoachingDecision | null;
+  milestoneHistory: number[];
+  quietMode: boolean;
   // Note: injuryFilterService is managed outside Redux to avoid non-serializable state
 }
 
@@ -57,6 +63,7 @@ const initialState: LiveSessionState = {
     time: 'normal',
     equipmentStatus: 'available',
   },
+  isActive: false,
   isLoading: false,
   error: null,
   adaptation: null,
@@ -76,6 +83,9 @@ const initialState: LiveSessionState = {
       injuryAreas: [],
       safetyLevel: 'normal'
     },
+    activeGuidance: null,
+    milestoneHistory: [],
+    quietMode: false,
   };
 
 export const fetchWorkoutAdaptation = createAsyncThunk(
@@ -173,6 +183,9 @@ const liveSessionSlice = createSlice({
     updateTimeContext(state, action: PayloadAction<'normal' | 'limited'>) {
       state.activeContext.time = action.payload;
     },
+    setIsActive(state, action: PayloadAction<boolean>) {
+      state.isActive = action.payload;
+    },
     clearAdaptation(state) {
         state.adaptation = null;
     },
@@ -251,6 +264,20 @@ const liveSessionSlice = createSlice({
       }
 
       state.adaptation = modifiedAdaptation;
+    },
+    setActiveGuidance(state, action: PayloadAction<CoachingDecision | null>) {
+      state.activeGuidance = action.payload;
+    },
+    addMilestone(state, action: PayloadAction<number>) {
+      if (!state.milestoneHistory.includes(action.payload)) {
+        state.milestoneHistory.push(action.payload);
+      }
+    },
+    clearMilestones(state) {
+      state.milestoneHistory = [];
+    },
+    toggleQuietMode(state) {
+      state.quietMode = !state.quietMode;
     }
   },
   extraReducers: (builder) => {
@@ -290,6 +317,23 @@ const liveSessionSlice = createSlice({
   },
 });
 
-export const { updateEnergyContext, updateTimeContext, clearAdaptation, addRecommendation, removeRecommendation, applyOverride, clearOverride, clearRecommendations, resetPerformanceMetrics, setInjuryConstraints, applyInjuryFiltering } = liveSessionSlice.actions;
+export const { 
+  updateEnergyContext, 
+  updateTimeContext, 
+  clearAdaptation, 
+  addRecommendation, 
+  removeRecommendation, 
+  applyOverride, 
+  clearOverride, 
+  clearRecommendations, 
+  resetPerformanceMetrics, 
+  setInjuryConstraints, 
+  applyInjuryFiltering,
+  setActiveGuidance,
+  setIsActive,
+  addMilestone,
+  clearMilestones,
+  toggleQuietMode
+} = liveSessionSlice.actions;
 
 export default liveSessionSlice.reducer;
