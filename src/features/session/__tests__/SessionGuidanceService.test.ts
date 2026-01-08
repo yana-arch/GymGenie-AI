@@ -17,12 +17,12 @@ describe('SessionGuidanceService', () => {
     service = new SessionGuidanceService();
   });
 
-  it('should initialize with default state', () => {
+  it('should initialize with default state @p1', () => {
     expect(service).toBeDefined();
     expect(service.isLoopRunning()).toBe(false);
   });
 
-  it('should start and stop the guidance loop', () => {
+  it('should start and stop the guidance loop @p1', () => {
     service.startGuidanceLoop();
     expect(service.isLoopRunning()).toBe(true);
     
@@ -30,7 +30,7 @@ describe('SessionGuidanceService', () => {
     expect(service.isLoopRunning()).toBe(false);
   });
 
-  it('should query AICoachingOrchestrator when loop is running', async () => {
+  it('should query AICoachingOrchestrator when loop is running @p1', async () => {
     const mockDecision = {
       system: 'unified-coaching',
       priority: 'ADAPTATION',
@@ -57,14 +57,17 @@ describe('SessionGuidanceService', () => {
     expect(decision).toEqual(mockDecision);
   });
 
-  it('should detect milestones based on progress', () => {
+  it('should detect milestones based on progress @p1', () => {
     const milestones = service.checkMilestones(0.25);
-    expect(milestones).toContain(25);
+    expect(milestones).toHaveLength(1);
+    expect(milestones[0].type).toBe('PROGRESS');
+    expect(milestones[0].value).toBe(25);
     
     const noNewMilestones = service.checkMilestones(0.26);
     expect(noNewMilestones).toHaveLength(0);
     
     const nextMilestone = service.checkMilestones(0.51);
-    expect(nextMilestone).toContain(50);
+    expect(nextMilestone).toHaveLength(1);
+    expect(nextMilestone[0].value).toBe(50);
   });
 });

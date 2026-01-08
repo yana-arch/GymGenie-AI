@@ -7,14 +7,20 @@ import {
 import { sessionGuidanceService } from '../services/SessionGuidanceService';
 import { RootState } from '@/store';
 
-const speakGuidance = (message: string) => {
+const speakGuidance = (message: string, isPriority: boolean = false) => {
   if ('speechSynthesis' in window) {
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    window.speechSynthesis.speak(utterance);
+    // Safety > Celebration: Only cancel if this is a priority message
+    // If not priority, wait for current speech to finish
+    if (isPriority) {
+      window.speechSynthesis.cancel();
+    }
+    
+    if (isPriority || !window.speechSynthesis.speaking) {
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.rate = 1.0;
+      utterance.pitch = isPriority ? 0.9 : 1.1; // Slightly different pitches for safety vs celebration
+      window.speechSynthesis.speak(utterance);
+    }
   }
 };
 
@@ -69,15 +75,17 @@ export const useGuidanceLoop = (isActive: boolean, progress: number) => {
           // Audio guidance if message changed and not in quiet mode
           const message = decision.response.recommendation.message;
           if (message && message !== lastMessageRef.current && !quietMode) {
-            speakGuidance(message);
+            // Coaching decisions are usually safety or form related - high priority
+            speakGuidance(message, true);
             lastMessageRef.current = message;
           }
           
           // Check for milestones
-          const reachedMilestones = sessionGuidanceService.checkMilestones(progress);
+          const reachedMilestones = sessionGuidanceService.checkMilestones(progress, liveSession.activeContext.energy);
           reachedMilestones.forEach(m => {
             dispatch(addMilestone(m));
-            if (!quietMode) speakGuidance(`${m} percent complete. Keep it up!`);
+            // Milestones are lower priority - don't cancel safety warnings
+            if (!quietMode && m.encouragement) speakGuidance(m.encouragement, m.priority === 'high');
           });
           
         } catch (error) {

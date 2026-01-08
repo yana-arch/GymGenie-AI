@@ -6,10 +6,11 @@ import {
   InjuryAwareState,
   CoachingDecision
 } from '@/features/unified-coaching/types/unifiedCoaching.types';
+import { MilestoneService, Milestone } from './MilestoneService';
 
 export class SessionGuidanceService {
   private loopRunning: boolean = false;
-  private milestoneHistory: Set<number> = new Set();
+  private milestoneService: MilestoneService = new MilestoneService();
   private guidanceInterval: number | null = null;
 
   /**
@@ -64,28 +65,42 @@ export class SessionGuidanceService {
   /**
    * Checks for workout milestones (25%, 50%, 75%, 100%)
    * @param progress Progress between 0 and 1
+   * @param energy Energy context ('normal' | 'tired')
    */
-  checkMilestones(progress: number): number[] {
-    const milestones = [25, 50, 75, 100];
-    const reached: number[] = [];
-    
-    const progressPercent = progress * 100;
-    
-    for (const milestone of milestones) {
-      if (progressPercent >= milestone && !this.milestoneHistory.has(milestone)) {
-        this.milestoneHistory.add(milestone);
-        reached.push(milestone);
-      }
-    }
-    
-    return reached;
+  checkMilestones(progress: number, energy: 'normal' | 'tired' = 'normal'): Milestone[] {
+    return this.milestoneService.checkProgressMilestones(progress, energy);
+  }
+
+  /**
+   * Record form quality and return milestones if any
+   * @param isPerfect Whether form was perfect
+   * @param energy Energy context ('normal' | 'tired')
+   */
+  recordFormQuality(isPerfect: boolean, energy: 'normal' | 'tired' = 'normal'): Milestone[] {
+    return this.milestoneService.recordFormQuality(isPerfect, energy);
+  }
+
+  /**
+   * Record volume and return milestones if any
+   * @param weight Weight lifted
+   * @param energy Energy context ('normal' | 'tired')
+   */
+  recordVolume(weight: number, energy: 'normal' | 'tired' = 'normal'): Milestone[] {
+    return this.milestoneService.addVolume(weight, energy);
+  }
+
+  /**
+   * Check for personal bests
+   */
+  checkPersonalBest(exerciseId: string, weight: number, reps: number, history: any[], energy: 'normal' | 'tired' = 'normal'): Milestone[] {
+    return this.milestoneService.checkPersonalBest(exerciseId, weight, reps, history, energy);
   }
 
   /**
    * Resets the milestone history (e.g., when starting a new session)
    */
   resetMilestones(): void {
-    this.milestoneHistory.clear();
+    this.milestoneService = new MilestoneService();
   }
 }
 

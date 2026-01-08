@@ -17,12 +17,14 @@ import { toTitleCase } from '@/utils/stringUtils';
 import { Button } from '@/components/ui';
 import { useToast, toast } from '@/components/ui/Toast';
 import { useErrorHandler } from '@/utils/errorHandler';
-import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation, setIsActive } from '../store/liveSessionSlice';
+import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation, setIsActive, addMilestone } from '../store/liveSessionSlice';
 import { updateSettings as updateFormSettings } from '@/features/form-correction/store/formCorrectionSlice';
 import { useGuidanceLoop } from '../hooks/useGuidanceLoop';
 import LiveGuidanceOverlay from './LiveGuidanceOverlay';
 import MilestoneCelebration from './MilestoneCelebration';
 import TransitionPrep from './TransitionPrep';
+
+import { sessionGuidanceService } from '../services/SessionGuidanceService';
 
 const LiveWorkoutSession = () => {
   const { showToast } = useToast();
@@ -43,6 +45,19 @@ const LiveWorkoutSession = () => {
 
   const liveSessionState = useAppSelector(state => state.liveSession);
   const cameraEnabled = useAppSelector((state: any) => state.formCorrection?.settings?.cameraEnabled ?? true);
+  const previousWorkouts = useAppSelector(state => Object.values(state.session.sessions));
+  
+  const historicalData = useMemo(() => {
+    return previousWorkouts.flatMap(s => 
+      Object.values(s.exerciseData || {}).flatMap(ex => 
+        ex.sets.map(set => ({
+          exerciseId: ex.exerciseId,
+          weight: set.weight,
+          reps: set.reps
+        }))
+      )
+    );
+  }, [previousWorkouts]);
   
   const { adaptation, isLoading, error, performance, activeContext: reduxActiveContext, overrideHistory } = liveSessionState;
 
@@ -250,6 +265,20 @@ const LiveWorkoutSession = () => {
           exerciseId: activeContext.currentExercise.id,
           set: setPerformance
       }));
+
+      // Record volume for milestones
+      const volumeMilestones = sessionGuidanceService.recordVolume(inputWeight, liveSessionState.activeContext.energy);
+      volumeMilestones.forEach((m: any) => dispatch(addMilestone(m)));
+
+      // Check for PBs
+      const pbMilestones = sessionGuidanceService.checkPersonalBest(
+        activeContext.currentExercise.id,
+        inputWeight,
+        inputReps,
+        historicalData,
+        liveSessionState.activeContext.energy
+      );
+      pbMilestones.forEach((m: any) => dispatch(addMilestone(m)));
 
       setSetStartTime(now);
 

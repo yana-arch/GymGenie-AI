@@ -2,6 +2,7 @@ import { CameraService } from './CameraService';
 import { PoseDetectionService, Pose, PoseKeypoint } from './PoseDetectionService';
 import { FormAnalysisService, FormAnalysis } from './FormAnalysisService';
 import { AudioCoachingService } from './AudioCoachingService';
+import { sessionGuidanceService } from '@/features/session/services/SessionGuidanceService';
 
 // Import for AC7 integration with Story 1.1
 declare global {
@@ -33,6 +34,9 @@ export class FormCorrectionService {
   private processingFrame = false;
   private state: FormCorrectionState;
   private currentExercise: string = 'squat';
+  private onMilestoneReached?: (milestone: any) => void;
+  private onStatusUpdate?: (status: any) => void;
+  private onAdaptationRequired?: (params: any) => void;
 
   constructor() {
     this.cameraService = new CameraService();
@@ -52,6 +56,19 @@ export class FormCorrectionService {
         frameCount: 0
       }
     };
+  }
+
+  /**
+   * Register listeners to avoid direct Redux store access
+   */
+  registerListeners(callbacks: {
+    onMilestone?: (milestone: any) => void;
+    onStatusUpdate?: (status: any) => void;
+    onAdaptationRequired?: (params: any) => void;
+  }) {
+    this.onMilestoneReached = callbacks.onMilestone;
+    this.onStatusUpdate = callbacks.onStatusUpdate;
+    this.onAdaptationRequired = callbacks.onAdaptationRequired;
   }
 
   /**
@@ -314,37 +331,69 @@ export class FormCorrectionService {
    */
   private syncWithLiveSession(formAnalysis: FormAnalysis): void {
     try {
-      // Try to access Redux store for integration with Story 1.1 workout adaptations
-      const store = window.__REDUX_STORE__ || (window as any).reduxStore;
+      // Record form quality for milestones
+      const milestones = sessionGuidanceService.recordFormQuality(formAnalysis.isValid);
       
-      if (store && store.dispatch) {
-        // Update live session with form correction data
-        store.dispatch({
-          type: 'liveSession/setFormCorrectionStatus',
-          payload: {
-            formScore: formAnalysis.score,
-            hasIssues: !formAnalysis.isValid,
-            exerciseType: this.currentExercise,
-            timestamp: Date.now()
-          }
+      // Use registered listeners instead of direct Redux store access
+      if (this.onMilestoneReached) {
+        milestones.forEach(m => this.onMilestoneReached!(m));
+      }
+
+      if (this.onStatusUpdate) {
+        this.onStatusUpdate({
+          formScore: formAnalysis.score,
+          hasIssues: !formAnalysis.isValid,
+          exerciseType: this.currentExercise,
+          timestamp: Date.now()
         });
-        
-        // Trigger workout adaptation if form is consistently poor
-        const shouldAdapt = this.shouldTriggerWorkoutAdaptation(formAnalysis);
-        if (shouldAdapt) {
+      }
+      
+      // Trigger workout adaptation if form is consistently poor
+      const shouldAdapt = this.shouldTriggerWorkoutAdaptation(formAnalysis);
+      if (shouldAdapt && this.onAdaptationRequired) {
+        this.onAdaptationRequired({
+          reason: 'form_correction',
+          formScore: formAnalysis.score,
+          currentExercise: this.currentExercise
+        });
+      }
+
+      // Legacy support for direct store access if listeners not registered
+      if (!this.onStatusUpdate && !this.onMilestoneReached) {
+        const store = window.__REDUX_STORE__ || (window as any).reduxStore;
+        if (store && store.dispatch) {
+          milestones.forEach(m => {
+            store.dispatch({
+              type: 'liveSession/addMilestone',
+              payload: m
+            });
+          });
+
           store.dispatch({
-            type: 'liveSession/requestAdaptation',
+            type: 'liveSession/setFormCorrectionStatus',
             payload: {
-              reason: 'form_correction',
               formScore: formAnalysis.score,
-              currentExercise: this.currentExercise
+              hasIssues: !formAnalysis.isValid,
+              exerciseType: this.currentExercise,
+              timestamp: Date.now()
             }
           });
+          
+          if (shouldAdapt) {
+            store.dispatch({
+              type: 'liveSession/requestAdaptation',
+              payload: {
+                reason: 'form_correction',
+                formScore: formAnalysis.score,
+                currentExercise: this.currentExercise
+              }
+            });
+          }
         }
       }
     } catch (error) {
-      // Graceful degradation if store integration fails
-      console.warn('Failed to sync with LiveSessionSlice:', error);
+      // Graceful degradation if sync fails
+      console.warn('Failed to sync with LiveSession:', error);
     }
   }
 

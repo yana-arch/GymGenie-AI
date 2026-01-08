@@ -3,6 +3,7 @@ import { GeminiService } from '@/services/ai/GeminiService';
 import type { OverrideEvent, AIRecommendation } from '@/features/safety-override/services/OverrideDetectionService';
 import { InjuryFilterService } from '@/features/injury-aware/services/InjuryFilterService';
 import { CoachingDecision } from '@/features/unified-coaching/types/unifiedCoaching.types';
+import { Milestone } from '../services/MilestoneService';
 
 // Performance monitoring interface
 interface PerformanceMetrics {
@@ -52,7 +53,7 @@ interface LiveSessionState {
   };
   // Live Guidance
   activeGuidance: CoachingDecision | null;
-  milestoneHistory: number[];
+  milestoneHistory: Milestone[];
   quietMode: boolean;
   // Note: injuryFilterService is managed outside Redux to avoid non-serializable state
 }
@@ -268,8 +269,8 @@ const liveSessionSlice = createSlice({
     setActiveGuidance(state, action: PayloadAction<CoachingDecision | null>) {
       state.activeGuidance = action.payload;
     },
-    addMilestone(state, action: PayloadAction<number>) {
-      if (!state.milestoneHistory.includes(action.payload)) {
+    addMilestone(state, action: PayloadAction<Milestone>) {
+      if (!state.milestoneHistory.some(m => m.id === action.payload.id)) {
         state.milestoneHistory.push(action.payload);
       }
     },
