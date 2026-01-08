@@ -3,7 +3,10 @@ import { GeminiService } from '@/services/ai/GeminiService';
 import type { OverrideEvent, AIRecommendation } from '@/features/safety-override/services/OverrideDetectionService';
 import { InjuryFilterService } from '@/features/injury-aware/services/InjuryFilterService';
 import { CoachingDecision } from '@/features/unified-coaching/types/unifiedCoaching.types';
+import { AdaptationEvent } from '@/features/preference-learning/types/preferenceLearning.types';
 import { Milestone } from '../services/MilestoneService';
+
+import { ContextCaptureService } from '../services/ContextCaptureService';
 
 // Performance monitoring interface
 interface PerformanceMetrics {
@@ -31,6 +34,7 @@ interface LiveSessionState {
   isLoading: boolean;
   error: string | null;
   adaptation: WorkoutAdaptation | null;
+  adaptationHistory: AdaptationEvent[];
   // Performance monitoring
   performance: {
     lastResponseTime?: number;
@@ -68,6 +72,7 @@ const initialState: LiveSessionState = {
   isLoading: false,
   error: null,
   adaptation: null,
+  adaptationHistory: [],
   performance: {
     lastResponseTime: undefined,
     averageResponseTime: 0,
@@ -186,6 +191,9 @@ const liveSessionSlice = createSlice({
     },
     setIsActive(state, action: PayloadAction<boolean>) {
       state.isActive = action.payload;
+      if (!action.payload) {
+        ContextCaptureService.getInstance().clearContext();
+      }
     },
     clearAdaptation(state) {
         state.adaptation = null;
@@ -279,6 +287,13 @@ const liveSessionSlice = createSlice({
     },
     toggleQuietMode(state) {
       state.quietMode = !state.quietMode;
+    },
+    recordAdaptationEvent(state, action: PayloadAction<AdaptationEvent>) {
+      state.adaptationHistory.push(action.payload);
+      // Keep last 20 adaptation events
+      if (state.adaptationHistory.length > 20) {
+        state.adaptationHistory.shift();
+      }
     }
   },
   extraReducers: (builder) => {
@@ -334,7 +349,8 @@ export const {
   setIsActive,
   addMilestone,
   clearMilestones,
-  toggleQuietMode
+  toggleQuietMode,
+  recordAdaptationEvent
 } = liveSessionSlice.actions;
 
 export default liveSessionSlice.reducer;

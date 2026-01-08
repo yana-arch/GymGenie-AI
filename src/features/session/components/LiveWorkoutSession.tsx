@@ -10,7 +10,8 @@ import { QualityScoreCalculator } from '../services/QualityScoreCalculator';
 import { WorkoutSession } from '../services/WorkoutSession';
 import exerciseRegistry from '@/data/ExerciseRegistry.json';
 import ExerciseDetailModal from '@/features/workout/components/ExerciseDetailModal';
-import AdaptationProposal from './AdaptationProposal';
+import { AdaptationPrompt } from './AdaptationPrompt';
+import { AudioCoachingService } from '@/features/form-correction/services/AudioCoachingService';
 import { exerciseCatalogService } from '@/features/workout/services/ExerciseCatalogService';
 import { Exercise } from '@/types/schemas';
 import { toTitleCase } from '@/utils/stringUtils';
@@ -82,6 +83,20 @@ const LiveWorkoutSession = () => {
 
   // Safety: Track if camera error has already been shown to avoid infinite notification loops
   const hasShownCameraError = useRef<boolean>(false);
+
+  const [manualOverrideOpen, setManualOverrideOpen] = useState(false);
+  const audioService = useRef<AudioCoachingService | null>(null);
+
+  useEffect(() => {
+    audioService.current = new AudioCoachingService();
+    return () => audioService.current?.stop();
+  }, []);
+
+  useEffect(() => {
+    if (adaptation && adaptation.notes) {
+      audioService.current?.announceAdaptation(adaptation.notes);
+    }
+  }, [adaptation]);
 
   const activeContext = useMemo(() => {
     if (!currentPlan || !currentSession) return null;
@@ -470,6 +485,21 @@ const LiveWorkoutSession = () => {
     } catch (error) {}
   };
 
+  const mappedAdaptation = useMemo(() => {
+    if (!adaptation) return null;
+    return {
+      message: adaptation.notes || 'Workout adaptation suggested',
+      modifications: {
+        suggestedReps: adaptation.newReps,
+        suggestedSets: adaptation.newSets,
+        suggestedRest: adaptation.restTime,
+        alternativeExerciseName: adaptation.newExercise
+      },
+      action: adaptation.newExercise ? 'substitute_exercise' : 'reduce_intensity',
+      reasoning: adaptation.notes || ''
+    };
+  }, [adaptation]);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 relative">
       {!activeContext ? (
@@ -678,12 +708,12 @@ const LiveWorkoutSession = () => {
             </div>
           )}
 
-          <AdaptationProposal 
-            adaptation={adaptation} 
-            isLoading={isLoading} 
-            onAccept={handleAcceptAdaptation} 
-            onReject={handleRejectAdaptation}
-            exerciseId={currentExercise?.id}
+          <AdaptationPrompt
+            opened={!!adaptation}
+            onClose={handleRejectAdaptation}
+            adaptation={mappedAdaptation as any}
+            onAccept={handleAcceptAdaptation}
+            onManualOverride={() => setManualOverrideOpen(true)}
           />
 
            {process.env.NODE_ENV === 'development' && performance.lastResponseTime && (

@@ -288,6 +288,46 @@ export class PreferenceLearningService implements IPreferenceLearningService {
   }
 
   /**
+   * Record user response to adaptation for future calibration
+   */
+  async recordAdaptationResponse(userId: string, event: import('./types/preferenceLearning.types').AdaptationEvent): Promise<void> {
+    try {
+      const preferences = await this.getLearnedPreferences(userId);
+      let adaptationPattern = preferences.find(p => p.patternType === 'adaptation-rate');
+
+      if (!adaptationPattern) {
+        adaptationPattern = {
+          id: `adaptation-rate-${userId}`,
+          userId,
+          patternType: 'adaptation-rate',
+          confidence: 0.5,
+          strength: 0.5,
+          firstDetected: new Date(),
+          lastConfirmed: new Date(),
+          confirmations: 0,
+          contradictions: 0,
+          data: {
+            adaptationRate: this.config.gradualAdaptationRate
+          }
+        };
+        preferences.push(adaptationPattern);
+      }
+
+      if (event.userResponse === 'accepted') {
+        adaptationPattern.confirmations++;
+        adaptationPattern.confidence = Math.min(1.0, adaptationPattern.confidence + 0.05);
+      } else if (event.userResponse === 'rejected' || event.userResponse === 'ignored') {
+        adaptationPattern.contradictions++;
+        adaptationPattern.confidence = Math.max(0, adaptationPattern.confidence - 0.1);
+      }
+
+      await this.storePreferences(userId, preferences);
+    } catch (error) {
+      console.error('Error recording adaptation response:', error);
+    }
+  }
+
+  /**
    * Private helper methods
    */
 

@@ -112,6 +112,17 @@ export class AudioCoachingService {
   }
 
   /**
+   * Provide audio announcement for workout adaptations
+   */
+  announceAdaptation(message: string): void {
+    if (!this.config.enabled || !this.synthesis) {
+      return;
+    }
+
+    this.addToQueue(message, 'high');
+  }
+
+  /**
    * Generate contextual feedback message based on form analysis
    */
   private generateFeedback(formAnalysis: FormAnalysis): { message: string; priority: 'high' | 'medium' | 'low' } | null {

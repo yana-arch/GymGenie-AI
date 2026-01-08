@@ -8,7 +8,8 @@ import {
   CoachingPriority,
   AISystemResponse,
   AICoachingInput,
-  UnifiedCoachingState
+  UnifiedCoachingState,
+  AdaptationTrigger
 } from './unifiedCoaching.types';
 
 /**
@@ -239,6 +240,7 @@ export interface EnhancedAICoachingInput extends AICoachingInput {
     sessionPhase: 'warmup' | 'main' | 'cooldown' | 'recovery';
     recentPerformance: number; // -1 to 1 scale
     complianceHistory: number; // 0-1 scale
+    adaptationTriggers?: AdaptationTrigger[];
   };
   timing: {
     optimalDeliveryTime: number;

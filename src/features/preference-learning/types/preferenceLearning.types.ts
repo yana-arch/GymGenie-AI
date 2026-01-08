@@ -51,6 +51,7 @@ export interface PreferencePattern {
     intensityPreferences?: IntensityPreference[];
     timingPreferences?: TimingPreference[];
     recoveryPreferences?: RecoveryPreference[];
+    adaptationRate?: number;
   };
 }
 
@@ -179,6 +180,16 @@ export interface StorageAuditEntry {
   error?: string;
 }
 
+export interface AdaptationEvent {
+  id: string;
+  timestamp: number;
+  triggers: string[];
+  action: string;
+  modifications: any;
+  userResponse: 'accepted' | 'rejected' | 'ignored' | 'manual_override';
+  responseTime?: number; // ms from display to response
+}
+
 // Service interfaces
 export interface IPreferenceLearningService {
   detectPreferences(input: PreferenceLearningInput): Promise<PreferenceLearningOutput>;
@@ -188,6 +199,7 @@ export interface IPreferenceLearningService {
   exportPreferences(userId: string): Promise<string>; // Encrypted export
   importPreferences(userId: string, encryptedData: string): Promise<void>;
   resetPreferences(userId: string): Promise<void>;
+  recordAdaptationResponse(userId: string, event: AdaptationEvent): Promise<void>;
 }
 
 export interface IPreferenceIntelligenceEngine {

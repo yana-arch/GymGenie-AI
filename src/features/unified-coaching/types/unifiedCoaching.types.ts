@@ -10,6 +10,14 @@ export enum CoachingPriority {
   ADAPTATION = 'adaptation'
 }
 
+export enum AdaptationTrigger {
+  FATIGUE = 'fatigue',
+  TIME_CONSTRAINT = 'time_constraint',
+  ENERGY_LOW = 'energy_low',
+  FORM_BREAKDOWN = 'form_breakdown',
+  PERFORMANCE_DROP = 'performance_drop'
+}
+
 export interface AISystemResponse {
   type: string;
   confidence: number;

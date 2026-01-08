@@ -1,4 +1,5 @@
 import { Pose, PoseKeypoint } from './PoseDetectionService';
+import { ContextCaptureService } from '../../session/services/ContextCaptureService';
 
 export interface FormIssue {
   type: 'alignment' | 'depth' | 'stability' | 'range_of_motion';
@@ -159,6 +160,9 @@ export class FormAnalysisService {
 
     // Store in history for trend analysis
     this.addToHistory(analysis);
+
+    // Integrate with ContextCaptureService for fatigue detection
+    ContextCaptureService.getInstance().recordFormQuality(analysis.score / 100);
 
     return analysis;
   }

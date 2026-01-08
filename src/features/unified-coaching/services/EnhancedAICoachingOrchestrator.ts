@@ -12,7 +12,8 @@ import {
   LiveSessionState,
   FormCorrectionState,
   SafetyOverrideState,
-  InjuryAwareState
+  InjuryAwareState,
+  AdaptationTrigger
 } from '../types/unifiedCoaching.types';
 
 import {
@@ -24,6 +25,8 @@ import {
 
 import { AICoachingOrchestrator } from '../AICoachingOrchestrator';
 import { coachingIntelligenceService, CoachingIntelligenceService } from './CoachingIntelligenceService';
+import { ContextCaptureService } from '@/features/session/services/ContextCaptureService';
+import { AdaptationGenerator } from '@/features/session/services/AdaptationGenerator';
 
 /**
  * Enhanced AI Coaching Orchestrator
@@ -31,11 +34,13 @@ import { coachingIntelligenceService, CoachingIntelligenceService } from './Coac
  */
 export class EnhancedAICoachingOrchestrator extends AICoachingOrchestrator {
   private intelligenceService: CoachingIntelligenceService;
+  private adaptationGenerator: AdaptationGenerator;
   private enhancedSessionMetrics: Map<string, SessionMetrics> = new Map();
 
   constructor(config?: Partial<CoachingIntelligenceConfig>) {
     super();
     this.intelligenceService = new CoachingIntelligenceService(config);
+    this.adaptationGenerator = new AdaptationGenerator();
   }
 
   /**
@@ -58,6 +63,7 @@ export class EnhancedAICoachingOrchestrator extends AICoachingOrchestrator {
       sessionPhase: 'warmup' | 'main' | 'cooldown' | 'recovery';
       recentPerformance: number;
       complianceHistory: number;
+      adaptationTriggers?: AdaptationTrigger[];
     };
   }): Promise<EnhancedCoachingDecision> {
     const sessionId = this.generateSessionId(session);
@@ -69,6 +75,12 @@ export class EnhancedAICoachingOrchestrator extends AICoachingOrchestrator {
       
       // Create enhanced AI inputs with user context
       const enhancedInputs = this.createEnhancedInputs(session, baseDecision);
+
+      // Add local adaptation input if triggers are active
+      const localAdaptationInput = await this.collectLocalAdaptationInput(session);
+      if (localAdaptationInput) {
+        enhancedInputs.push(localAdaptationInput);
+      }
       
       // Enhance decision with intelligence
       const enhancedDecision = await this.intelligenceService.enhanceCoachingDecision(
@@ -144,6 +156,48 @@ export class EnhancedAICoachingOrchestrator extends AICoachingOrchestrator {
   }
 
   /**
+   * Collect local adaptation input based on current context triggers
+   */
+  private async collectLocalAdaptationInput(session: any): Promise<EnhancedAICoachingInput | null> {
+    const contextSnapshot = ContextCaptureService.getInstance().getContextSnapshot();
+    if (contextSnapshot.activeTriggers.length === 0) return null;
+
+    const currentExercise = session.liveSession?.currentExercise || session.adaptation?.currentExercise;
+    if (!currentExercise) return null;
+
+    const adaptation = await this.adaptationGenerator.generateAdaptation(
+      currentExercise,
+      contextSnapshot.activeTriggers
+    );
+
+    return {
+      system: 'local-adaptation-engine',
+      priority: CoachingPriority.ADAPTATION,
+      response: {
+        type: 'local-adaptation',
+        confidence: 0.9,
+        recommendation: adaptation,
+        reasoning: adaptation.reasoning,
+        timestamp: Date.now()
+      },
+      userContext: {
+        currentMood: contextSnapshot.recentFatigue ? 'fatigued' : 'focused',
+        sessionPhase: 'main',
+        recentPerformance: contextSnapshot.formQualityHistory.length > 0 
+          ? contextSnapshot.formQualityHistory.reduce((a, b) => a + b, 0) / contextSnapshot.formQualityHistory.length 
+          : 0.8,
+        complianceHistory: 0.7,
+        adaptationTriggers: contextSnapshot.activeTriggers
+      },
+      timing: {
+        optimalDeliveryTime: Date.now(),
+        urgency: 0.7,
+        persistence: 0.5
+      }
+    };
+  }
+
+  /**
    * Create enhanced AI inputs with user context
    */
   private createEnhancedInputs(
@@ -152,13 +206,19 @@ export class EnhancedAICoachingOrchestrator extends AICoachingOrchestrator {
   ): EnhancedAICoachingInput[] {
     const baseInputs = this['collectAIInputs'](session); // Access parent method
     
+    // Get real-time context from ContextCaptureService
+    const contextSnapshot = ContextCaptureService.getInstance().getContextSnapshot();
+    
     return baseInputs.map(input => ({
       ...input,
       userContext: {
-        currentMood: session.userContext?.currentMood || 'focused',
+        currentMood: session.userContext?.currentMood || (contextSnapshot.recentFatigue ? 'fatigued' : 'focused'),
         sessionPhase: session.userContext?.sessionPhase || 'main',
-        recentPerformance: session.userContext?.recentPerformance || 0,
-        complianceHistory: session.userContext?.complianceHistory || 0.7
+        recentPerformance: contextSnapshot.formQualityHistory.length > 0 
+          ? contextSnapshot.formQualityHistory.reduce((a, b) => a + b, 0) / contextSnapshot.formQualityHistory.length 
+          : (session.userContext?.recentPerformance || 0),
+        complianceHistory: session.userContext?.complianceHistory || 0.7,
+        adaptationTriggers: contextSnapshot.activeTriggers
       },
       timing: {
         optimalDeliveryTime: Date.now(),
@@ -243,13 +303,13 @@ export class EnhancedAICoachingOrchestrator extends AICoachingOrchestrator {
     };
 
     let urgency = baseUrgency[priority] || 0.5;
-
-    // Adjust based on user context
-    if (session.userContext?.currentMood === 'fatigued') {
-      urgency *= 0.8; // Less urgent when fatigued
-    } else if (session.userContext?.currentMood === 'energetic') {
-      urgency *= 1.1; // More urgent when energetic
+    
+    // SAFETY and INJURY should NEVER be deprioritized
+    if (priority === CoachingPriority.SAFETY || priority === CoachingPriority.INJURY) {
+      return urgency;
     }
+
+    // Adjust based on user context for non-critical priorities
 
     return Math.min(1.0, urgency);
   }
