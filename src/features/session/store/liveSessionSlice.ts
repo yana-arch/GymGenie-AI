@@ -59,6 +59,9 @@ interface LiveSessionState {
   activeGuidance: CoachingDecision | null;
   milestoneHistory: Milestone[];
   quietMode: boolean;
+  transitionStatus: 'idle' | 'resting' | 'preparing' | 'active';
+  nextExercise: string | null;
+  restRemaining: number;
   // Note: injuryFilterService is managed outside Redux to avoid non-serializable state
 }
 
@@ -92,6 +95,9 @@ const initialState: LiveSessionState = {
     activeGuidance: null,
     milestoneHistory: [],
     quietMode: false,
+    transitionStatus: 'idle',
+    nextExercise: null,
+    restRemaining: 0,
   };
 
 export const fetchWorkoutAdaptation = createAsyncThunk(
@@ -294,6 +300,15 @@ const liveSessionSlice = createSlice({
       if (state.adaptationHistory.length > 20) {
         state.adaptationHistory.shift();
       }
+    },
+    setTransitionStatus(state, action: PayloadAction<'idle' | 'resting' | 'preparing' | 'active'>) {
+      state.transitionStatus = action.payload;
+    },
+    setNextExercise(state, action: PayloadAction<string | null>) {
+      state.nextExercise = action.payload;
+    },
+    updateRestRemaining(state, action: PayloadAction<number>) {
+      state.restRemaining = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -350,7 +365,10 @@ export const {
   addMilestone,
   clearMilestones,
   toggleQuietMode,
-  recordAdaptationEvent
+  recordAdaptationEvent,
+  setTransitionStatus,
+  setNextExercise,
+  updateRestRemaining
 } = liveSessionSlice.actions;
 
 export default liveSessionSlice.reducer;

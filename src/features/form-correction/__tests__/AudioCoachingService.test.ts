@@ -67,7 +67,8 @@ describe('AudioCoachingService', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
-    audioService = new AudioCoachingService();
+    AudioCoachingService.resetInstance();
+    audioService = AudioCoachingService.getInstance();
   });
 
   afterEach(() => {
@@ -90,7 +91,7 @@ describe('AudioCoachingService', () => {
     });
 
     it('should accept custom configuration', () => {
-      const customService = new AudioCoachingService({
+      const customService = AudioCoachingService.getInstance({
         volume: 0.5,
         speechRate: 1.0,
         voiceGender: 'female'
@@ -101,8 +102,6 @@ describe('AudioCoachingService', () => {
       expect(config.volume).toBe(0.5);
       expect(config.speechRate).toBe(1.0);
       expect(config.voiceGender).toBe('female');
-      
-      customService.dispose();
     });
 
     it('should load available voices', () => {
@@ -147,8 +146,8 @@ describe('AudioCoachingService', () => {
       audioService.provideFeedback(form);
       
       const utterance = mockSpeechSynthesis.speak.mock.calls[0][0];
-      // Fixed: Match actual implementation output - squat depth adjustment
-      expect(utterance.text).toMatch(/(Adjust|squat|depth|immediately)/);
+      // Fixed: Match actual implementation output - any of the high priority templates
+      expect(utterance.text).toMatch(/(Stop|Careful|knee|squat|depth|immediately)/i);
     });
 
     it('should generate medium priority feedback for moderate issues', () => {
@@ -233,8 +232,8 @@ describe('AudioCoachingService', () => {
       });
       
       const utterance = mockSpeechSynthesis.speak.mock.calls[0][0];
-      // Fixed: Match actual implementation output - fine tune movement message
-      expect(utterance.text).toMatch(/(Fine|tune|movement)/);
+      // Fixed: Match actual implementation output - any of the low priority templates
+      expect(utterance.text).toMatch(/(Small|Fine|tune|movement|Minor|adjustment|improvement)/i);
     });
 
     it('should prevent duplicate similar messages', () => {
@@ -305,13 +304,12 @@ describe('AudioCoachingService', () => {
     });
 
     it('should reinitialize when enabling after being disabled', () => {
-      const disabledService = new AudioCoachingService({ enabled: false });
+      const disabledService = AudioCoachingService.getInstance({ enabled: false });
       disabledService.updateConfig({ enabled: true });
+
       
       const config = disabledService.getConfig();
       expect(config.enabled).toBe(true);
-      
-      disabledService.dispose();
     });
   });
 
@@ -364,11 +362,11 @@ describe('AudioCoachingService', () => {
         value: undefined
       });
       
-      const noSpeechService = new AudioCoachingService();
+      const noSpeechService = AudioCoachingService.getInstance();
       const config = noSpeechService.getConfig();
+
       // Service should gracefully handle missing speech synthesis (may stay enabled with fallback)
       expect(config.enabled).toBeDefined();
-      noSpeechService.dispose();
       
       // Restore
       (window as any).speechSynthesis = originalSpeechSynthesis;

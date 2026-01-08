@@ -15,6 +15,7 @@ export interface AudioQueue {
 }
 
 export class AudioCoachingService {
+  private static instance: AudioCoachingService;
   private synthesis: SpeechSynthesis | null = null;
   private voices: SpeechSynthesisVoice[] = [];
   private config: AudioFeedbackConfig;
@@ -23,7 +24,7 @@ export class AudioCoachingService {
   private lastFeedbackTime = 0;
   private privateVoiceUtterance: SpeechSynthesisUtterance | null = null;
 
-  constructor(config: Partial<AudioFeedbackConfig> = {}) {
+  private constructor(config: Partial<AudioFeedbackConfig> = {}) {
     this.config = {
       enabled: true,
       volume: 0.8,
@@ -34,6 +35,15 @@ export class AudioCoachingService {
     };
 
     this.initializeSpeechSynthesis();
+  }
+
+  public static getInstance(config?: Partial<AudioFeedbackConfig>): AudioCoachingService {
+    if (!AudioCoachingService.instance) {
+      AudioCoachingService.instance = new AudioCoachingService(config);
+    } else if (config) {
+      AudioCoachingService.instance.updateConfig(config);
+    }
+    return AudioCoachingService.instance;
   }
 
   /**
@@ -119,6 +129,24 @@ export class AudioCoachingService {
       return;
     }
 
+    this.addToQueue(message, 'high');
+  }
+
+  /**
+   * Announce the next exercise and provide preparation cues
+   */
+  announceNextExercise(exerciseName: string): void {
+    if (!this.config.enabled || !this.synthesis) {
+      return;
+    }
+
+    const messages = [
+      `Next exercise is ${exerciseName}.`,
+      `Get ready for ${exerciseName}.`,
+      `Prepare for ${exerciseName}. Check your equipment.`
+    ];
+
+    const message = messages[Math.floor(Math.random() * messages.length)];
     this.addToQueue(message, 'high');
   }
 
@@ -400,9 +428,19 @@ export class AudioCoachingService {
   }
 
   /**
+   * Resets the singleton instance (primarily for testing)
+   */
+  public static resetInstance(): void {
+    if (AudioCoachingService.instance) {
+      AudioCoachingService.instance.stop();
+      AudioCoachingService.instance = undefined as any;
+    }
+  }
+
+  /**
    * Update configuration
    */
-  updateConfig(newConfig: Partial<AudioFeedbackConfig>): void {
+  public updateConfig(newConfig: Partial<AudioFeedbackConfig>): void {
     this.config = { ...this.config, ...newConfig };
     
     // Reinitialize if enabling/disabling

@@ -309,6 +309,12 @@ export class EnhancedAICoachingOrchestrator extends AICoachingOrchestrator {
       return urgency;
     }
 
+    // Deprioritize non-critical coaching during rest periods
+    const isResting = session.liveSession?.transitionStatus === 'resting';
+    if (isResting) {
+      urgency *= 0.5; // Reduce urgency by half during rest
+    }
+
     // Adjust based on user context for non-critical priorities
 
     return Math.min(1.0, urgency);
