@@ -4,7 +4,6 @@ import type { RenderOptions } from '@testing-library/react';
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import {
-  persistStore,
   persistReducer,
   FLUSH,
   REHYDRATE,
@@ -17,11 +16,16 @@ import storage from "redux-persist/lib/storage";
 
 import type { RootState } from '../src/store';
 import { AppProvider } from '../src/context/AppContext';
+import { MantineProvider, createTheme } from '@mantine/core';
 import sessionSlice from '../src/features/session/store/sessionSlice';
 import workoutSlice from '../src/features/workout/store/workoutSlice';
 import userSlice from '../src/features/user/store/userSlice';
 import uiSlice from '../src/features/ui/store/uiSlice';
 import { JSX } from 'react/jsx-dev-runtime';
+
+const theme = createTheme({
+  primaryColor: 'blue',
+});
 
 const rootReducer = combineReducers({
   session: sessionSlice,
@@ -70,7 +74,9 @@ function render(
     return (
       <Provider store={store}>
         <AppProvider>
-          {children}
+          <MantineProvider theme={theme}>
+            {children}
+          </MantineProvider>
         </AppProvider>
       </Provider>
     );

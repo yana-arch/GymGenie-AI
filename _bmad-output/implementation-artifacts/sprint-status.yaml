@@ -71,8 +71,9 @@ development_status:
   4-5-real-time-encouragement: review
   epic-4-retrospective: optional
 
-  epic-5: backlog
-  5-1-fitness-improvement-tracking: backlog
+  epic-5: in-progress
+  5-1-fitness-improvement-tracking: done
+
   5-2-ai-recommendation-correlation: backlog
   5-3-milestone-achievement-system: backlog
   5-4-trend-analysis-dashboard: backlog

@@ -11,7 +11,7 @@ import { ToastProvider } from './components/ui/Toast';
 const Onboarding = React.lazy(() => import('./features/onboarding/components/Onboarding'));
 const EquipmentScanner = React.lazy(() => import('./features/profile/components/EquipmentScanner'));
 const WorkoutDashboard = React.lazy(() => import('./features/workout/components/WorkoutDashboard'));
-const ProgressDashboard = React.lazy(() => import('./features/workout/components/ProgressDashboard'));
+const ProgressDashboard = React.lazy(() => import('./features/analytics/components/ProgressDashboard'));
 const ProfileDashboard = React.lazy(() => import('./features/profile/components/ProfileDashboard'));
 const NutritionGenie = React.lazy(() => import('./features/nutrition/components/NutritionGenie'));
 const LiveWorkoutSession = React.lazy(() => import('./features/session/components/LiveWorkoutSession'));
@@ -65,6 +65,13 @@ const AppContent = memo(() => {
   );
 });
 
+import { MantineProvider, createTheme } from '@mantine/core';
+import '@mantine/core/styles.css';
+
+const theme = createTheme({
+  primaryColor: 'blue',
+});
+
 const App = memo(() => {
   const handleGlobalError = (error: Error, errorInfo: ErrorInfo) => {
     // Log to external service in production
@@ -85,13 +92,15 @@ const App = memo(() => {
     <GlobalErrorBoundary onError={handleGlobalError}>
       <ReduxProvider>
         <AppProvider>
-          <ThemeProvider>
-            <ToastProvider>
-              <SessionErrorBoundary>
-                <AppContent />
-              </SessionErrorBoundary>
-            </ToastProvider>
-          </ThemeProvider>
+          <MantineProvider theme={theme} defaultColorScheme="light">
+            <ThemeProvider>
+              <ToastProvider>
+                <SessionErrorBoundary>
+                  <AppContent />
+                </SessionErrorBoundary>
+              </ToastProvider>
+            </ThemeProvider>
+          </MantineProvider>
         </AppProvider>
       </ReduxProvider>
     </GlobalErrorBoundary>
