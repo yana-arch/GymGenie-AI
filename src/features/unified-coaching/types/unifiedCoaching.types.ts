@@ -7,7 +7,8 @@ export enum CoachingPriority {
   SAFETY = 'safety',
   INJURY = 'injury', 
   FORM = 'form',
-  ADAPTATION = 'adaptation'
+  ADAPTATION = 'adaptation',
+  ENCOURAGEMENT = 'encouragement'
 }
 
 export enum AdaptationTrigger {

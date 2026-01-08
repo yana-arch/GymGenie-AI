@@ -5,24 +5,10 @@ import {
   addMilestone 
 } from '../store/liveSessionSlice';
 import { sessionGuidanceService } from '../services/SessionGuidanceService';
+import { EncouragementService } from '../services/EncouragementService';
+import { AudioCoachingService } from '@/features/form-correction/services/AudioCoachingService';
 import { RootState } from '@/store';
-
-const speakGuidance = (message: string, isPriority: boolean = false) => {
-  if ('speechSynthesis' in window) {
-    // Safety > Celebration: Only cancel if this is a priority message
-    // If not priority, wait for current speech to finish
-    if (isPriority) {
-      window.speechSynthesis.cancel();
-    }
-    
-    if (isPriority || !window.speechSynthesis.speaking) {
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.rate = 1.0;
-      utterance.pitch = isPriority ? 0.9 : 1.1; // Slightly different pitches for safety vs celebration
-      window.speechSynthesis.speak(utterance);
-    }
-  }
-};
+import { CoachingPriority } from '@/features/unified-coaching/types/unifiedCoaching.types';
 
 export const useGuidanceLoop = (isActive: boolean, progress: number) => {
   const dispatch = useDispatch();
@@ -76,7 +62,7 @@ export const useGuidanceLoop = (isActive: boolean, progress: number) => {
           const message = decision.response.recommendation.message;
           if (message && message !== lastMessageRef.current && !quietMode) {
             // Coaching decisions are usually safety or form related - high priority
-            speakGuidance(message, true);
+            AudioCoachingService.getInstance().speak(message, decision.priority);
             lastMessageRef.current = message;
           }
           
@@ -85,8 +71,13 @@ export const useGuidanceLoop = (isActive: boolean, progress: number) => {
           reachedMilestones.forEach(m => {
             dispatch(addMilestone(m));
             // Milestones are lower priority - don't cancel safety warnings
-            if (!quietMode && m.encouragement) speakGuidance(m.encouragement, m.priority === 'high');
+            if (!quietMode && m.encouragement) {
+              AudioCoachingService.getInstance().speak(m.encouragement, CoachingPriority.ENCOURAGEMENT);
+            }
           });
+
+          // Fatigue check for real-time encouragement
+          EncouragementService.getInstance().checkFatigue();
           
         } catch (error) {
           console.error('Guidance tick failed:', error);

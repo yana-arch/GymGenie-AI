@@ -319,7 +319,7 @@ export class AudioCoachingService {
     } else {
       // Check if there's already a similar message in queue
       const hasSimilarMessage = this.feedbackQueue.some(
-        item => item.priority === priority && item.message.includes(feedback.message.substring(0, 10))
+        item => item.priority === priority && item.message === feedback.message
       );
 
       if (!hasSimilarMessage) {
@@ -340,14 +340,33 @@ export class AudioCoachingService {
 
     const feedback = this.feedbackQueue.shift();
     if (feedback) {
-      this.speak(feedback.message);
+      this.speakInternal(feedback.message);
     }
+  }
+
+  /**
+   * Directly speak a message with specified priority
+   */
+  public speak(text: string, priority: 'high' | 'medium' | 'low' | string = 'medium'): void {
+    if (!this.config.enabled || !this.synthesis) {
+      return;
+    }
+
+    // Map string priorities to AudioQueue priorities
+    let audioPriority: 'high' | 'medium' | 'low' = 'medium';
+    if (priority === 'high' || priority === 'safety' || priority === 'injury') {
+      audioPriority = 'high';
+    } else if (priority === 'low' || priority === 'encouragement') {
+      audioPriority = 'low';
+    }
+
+    this.addToQueue(text, audioPriority);
   }
 
   /**
    * Convert text to speech
    */
-  private speak(text: string): void {
+  private speakInternal(text: string): void {
     if (!this.synthesis) return;
 
     // Create utterance

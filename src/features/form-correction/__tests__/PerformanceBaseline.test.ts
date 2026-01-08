@@ -46,7 +46,7 @@ describe('P0 Performance Baseline Tests - Flexible Device SLAs', () => {
     
     // Initialize mock services
     poseDetectionService = new PoseDetectionService();
-    formAnalysisService = new FormAnalysisService();
+    formAnalysisService = FormAnalysisService.getInstance();
 
     // Mock core service methods
     vi.mocked(poseDetectionService.initialize).mockResolvedValue();

@@ -203,12 +203,13 @@ export class AICoachingOrchestrator {
       };
     }
 
-    // Sort by priority (safety > injury > form > adaptation)
+    // Sort by priority (safety > injury > form > adaptation > encouragement)
     const priorityOrder = {
       [CoachingPriority.SAFETY]: 0,
       [CoachingPriority.INJURY]: 1,
       [CoachingPriority.FORM]: 2,
-      [CoachingPriority.ADAPTATION]: 3
+      [CoachingPriority.ADAPTATION]: 3,
+      [CoachingPriority.ENCOURAGEMENT]: 4
     };
 
     const sortedInputs = inputs.sort((a, b) => 

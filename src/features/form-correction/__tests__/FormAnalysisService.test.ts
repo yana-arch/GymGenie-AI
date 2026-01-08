@@ -6,7 +6,8 @@ describe('FormAnalysisService', () => {
   let formAnalysisService: FormAnalysisService;
 
   beforeEach(() => {
-    formAnalysisService = new FormAnalysisService();
+    formAnalysisService = FormAnalysisService.getInstance();
+    formAnalysisService.clearHistory();
   });
 
   describe('Squat Form Analysis', () => {

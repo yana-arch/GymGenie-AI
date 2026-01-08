@@ -62,6 +62,13 @@ interface LiveSessionState {
   transitionStatus: 'idle' | 'resting' | 'preparing' | 'active';
   nextExercise: string | null;
   restRemaining: number;
+  // Aggregate Progress
+  sessionVolume: number;
+  currentSetProgress: number; // 0 to 1
+  exercisesCompleted: number;
+  activeExerciseIndex: number;
+  sessionStartTime: number | null;
+  sessionProgress: number; // 0 to 1
   // Note: injuryFilterService is managed outside Redux to avoid non-serializable state
 }
 
@@ -98,6 +105,12 @@ const initialState: LiveSessionState = {
     transitionStatus: 'idle',
     nextExercise: null,
     restRemaining: 0,
+    sessionVolume: 0,
+    currentSetProgress: 0,
+    exercisesCompleted: 0,
+    activeExerciseIndex: 0,
+    sessionStartTime: null,
+    sessionProgress: 0,
   };
 
 export const fetchWorkoutAdaptation = createAsyncThunk(
@@ -197,8 +210,11 @@ const liveSessionSlice = createSlice({
     },
     setIsActive(state, action: PayloadAction<boolean>) {
       state.isActive = action.payload;
-      if (!action.payload) {
+      if (action.payload) {
+        state.sessionStartTime = Date.now();
+      } else {
         ContextCaptureService.getInstance().clearContext();
+        state.sessionStartTime = null;
       }
     },
     clearAdaptation(state) {
@@ -309,6 +325,27 @@ const liveSessionSlice = createSlice({
     },
     updateRestRemaining(state, action: PayloadAction<number>) {
       state.restRemaining = action.payload;
+    },
+    setSessionProgress(state, action: PayloadAction<number>) {
+      state.sessionProgress = action.payload;
+    },
+    addSessionVolume(state, action: PayloadAction<number>) {
+      state.sessionVolume += action.payload;
+    },
+    setCurrentSetProgress(state, action: PayloadAction<number>) {
+      state.currentSetProgress = action.payload;
+    },
+    setActiveExerciseIndex(state, action: PayloadAction<number>) {
+      state.activeExerciseIndex = action.payload;
+    },
+    incrementExercisesCompleted(state) {
+      state.exercisesCompleted += 1;
+    },
+    resetAggregateProgress(state) {
+      state.sessionVolume = 0;
+      state.currentSetProgress = 0;
+      state.exercisesCompleted = 0;
+      state.activeExerciseIndex = 0;
     }
   },
   extraReducers: (builder) => {
@@ -368,7 +405,13 @@ export const {
   recordAdaptationEvent,
   setTransitionStatus,
   setNextExercise,
-  updateRestRemaining
+  updateRestRemaining,
+  setSessionProgress,
+  addSessionVolume,
+  setCurrentSetProgress,
+  setActiveExerciseIndex,
+  incrementExercisesCompleted,
+  resetAggregateProgress
 } = liveSessionSlice.actions;
 
 export default liveSessionSlice.reducer;

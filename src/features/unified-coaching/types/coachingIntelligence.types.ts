@@ -300,7 +300,8 @@ export const DEFAULT_LEARNING_PROFILE: UserLearningProfile = {
       [CoachingPriority.SAFETY]: 0.95,
       [CoachingPriority.INJURY]: 0.9,
       [CoachingPriority.FORM]: 0.75,
-      [CoachingPriority.ADAPTATION]: 0.6
+      [CoachingPriority.ADAPTATION]: 0.6,
+      [CoachingPriority.ENCOURAGEMENT]: 0.8
     },
     byType: {}
   },

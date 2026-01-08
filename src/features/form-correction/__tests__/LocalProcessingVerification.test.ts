@@ -49,7 +49,7 @@ describe('P0 Local Processing Tests - Verification of Local-Only Processing', ()
     
     // Initialize mock services
     poseDetectionService = new PoseDetectionService();
-    formAnalysisService = new FormAnalysisService();
+    formAnalysisService = FormAnalysisService.getInstance();
     
     // Setup PrivacyValidationService mock implementation
     const mockPrivacyService = {

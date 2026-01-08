@@ -26,6 +26,7 @@ interface FormCorrectionSliceState extends FormCorrectionState {
     feedback: string;
     timestamp: number;
   } | null;
+  currentRepCount: number;
 }
 
 const initialState: FormCorrectionSliceState = {
@@ -50,7 +51,8 @@ const initialState: FormCorrectionSliceState = {
     visualFeedbackEnabled: true,
     correctionSensitivity: 'normal'
   },
-  lastAnalysis: null
+  lastAnalysis: null,
+  currentRepCount: 0
 };
 
 // Async thunks for form correction operations
@@ -157,6 +159,10 @@ const formCorrectionSlice = createSlice({
       state.isDetecting = action.payload;
     },
     
+    updateRepCount: (state, action: PayloadAction<number>) => {
+      state.currentRepCount = action.payload;
+    },
+    
     // Reset form correction state
     resetFormCorrection: (state) => {
       return {
@@ -233,6 +239,7 @@ export const {
   setLastAnalysis,
   setCameraPermission,
   setDetecting,
+  updateRepCount,
   resetFormCorrection
 } = formCorrectionSlice.actions;
 

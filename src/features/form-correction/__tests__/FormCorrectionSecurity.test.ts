@@ -62,7 +62,7 @@ describe('P0 Security Tests - Form Correction Data Protection', () => {
     // Initialize mock services
     privacyService = PrivacyValidationService.getInstance();
     poseDetectionService = new PoseDetectionService();
-    formAnalysisService = new FormAnalysisService();
+    formAnalysisService = FormAnalysisService.getInstance();
 
     // Mock privacy service methods
     vi.mocked(privacyService.validateDataForAI).mockReturnValue({

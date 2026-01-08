@@ -1,5 +1,6 @@
 import { Pose, PoseKeypoint } from './PoseDetectionService';
 import { ContextCaptureService } from '../../session/services/ContextCaptureService';
+import { EncouragementService } from '../../session/services/EncouragementService';
 
 export interface FormIssue {
   type: 'alignment' | 'depth' | 'stability' | 'range_of_motion';
@@ -43,6 +44,8 @@ export class FormAnalysisService {
     maxProcessingTime: 0,
     slaCompliance: 100
   };
+  private repCount = 0;
+  private isRepInProgress = false;
 
   private constructor() {
     this.initializeExerciseRules();
@@ -167,6 +170,9 @@ export class FormAnalysisService {
     // Check stability
     this.checkStability(pose, rule, issues);
 
+    // Rep detection logic
+    this.detectReps(pose, exerciseType);
+
     // Calculate overall score
     const score = this.calculateFormScore(issues);
     const isValid = score >= 80 && issues.filter(i => i.severity === 'high').length === 0;
@@ -197,6 +203,34 @@ export class FormAnalysisService {
     ContextCaptureService.getInstance().recordFormQuality(analysis.score / 100);
 
     return analysis;
+  }
+
+  /**
+   * Simple rep detection based on joint angles
+   */
+  private detectReps(pose: Pose, exerciseType: string): void {
+    const keypoints = this.keypointsToObject(pose.keypoints);
+    const type = exerciseType.toLowerCase();
+
+    if (type === 'squat' && keypoints.hip && keypoints.knee && keypoints.ankle) {
+      const angle = this.calculateAngle(keypoints.hip, keypoints.knee, keypoints.ankle);
+      if (angle < 110) { // Bottom of squat
+        this.isRepInProgress = true;
+      } else if (angle > 160 && this.isRepInProgress) { // Standing back up
+        this.isRepInProgress = false;
+        this.repCount++;
+        EncouragementService.getInstance().recordRep();
+      }
+    } else if (type === 'pushup' && keypoints.shoulder && keypoints.elbow && keypoints.wrist) {
+      const angle = this.calculateAngle(keypoints.shoulder, keypoints.elbow, keypoints.wrist);
+      if (angle < 100) { // Bottom of pushup
+        this.isRepInProgress = true;
+      } else if (angle > 160 && this.isRepInProgress) { // Back up
+        this.isRepInProgress = false;
+        this.repCount++;
+        EncouragementService.getInstance().recordRep();
+      }
+    }
   }
 
   /**
@@ -458,6 +492,22 @@ export class FormAnalysisService {
     });
 
     return { averageScore, issueFrequency };
+  }
+
+  /**
+   * Get current rep count
+   */
+  public getRepCount(): number {
+    return this.repCount;
+  }
+
+  /**
+   * Reset rep count (call at start of set)
+   */
+  public resetRepCount(): void {
+    this.repCount = 0;
+    this.isRepInProgress = false;
+    EncouragementService.getInstance().resetSetProgress();
   }
 
   /**

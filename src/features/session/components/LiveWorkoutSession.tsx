@@ -18,14 +18,17 @@ import { toTitleCase } from '@/utils/stringUtils';
 import { Button } from '@/components/ui';
 import { useToast, toast } from '@/components/ui/Toast';
 import { useErrorHandler } from '@/utils/errorHandler';
-import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation, setIsActive, addMilestone } from '../store/liveSessionSlice';
-import { updateSettings as updateFormSettings } from '@/features/form-correction/store/formCorrectionSlice';
+import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation, setIsActive, addMilestone, addSessionVolume, setCurrentSetProgress, incrementExercisesCompleted, setActiveExerciseIndex as setActiveExerciseIndexAction, setSessionProgress } from '../store/liveSessionSlice';
+import { updateSettings as updateFormSettings, updateRepCount } from '@/features/form-correction/store/formCorrectionSlice';
 import { useGuidanceLoop } from '../hooks/useGuidanceLoop';
 import LiveGuidanceOverlay from './LiveGuidanceOverlay';
 import MilestoneCelebration from './MilestoneCelebration';
 import TransitionPrep from './TransitionPrep';
+import SessionProgressHUD from './SessionProgressHUD';
 
 import { sessionGuidanceService } from '../services/SessionGuidanceService';
+import { EncouragementService } from '../services/EncouragementService';
+import { FormAnalysisService } from '@/features/form-correction/services/FormAnalysisService';
 
 const LiveWorkoutSession = () => {
   const { showToast } = useToast();
@@ -88,7 +91,7 @@ const LiveWorkoutSession = () => {
   const audioService = useRef<AudioCoachingService | null>(null);
 
   useEffect(() => {
-    audioService.current = new AudioCoachingService();
+    audioService.current = AudioCoachingService.getInstance();
     return () => audioService.current?.stop();
   }, []);
 
@@ -231,10 +234,12 @@ const LiveWorkoutSession = () => {
   const handleNextExercise = useCallback(() => {
     const totalEx = activeContext?.totalExercises || 0;
     if (activeExerciseIndex < totalEx - 1) {
-      setActiveExerciseIndex(prev => prev + 1);
+      const nextIndex = activeExerciseIndex + 1;
+      setActiveExerciseIndex(nextIndex);
+      dispatch(setActiveExerciseIndexAction(nextIndex));
       setSetStartTime(Date.now());
     }
-  }, [activeExerciseIndex, activeContext?.totalExercises]);
+  }, [activeExerciseIndex, activeContext?.totalExercises, dispatch]);
 
   const handleLogSet = useCallback(async () => {
     if (!activeContext) {
@@ -281,6 +286,9 @@ const LiveWorkoutSession = () => {
           set: setPerformance
       }));
 
+      // Update aggregate volume in Redux
+      dispatch(addSessionVolume(inputWeight));
+
       // Record volume for milestones
       const volumeMilestones = sessionGuidanceService.recordVolume(inputWeight, liveSessionState.activeContext.energy);
       volumeMilestones.forEach((m: any) => dispatch(addMilestone(m)));
@@ -293,9 +301,16 @@ const LiveWorkoutSession = () => {
         historicalData,
         liveSessionState.activeContext.energy
       );
-      pbMilestones.forEach((m: any) => dispatch(addMilestone(m)));
+      pbMilestones.forEach((m: any) => {
+        dispatch(addMilestone(m));
+        EncouragementService.getInstance().celebratePersonalBest(m.label);
+      });
 
       setSetStartTime(now);
+
+      // Reset rep count for next set
+      FormAnalysisService.getInstance().resetRepCount();
+      dispatch(updateRepCount(0));
 
       if (activeContext.currentExercise.restSeconds > 0) {
         startRestTimer(activeContext.currentExercise.restSeconds);
@@ -310,12 +325,15 @@ const LiveWorkoutSession = () => {
       );
 
       // Trigger transition if it was the last set
-      if (completedSetsCount + 1 >= activeContext.currentExercise.sets && activeExerciseIndex < activeContext.totalExercises - 1) {
-        setTransitionState({
-          active: true,
-          seconds: 5,
-          nextName: activeContext.day.exercises[activeExerciseIndex + 1].name
-        });
+      if (completedSetsCount + 1 >= activeContext.currentExercise.sets) {
+        dispatch(incrementExercisesCompleted());
+        if (activeExerciseIndex < activeContext.totalExercises - 1) {
+          setTransitionState({
+            active: true,
+            seconds: 5,
+            nextName: activeContext.day.exercises[activeExerciseIndex + 1].name
+          });
+        }
       }
 
     } catch (error) {
@@ -332,8 +350,24 @@ const LiveWorkoutSession = () => {
 
   const { day, currentExercise, totalExercises } = activeContext || { day: null, currentExercise: null, totalExercises: 0 };
 
+  useEffect(() => {
+    if (currentExercise) {
+      const progress = completedSetsCount / currentExercise.sets;
+      dispatch(setCurrentSetProgress(progress));
+    }
+  }, [completedSetsCount, currentExercise?.sets, dispatch]);
+
+  const currentRepCount = useAppSelector((state: any) => state.formCorrection.currentRepCount);
+
+  useEffect(() => {
+    if (activeContext && currentRepCount > 0) {
+      const targetReps = parseInt(activeContext.currentExercise.reps) || 0;
+      EncouragementService.getInstance().checkSetProgress(currentRepCount, targetReps);
+    }
+  }, [currentRepCount, activeContext]);
+
   // Calculate session progress (0 to 1)
-  const sessionProgress = useMemo(() => {
+  const sessionProgressValue = useMemo(() => {
     if (!activeContext || !day) return 0;
     const exerciseProgress = activeExerciseIndex / totalExercises;
     const currentExerciseWeight = 1 / totalExercises;
@@ -341,10 +375,14 @@ const LiveWorkoutSession = () => {
     return Math.min(1, exerciseProgress + setProgress);
   }, [activeExerciseIndex, totalExercises, completedSetsCount, currentExercise?.sets, activeContext, day]);
 
+  useEffect(() => {
+    dispatch(setSessionProgress(sessionProgressValue));
+  }, [sessionProgressValue, dispatch]);
+
   // Guidance Loop Integration
   const { activeGuidance, milestoneHistory } = useGuidanceLoop(
     liveSessionState.isActive, 
-    sessionProgress
+    sessionProgressValue
   );
 
   useEffect(() => {
@@ -744,6 +782,7 @@ const LiveWorkoutSession = () => {
            )}
 
           <LiveGuidanceOverlay guidance={activeGuidance} />
+          <SessionProgressHUD />
           <MilestoneCelebration milestones={milestoneHistory} />
           {transitionState.active && (
             <TransitionPrep 

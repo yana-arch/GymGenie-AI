@@ -299,7 +299,8 @@ export class EnhancedAICoachingOrchestrator extends AICoachingOrchestrator {
       [CoachingPriority.SAFETY]: 1.0,
       [CoachingPriority.INJURY]: 0.9,
       [CoachingPriority.FORM]: 0.7,
-      [CoachingPriority.ADAPTATION]: 0.5
+      [CoachingPriority.ADAPTATION]: 0.5,
+      [CoachingPriority.ENCOURAGEMENT]: 0.3
     };
 
     let urgency = baseUrgency[priority] || 0.5;
@@ -328,7 +329,8 @@ export class EnhancedAICoachingOrchestrator extends AICoachingOrchestrator {
       [CoachingPriority.SAFETY]: 0.9,
       [CoachingPriority.INJURY]: 0.8,
       [CoachingPriority.FORM]: 0.6,
-      [CoachingPriority.ADAPTATION]: 0.4
+      [CoachingPriority.ADAPTATION]: 0.4,
+      [CoachingPriority.ENCOURAGEMENT]: 0.2
     };
 
     return basePersistence[priority] || 0.5;

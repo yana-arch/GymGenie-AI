@@ -41,8 +41,8 @@ export class FormCorrectionService {
   constructor() {
     this.cameraService = new CameraService();
     this.poseDetectionService = new PoseDetectionService();
-    this.formAnalysisService = new FormAnalysisService();
-    this.audioCoachingService = new AudioCoachingService();
+    this.formAnalysisService = FormAnalysisService.getInstance();
+    this.audioCoachingService = AudioCoachingService.getInstance();
     
     this.state = {
       isActive: false,
@@ -344,6 +344,7 @@ export class FormCorrectionService {
           formScore: formAnalysis.score,
           hasIssues: !formAnalysis.isValid,
           exerciseType: this.currentExercise,
+          repCount: this.formAnalysisService.getRepCount(),
           timestamp: Date.now()
         });
       }
@@ -375,6 +376,7 @@ export class FormCorrectionService {
               formScore: formAnalysis.score,
               hasIssues: !formAnalysis.isValid,
               exerciseType: this.currentExercise,
+              repCount: this.formAnalysisService.getRepCount(),
               timestamp: Date.now()
             }
           });
