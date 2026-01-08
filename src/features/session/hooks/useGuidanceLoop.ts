@@ -76,8 +76,19 @@ export const useGuidanceLoop = (isActive: boolean, progress: number) => {
             }
           });
 
-          // Fatigue check for real-time encouragement
-          EncouragementService.getInstance().checkFatigue();
+          // Encouragement triggers
+          const encouragementService = EncouragementService.getInstance();
+          
+          // Workout-level progress (25%, 50%, 75%)
+          encouragementService.checkWorkoutProgress(progress);
+          
+          // Fatigue check
+          encouragementService.checkFatigue();
+          
+          // Volume milestone check
+          if (liveSession.sessionVolume > 0) {
+            encouragementService.celebrateVolume(liveSession.sessionVolume);
+          }
           
         } catch (error) {
           console.error('Guidance tick failed:', error);

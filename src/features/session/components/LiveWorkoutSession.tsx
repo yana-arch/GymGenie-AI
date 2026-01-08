@@ -21,6 +21,7 @@ import { useErrorHandler } from '@/utils/errorHandler';
 import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation, setIsActive, addMilestone, addSessionVolume, setCurrentSetProgress, incrementExercisesCompleted, setActiveExerciseIndex as setActiveExerciseIndexAction, setSessionProgress } from '../store/liveSessionSlice';
 import { updateSettings as updateFormSettings, updateRepCount } from '@/features/form-correction/store/formCorrectionSlice';
 import { useGuidanceLoop } from '../hooks/useGuidanceLoop';
+import { useEncouragement } from '../hooks/useEncouragement';
 import LiveGuidanceOverlay from './LiveGuidanceOverlay';
 import MilestoneCelebration from './MilestoneCelebration';
 import TransitionPrep from './TransitionPrep';
@@ -33,6 +34,7 @@ import { FormAnalysisService } from '@/features/form-correction/services/FormAna
 const LiveWorkoutSession = () => {
   const { showToast } = useToast();
   const { handleError, handleAsyncError } = useErrorHandler();
+  useEncouragement();
   
   const dispatch = useAppDispatch();
   const currentPlan = useAppSelector(state => state.workout.currentPlan);

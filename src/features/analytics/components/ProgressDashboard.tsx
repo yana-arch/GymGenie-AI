@@ -11,6 +11,7 @@ import {
   Paper,
   SimpleGrid,
   ThemeIcon,
+  Tabs,
   rem,
   Center,
   Button
@@ -21,12 +22,14 @@ import {
   Clock, 
   Flame,
   Dumbbell,
-  BarChart2
+  BarChart2,
+  BrainCircuit
 } from 'lucide-react';
 import { AnalyticsService, TimePeriod } from '../services/AnalyticsService';
 import StrengthChart from './charts/StrengthChart';
 import ConsistencyChart from './charts/ConsistencyChart';
 import EnduranceChart from './charts/EnduranceChart';
+import CorrelationDashboard from './CorrelationDashboard';
 import { selectSessions } from '@/features/session/store/sessionSlice';
 import { useApp } from '@/context/AppContext';
 
@@ -35,6 +38,7 @@ const ProgressDashboard: React.FC = () => {
   const sessions = useSelector(selectSessions);
   const { setActiveView } = useApp();
   const [period, setPeriod] = useState<TimePeriod>('Month');
+  const [activeTab, setActiveTab] = useState<string | null>('progress');
   
   const analyticsService = AnalyticsService.getInstance();
 
@@ -110,68 +114,83 @@ const ProgressDashboard: React.FC = () => {
         <Group justify="space-between">
           <Title order={2} className="flex items-center gap-2">
             <TrendingUp size={28} className="text-blue-600" />
-            Fitness Progress
+            Fitness Analytics
           </Title>
-          <Select
-            label="Time Period"
-            value={period}
-            onChange={(val) => setPeriod(val as TimePeriod)}
-            data={['Week', 'Month', 'Year', 'All Time']}
-            w={150}
-          />
+          <Tabs value={activeTab} onChange={setActiveTab} variant="pills" color="blue">
+            <Tabs.List>
+              <Tabs.Tab value="progress" leftSection={<BarChart2 size={16} />}>Progress</Tabs.Tab>
+              <Tabs.Tab value="ai-impact" leftSection={<BrainCircuit size={16} />}>AI Impact</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
         </Group>
 
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="lg">
-          <SummaryCard 
-            title="Total Workouts" 
-            value={filteredHistory.length} 
-            icon={<Calendar size={20} />}
-            color="blue"
-          />
-          <SummaryCard 
-            title="Total Time" 
-            value={`${enduranceMetrics.totalDuration}m`} 
-            icon={<Clock size={20} />}
-            color="orange"
-          />
-          <SummaryCard 
-            title="Avg Duration" 
-            value={`${Math.round(enduranceMetrics.averageDuration)}m`} 
-            icon={<Flame size={20} />}
-            color="red"
-          />
-          <SummaryCard 
-            title="Exercises Completed" 
-            value={filteredHistory.reduce((sum, h) => sum + (h.exercisesCompleted || 0), 0)} 
-            icon={<Dumbbell size={20} />}
-            color="green"
-          />
-        </SimpleGrid>
+        {activeTab === 'progress' ? (
+          <Stack gap="xl">
+            <Group justify="flex-end">
+              <Select
+                label="Time Period"
+                value={period}
+                onChange={(val) => setPeriod(val as TimePeriod)}
+                data={['Week', 'Month', 'Year', 'All Time']}
+                w={150}
+              />
+            </Group>
 
-        <Grid gutter="xl">
-          <Grid.Col span={{ base: 12, md: 8 }}>
-            <Stack gap="md">
-              <Group justify="space-between">
-                <Title order={3}>Strength Gains</Title>
-                <Select
-                  placeholder="Select Exercise"
-                  value={selectedExercise}
-                  onChange={(val) => setSelectedExercise(val || '')}
-                  data={availableExercises}
-                  w={200}
-                />
-              </Group>
-              <StrengthChart data={strengthData.maxWeightTrend} exerciseName={selectedExercise} />
-            </Stack>
-          </Grid.Col>
-          
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack gap="xl">
-              <ConsistencyChart data={consistencyData} />
-              <EnduranceChart data={enduranceMetrics.durationTrend} />
-            </Stack>
-          </Grid.Col>
-        </Grid>
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="lg">
+              <SummaryCard 
+                title="Total Workouts" 
+                value={filteredHistory.length} 
+                icon={<Calendar size={20} />}
+                color="blue"
+              />
+              <SummaryCard 
+                title="Total Time" 
+                value={`${enduranceMetrics.totalDuration}m`} 
+                icon={<Clock size={20} />}
+                color="orange"
+              />
+              <SummaryCard 
+                title="Avg Duration" 
+                value={`${Math.round(enduranceMetrics.averageDuration)}m`} 
+                icon={<Flame size={20} />}
+                color="red"
+              />
+              <SummaryCard 
+                title="Exercises Completed" 
+                value={filteredHistory.reduce((sum, h) => sum + (h.exercisesCompleted || 0), 0)} 
+                icon={<Dumbbell size={20} />}
+                color="green"
+              />
+            </SimpleGrid>
+
+            <Grid gutter="xl">
+              <Grid.Col span={{ base: 12, md: 8 }}>
+                <Stack gap="md">
+                  <Group justify="space-between">
+                    <Title order={3}>Strength Gains</Title>
+                    <Select
+                      placeholder="Select Exercise"
+                      value={selectedExercise}
+                      onChange={(val) => setSelectedExercise(val || '')}
+                      data={availableExercises}
+                      w={200}
+                    />
+                  </Group>
+                  <StrengthChart data={strengthData.maxWeightTrend} exerciseName={selectedExercise} />
+                </Stack>
+              </Grid.Col>
+              
+              <Grid.Col span={{ base: 12, md: 4 }}>
+                <Stack gap="xl">
+                  <ConsistencyChart data={consistencyData} />
+                  <EnduranceChart data={enduranceMetrics.durationTrend} />
+                </Stack>
+              </Grid.Col>
+            </Grid>
+          </Stack>
+        ) : (
+          <CorrelationDashboard />
+        )}
       </Stack>
     </Container>
   );

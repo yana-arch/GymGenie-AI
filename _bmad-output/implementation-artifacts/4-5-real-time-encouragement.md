@@ -1,6 +1,6 @@
 # Story 4.5: Real-Time Encouragement
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -127,17 +127,22 @@ opencode (Gemini 2.0 Flash) - Ultimate Story Context Engine
 
 ### Completion Notes List
 
-- Ultimate context engine analysis completed - comprehensive developer guide created
-- **Implemented EncouragementService**: Singleton service with logic for set progress (50%/90%), pace consistency, and fatigue detection.
+- **Implemented EncouragementService**: Singleton service with logic for set progress (50%/90%), workout progress (25%/50%/75%), pace consistency, and fatigue detection.
+- **Added useEncouragement Hook**: Bridge between EncouragementService and Toast UI for real-time visual feedback.
 - **Enhanced AudioCoachingService**: Exposed public `speak` method with priority queuing support.
 - **Added Real-time HUD**: Created `SessionProgressHUD` to show live session volume, set progress, and exercise completion.
 - **Fixed Singleton Patterns**: Resolved compilation errors where services were being instantiated with `new` instead of `.getInstance()`.
-- **Integrated Guidance Loop**: Refactored `useGuidanceLoop` to use the unified `AudioCoachingService` and trigger real-time fatigue checks.
+- **Integrated Guidance Loop**: Refactored `useGuidanceLoop` to use the unified `AudioCoachingService` and trigger real-time fatigue and progress checks.
+- **Acceptance Criteria Verified**: 
+    - [x] Timely encouragement messages via both UI (Toast) and Audio.
+    - [x] Progress updates at 25/50/75% of total workout.
+    - [x] Contextually relevant updates (volume milestones, fatigue).
 
 ### File List
 
 - `src/features/session/services/EncouragementService.ts` (New)
 - `src/features/session/components/SessionProgressHUD.tsx` (New)
+- `src/features/session/hooks/useEncouragement.ts` (New)
 - `src/features/session/__tests__/EncouragementService.test.ts` (New)
 - `src/features/form-correction/services/AudioCoachingService.ts` (Modified)
 - `src/features/form-correction/services/FormAnalysisService.ts` (Modified)
@@ -154,4 +159,5 @@ opencode (Gemini 2.0 Flash) - Ultimate Story Context Engine
 - `src/features/form-correction/__tests__/LocalProcessingVerification.test.ts` (Modified)
 - `src/features/form-correction/__tests__/PerformanceBaseline.test.ts` (Modified)
 - `src/features/form-correction/__tests__/FormCorrectionSecurity.test.ts` (Modified)
+
 

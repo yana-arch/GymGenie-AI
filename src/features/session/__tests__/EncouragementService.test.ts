@@ -101,4 +101,19 @@ describe('EncouragementService', () => {
 
     vi.useRealTimers();
   });
+
+  it('should trigger encouragement at 25% workout progress @p1', () => {
+    service.checkWorkoutProgress(0.25);
+    expect(mockAudio.speak).toHaveBeenCalledWith(
+      expect.stringContaining('25%'),
+      expect.anything()
+    );
+  });
+
+  it('should notify listeners when encouragement is triggered @p1', () => {
+    const listener = vi.fn();
+    service.subscribe(listener);
+    service.triggerEncouragement('Test message', true);
+    expect(listener).toHaveBeenCalledWith('Test message');
+  });
 });

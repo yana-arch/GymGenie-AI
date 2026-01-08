@@ -8,6 +8,7 @@ export class EncouragementService {
   private lastEncouragementTime = 0;
   private encouragementCooldown = 30000; // 30 seconds
   private setProgressMilestonesReached: Set<number> = new Set();
+  private workoutMilestonesReached: Set<number> = new Set();
   private repTimestamps: number[] = [];
 
   private phrases = {
@@ -16,6 +17,12 @@ export class EncouragementService {
       "Halfway through the set, you've got this!",
       "Almost done, stay strong!",
       "Final reps, give it everything!"
+    ],
+    workout: [
+      "25% done! Great start!",
+      "Halfway through the workout! You're crushing it!",
+      "75% mark! Almost home!",
+      "The home stretch! Finish strong!"
     ],
     pace: [
       "Great pace! Keep it up.",
@@ -63,6 +70,29 @@ export class EncouragementService {
   }
 
   /**
+   * Check total workout progress (25%, 50%, 75%)
+   */
+  public checkWorkoutProgress(progress: number): string | null {
+    let message: string | null = null;
+
+    if (progress >= 0.75 && !this.workoutMilestonesReached.has(75)) {
+      message = this.phrases.workout[2];
+      this.workoutMilestonesReached.add(75);
+    } else if (progress >= 0.5 && !this.workoutMilestonesReached.has(50)) {
+      message = this.phrases.workout[1];
+      this.workoutMilestonesReached.add(50);
+    } else if (progress >= 0.25 && !this.workoutMilestonesReached.has(25)) {
+      message = this.phrases.workout[0];
+      this.workoutMilestonesReached.add(25);
+    }
+
+    if (message) {
+      this.triggerEncouragement(message);
+    }
+    return message;
+  }
+
+  /**
    * Reset set-specific milestones (call at start of new set)
    */
   public resetSetProgress(): void {
@@ -71,7 +101,13 @@ export class EncouragementService {
     this.paceConsistencyStreak = 0;
   }
 
-  private paceConsistencyStreak = 0;
+  /**
+   * Reset workout-specific milestones (call at start of new session)
+   */
+  public resetWorkoutProgress(): void {
+    this.workoutMilestonesReached.clear();
+    this.resetSetProgress();
+  }
 
   /**
    * Record a rep and check for pace consistency
@@ -111,8 +147,37 @@ export class EncouragementService {
     }
   }
 
+  private paceConsistencyStreak = 0;
+  private encouragementListeners: ((message: string) => void)[] = [];
+
+  /**
+   * Subscribe to encouragement events for UI updates
+   */
+  public subscribe(listener: (message: string) => void): () => void {
+    this.encouragementListeners.push(listener);
+    return () => {
+      this.encouragementListeners = this.encouragementListeners.filter(l => l !== listener);
+    };
+  }
+
+  /**
+   * Specifically celebrate a personal volume milestone
+   */
+  public celebrateVolume(volume: number): void {
+    if (volume >= 1000) {
+      const milestone = Math.floor(volume / 1000) * 1000;
+      const milestoneKey = `volume-${milestone}`;
+      if (!this.workoutMilestonesReached.has(milestone as any)) {
+        const message = `Massive effort! You've lifted over ${milestone.toLocaleString()}kg today!`;
+        this.triggerEncouragement(message, true);
+        this.workoutMilestonesReached.add(milestone as any);
+      }
+    }
+  }
+
   /**
    * Specifically celebrate a personal best
+
    */
   public celebratePersonalBest(label: string): void {
     this.triggerEncouragement(`New Personal Best! ${label}`, true);
@@ -159,6 +224,7 @@ export class EncouragementService {
     if (force || now - this.lastEncouragementTime > cooldown) {
       this.lastEncouragementTime = now;
       AudioCoachingService.getInstance().speak(message, CoachingPriority.ENCOURAGEMENT);
+      this.encouragementListeners.forEach(listener => listener(message));
     }
   }
 
