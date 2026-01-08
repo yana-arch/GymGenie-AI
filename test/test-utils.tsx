@@ -21,6 +21,7 @@ import sessionSlice from '../src/features/session/store/sessionSlice';
 import workoutSlice from '../src/features/workout/store/workoutSlice';
 import userSlice from '../src/features/user/store/userSlice';
 import uiSlice from '../src/features/ui/store/uiSlice';
+import achievementSlice from '../src/features/analytics/store/achievementSlice';
 import { JSX } from 'react/jsx-dev-runtime';
 
 const theme = createTheme({
@@ -32,12 +33,13 @@ const rootReducer = combineReducers({
   workout: workoutSlice,
   user: userSlice,
   ui: uiSlice,
+  achievement: achievementSlice,
 });
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["user", "workout", "session"],
+  whitelist: ["user", "workout", "session", "achievement"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

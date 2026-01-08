@@ -18,6 +18,8 @@ const LiveWorkoutSession = React.lazy(() => import('./features/session/component
 const CreateWorkoutDay = React.lazy(() => import('./features/workout/components/CreateWorkoutDay'));
 const WorkoutPlanGenerator = React.lazy(() => import('./features/onboarding/components/WorkoutPlanGenerator')); // New import
 const HomeDashboard = React.lazy(() => import('./features/home/components/HomeDashboard'));
+const AchievementManager = React.lazy(() => import('./features/analytics/components/AchievementManager'));
+const AchievementCelebration = React.lazy(() => import('./features/analytics/components/AchievementCelebration'));
 
 const AppContent = memo(() => {
   const { step, isLoading, activeView, setActiveView, setStep } = useApp();
@@ -61,6 +63,12 @@ const AppContent = memo(() => {
           {currentAppStep === 'dashboard' && activeView === 'createWorkoutDay' && <CreateWorkoutDay />}
         </Suspense>
       </ResponsiveNavigation>
+      
+      {/* Achievement System */}
+      <Suspense fallback={null}>
+        <AchievementManager />
+        <AchievementCelebration />
+      </Suspense>
     </div>
   );
 });

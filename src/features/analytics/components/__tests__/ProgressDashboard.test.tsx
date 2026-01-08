@@ -77,12 +77,16 @@ describe('ProgressDashboard', () => {
         }
       },
       currentSession: null as any
+    },
+    achievement: {
+      earnedAchievements: [] as any[],
+      recentAchievementIds: [] as string[]
     }
   };
 
   it('renders the dashboard title @smoke', () => {
     render(<ProgressDashboard />, { preloadedState: preloadedState as any });
-    expect(screen.getByText(/Fitness Progress/i)).toBeDefined();
+    expect(screen.getByText(/Fitness Analytics/i)).toBeDefined();
   });
 
   it('displays summary cards with data @p0', () => {
@@ -102,7 +106,11 @@ describe('ProgressDashboard', () => {
   it('renders empty state when no history exists @p2', () => {
     const emptyState = {
       workout: { history: [] as any[] },
-      session: { sessions: {} }
+      session: { sessions: {} },
+      achievement: {
+        earnedAchievements: [] as any[],
+        recentAchievementIds: [] as string[]
+      }
     };
     render(<ProgressDashboard />, { preloadedState: emptyState as any });
     expect(screen.getByText(/No Progress Data Yet/i)).toBeDefined();

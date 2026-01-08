@@ -16,7 +16,6 @@ export type RecommendationType = 'Safety' | 'Performance' | 'Adaptation' | 'Form
 
 export class CorrelationService {
   private static instance: CorrelationService;
-  private cache: Map<string, any> = new Map();
 
   private constructor() {}
 
@@ -71,15 +70,15 @@ export class CorrelationService {
     const performanceData = history.map(h => ({
       timestamp: new Date(h.completedAt).getTime(),
       date: h.completedAt.split('T')[0],
-      performance: (h.durationMinutes || 0) * (h.exercisesCompleted || 0),
-      type: 'performance'
+      performance: this.calculatePerformanceScore(h),
+      type: 'performance' as const
     })).sort((a, b) => a.timestamp - b.timestamp);
 
     const eventData = adaptations.map(a => ({
       timestamp: a.timestamp,
       date: new Date(a.timestamp).toISOString().split('T')[0],
       performance: this.findNearestPerformance(a.timestamp, performanceData),
-      type: 'event',
+      type: 'event' as const,
       recommendationType: this.mapToType(a),
       action: a.action,
       userResponse: a.userResponse
@@ -91,10 +90,16 @@ export class CorrelationService {
     };
   }
 
-  private findNearestPerformance(timestamp: number, performanceData: any[]): number {
+  private calculatePerformanceScore(h: WorkoutHistoryEntry): number {
+    // Better proxy for performance: exercises * (duration/10) * intensity_bonus
+    const baseVolume = (h.exercisesCompleted || 0) * ((h.durationMinutes || 0) / 10);
+    const rpeBonus = (h.rpe || 5) / 5; // Higher RPE = more effort for same volume
+    return baseVolume * rpeBonus;
+  }
+
+  private findNearestPerformance(timestamp: number, performanceData: { timestamp: number, performance: number }[]): number {
     if (performanceData.length === 0) return 0;
     
-    // Find the closest performance data point
     let closest = performanceData[0];
     let minDiff = Math.abs(timestamp - closest.timestamp);
     
@@ -112,10 +117,10 @@ export class CorrelationService {
   private mapToType(event: AdaptationEvent): RecommendationType {
     if (event.action === 'form_correction') return 'Form Correction';
     
-    const safetyTriggers = ['fatigue', 'injury', 'discomfort', 'safety'];
+    const safetyTriggers = ['fatigue', 'injury', 'discomfort', 'safety', 'pain'];
     if (event.triggers.some(t => safetyTriggers.includes(t.toLowerCase()))) return 'Safety';
     
-    const adaptationTriggers = ['time', 'equipment', 'limited'];
+    const adaptationTriggers = ['time', 'equipment', 'limited', 'busy'];
     if (event.triggers.some(t => adaptationTriggers.includes(t.toLowerCase()))) return 'Adaptation';
     
     return 'Performance';
@@ -123,32 +128,22 @@ export class CorrelationService {
 
   private calculateSafetyPerformanceGains(adaptations: AdaptationEvent[], history: WorkoutHistoryEntry[]): number {
     let gains = 0;
-    const intensityReductions = adaptations.filter(a => 
-      a.action === 'reduce_intensity' || a.action === 'reduce_volume'
-    );
+    const windowMs = 72 * 60 * 60 * 1000; // 72 hours
 
-    intensityReductions.forEach(adaptation => {
-      const windowStart = adaptation.timestamp;
-      const windowEnd = adaptation.timestamp + (72 * 60 * 60 * 1000); // 72 hours
+    adaptations.forEach(adaptation => {
+      const workoutTime = adaptation.timestamp;
+      
+      // Look for recovery trend: performance improvement in subsequent sessions vs pre-adaptation baseline
+      const baseline = this.getBaselinePerformance(workoutTime, history);
+      const postSessions = history.filter(h => {
+        const time = new Date(h.completedAt).getTime();
+        return time > workoutTime && time <= workoutTime + windowMs;
+      });
 
-      const preWorkout = history
-        .filter(h => new Date(h.completedAt).getTime() < windowStart)
-        .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())[0];
-
-      const postWorkouts = history
-        .filter(h => {
-          const time = new Date(h.completedAt).getTime();
-          return time > windowStart && time <= windowEnd;
-        });
-
-      if (preWorkout && postWorkouts.length > 0) {
-        // Compare performance (using duration and exercisesCompleted as proxy for volume)
-        const prePerformance = (preWorkout.durationMinutes || 0) * (preWorkout.exercisesCompleted || 0);
-        const maxPostPerformance = Math.max(...postWorkouts.map(h => 
-          (h.durationMinutes || 0) * (h.exercisesCompleted || 0)
-        ));
-
-        if (maxPostPerformance > prePerformance) {
+      if (baseline > 0 && postSessions.length > 0) {
+        const avgPostPerformance = postSessions.reduce((acc, h) => acc + this.calculatePerformanceScore(h), 0) / postSessions.length;
+        // If they maintained or improved performance after a safety intervention (e.g. avoided injury crash)
+        if (avgPostPerformance >= baseline * 0.95) {
           gains++;
         }
       }
@@ -158,28 +153,41 @@ export class CorrelationService {
   }
 
   private calculateGeneralPerformanceGains(adaptations: AdaptationEvent[], history: WorkoutHistoryEntry[]): number {
-    // Simple implementation for now: count sessions with RPE improvement or volume increase after adaptation
     let gains = 0;
-    adaptations.forEach(adaptation => {
-        const windowStart = adaptation.timestamp;
-        const windowEnd = adaptation.timestamp + (72 * 60 * 60 * 1000);
-        
-        const postWorkouts = history.filter(h => {
-            const time = new Date(h.completedAt).getTime();
-            return time > windowStart && time <= windowEnd;
-        });
+    const windowMs = 7 * 24 * 60 * 60 * 1000; // 1 week for performance impact
 
-        if (postWorkouts.length > 0) {
-            // If user completed more exercises than usual or had good RPE
-            if (postWorkouts.some(h => (h.rpe || 0) >= 7 || (h.exercisesCompleted || 0) >= 5)) {
-                gains++;
-            }
+    adaptations.forEach(adaptation => {
+      const workoutTime = adaptation.timestamp;
+      const baseline = this.getBaselinePerformance(workoutTime, history);
+      
+      const postSessions = history.filter(h => {
+        const time = new Date(h.completedAt).getTime();
+        return time > workoutTime && time <= workoutTime + windowMs;
+      });
+
+      if (baseline > 0 && postSessions.length > 0) {
+        const maxPost = Math.max(...postSessions.map(h => this.calculatePerformanceScore(h)));
+        // Significant gain: 5% improvement over baseline
+        if (maxPost > baseline * 1.05) {
+          gains++;
         }
+      }
     });
     return gains;
   }
 
+  private getBaselinePerformance(timestamp: number, history: WorkoutHistoryEntry[]): number {
+    const prevSessions = history
+      .filter(h => new Date(h.completedAt).getTime() < timestamp)
+      .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+      .slice(0, 3);
+
+    if (prevSessions.length === 0) return 0;
+    return prevSessions.reduce((acc, h) => acc + this.calculatePerformanceScore(h), 0) / prevSessions.length;
+  }
+
   public clearCache(): void {
-    this.cache.clear();
+    // No-op, cache removed as requested
   }
 }
+

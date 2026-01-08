@@ -24,6 +24,7 @@ import preferenceLearningSlice from "./preferenceLearningSlice";
 import historicalPatternsSlice from "./historicalPatternsSlice";
 import { feedbackPersonalizationReducer } from "@/features/feedback-driven-personalization/store/feedbackPersonalizationSlice";
 import privacyReducer from "@/features/privacy/store/privacySlice";
+import achievementReducer from "@/features/analytics/store/achievementSlice";
 import { secureStorage } from "@/features/privacy/services/SecureStorage";
 
 const rootReducer = combineReducers({
@@ -40,12 +41,13 @@ const rootReducer = combineReducers({
   historicalPatterns: historicalPatternsSlice,
   feedbackPersonalization: feedbackPersonalizationReducer,
   privacy: privacyReducer,
+  achievement: achievementReducer,
 });
 
 const persistConfig = {
   key: "root",
   storage: secureStorage,
-  whitelist: ["user", "workout", "session", "formCorrection", "safetyOverride", "injuryAware", "unifiedCoaching", "preferenceLearning", "historicalPatterns", "feedbackPersonalization", "privacy"], // Persist important data
+  whitelist: ["user", "workout", "session", "formCorrection", "safetyOverride", "injuryAware", "unifiedCoaching", "preferenceLearning", "historicalPatterns", "feedbackPersonalization", "privacy", "achievement"], // Persist important data
   // ui slice is transient
 };
 

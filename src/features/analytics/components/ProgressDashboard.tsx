@@ -23,24 +23,36 @@ import {
   Flame,
   Dumbbell,
   BarChart2,
-  BrainCircuit
+  BrainCircuit,
+  Trophy,
+  Star
 } from 'lucide-react';
 import { AnalyticsService, TimePeriod } from '../services/AnalyticsService';
 import StrengthChart from './charts/StrengthChart';
 import ConsistencyChart from './charts/ConsistencyChart';
 import EnduranceChart from './charts/EnduranceChart';
 import CorrelationDashboard from './CorrelationDashboard';
+import AchievementList from './AchievementList';
 import { selectSessions } from '@/features/session/store/sessionSlice';
 import { useApp } from '@/context/AppContext';
+import { useAppSelector } from '@/store';
+import { SummaryCard } from '@/components/ui';
 
 const ProgressDashboard: React.FC = () => {
   const history = useSelector((state: any) => state.workout.history);
   const sessions = useSelector(selectSessions);
+  const earnedAchievements = useAppSelector(state => state.achievement.earnedAchievements);
   const { setActiveView } = useApp();
   const [period, setPeriod] = useState<TimePeriod>('Month');
   const [activeTab, setActiveTab] = useState<string | null>('progress');
   
   const analyticsService = AnalyticsService.getInstance();
+
+  const recentAchievements = useMemo(() => {
+    return [...earnedAchievements]
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 3);
+  }, [earnedAchievements]);
 
   // Extract available exercises from sessions for the selector
   const availableExercises = useMemo(() => {
@@ -119,6 +131,7 @@ const ProgressDashboard: React.FC = () => {
           <Tabs value={activeTab} onChange={setActiveTab} variant="pills" color="blue">
             <Tabs.List>
               <Tabs.Tab value="progress" leftSection={<BarChart2 size={16} />}>Progress</Tabs.Tab>
+              <Tabs.Tab value="achievements" leftSection={<Trophy size={16} />}>Achievements</Tabs.Tab>
               <Tabs.Tab value="ai-impact" leftSection={<BrainCircuit size={16} />}>AI Impact</Tabs.Tab>
             </Tabs.List>
           </Tabs>
@@ -126,6 +139,32 @@ const ProgressDashboard: React.FC = () => {
 
         {activeTab === 'progress' ? (
           <Stack gap="xl">
+            {recentAchievements.length > 0 && (
+              <Paper withBorder p="md" radius="md" bg="blue.0" className="border-blue-100">
+                <Stack gap="xs">
+                  <Group justify="space-between">
+                    <Group gap="xs">
+                      <Trophy size={18} className="text-blue-600" />
+                      <Text fw={700} size="sm">Recent Achievements</Text>
+                    </Group>
+                    <Button variant="subtle" size="xs" onClick={() => setActiveTab('achievements')}>
+                      View Wall of Fame
+                    </Button>
+                  </Group>
+                  <Group gap="md">
+                    {recentAchievements.map((achievement) => (
+                      <Group key={achievement.earnedId} gap="xs">
+                        <ThemeIcon size="sm" radius="xl" color="blue" variant="light">
+                          <Star size={12} />
+                        </ThemeIcon>
+                        <Text size="xs" fw={600}>{achievement.label}</Text>
+                      </Group>
+                    ))}
+                  </Group>
+                </Stack>
+              </Paper>
+            )}
+
             <Group justify="flex-end">
               <Select
                 label="Time Period"
@@ -188,6 +227,8 @@ const ProgressDashboard: React.FC = () => {
               </Grid.Col>
             </Grid>
           </Stack>
+        ) : activeTab === 'achievements' ? (
+          <AchievementList />
         ) : (
           <CorrelationDashboard />
         )}
@@ -195,30 +236,5 @@ const ProgressDashboard: React.FC = () => {
     </Container>
   );
 };
-
-interface SummaryCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-  color: string;
-}
-
-const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, icon, color }) => (
-  <Paper withBorder p="md" radius="md" shadow="xs">
-    <Group justify="space-between">
-      <div>
-        <Text size="xs" color="dimmed" fw={700} tt="uppercase">
-          {title}
-        </Text>
-        <Text fw={700} size="xl">
-          {value}
-        </Text>
-      </div>
-      <ThemeIcon color={color} variant="light" size={38} radius="md">
-        {icon}
-      </ThemeIcon>
-    </Group>
-  </Paper>
-);
 
 export default ProgressDashboard;

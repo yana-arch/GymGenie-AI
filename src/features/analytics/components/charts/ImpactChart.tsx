@@ -26,7 +26,8 @@ interface ImpactChartProps {
 
 const ImpactChart: React.FC<ImpactChartProps> = ({ performanceTrend, events }) => {
   const theme = useMantineTheme();
-  const { colorScheme } = useMantineColorScheme();
+
+  const eventTypes = ['Safety', 'Form Correction', 'Adaptation', 'Performance'];
 
   const getEventColor = (type: string) => {
     switch (type) {
@@ -76,7 +77,7 @@ const ImpactChart: React.FC<ImpactChartProps> = ({ performanceTrend, events }) =
             tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
           />
           <YAxis name="Performance" />
-          <ZAxis range={[50, 400]} />
+          <ZAxis type="number" range={[100, 100]} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
           <Line 
@@ -88,19 +89,14 @@ const ImpactChart: React.FC<ImpactChartProps> = ({ performanceTrend, events }) =
             dot={false}
             name="Performance Trend"
           />
-          <Scatter 
-            data={events}
-            name="AI Events"
-            fill="var(--mantine-color-red-6)"
-          >
-            {events.map((entry, index) => (
-              <Scatter
-                key={`scatter-${index}`}
-                data={[entry]}
-                fill={getEventColor(entry.recommendationType)}
-              />
-            ))}
-          </Scatter>
+          {eventTypes.map(type => (
+            <Scatter 
+              key={type}
+              data={events.filter(e => e.recommendationType === type)}
+              name={`AI ${type}`}
+              fill={getEventColor(type)}
+            />
+          ))}
         </ComposedChart>
       </ResponsiveContainer>
     </Card>

@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { 
   Container, 
   Grid, 
@@ -7,7 +6,6 @@ import {
   Text, 
   Group, 
   Stack, 
-  Paper,
   SimpleGrid,
   ThemeIcon,
   Center,
@@ -22,10 +20,12 @@ import {
 import { CorrelationService } from '../services/CorrelationService';
 import ImpactChart from './charts/ImpactChart';
 import RecommendationTypeBreakdown from './charts/RecommendationTypeBreakdown';
+import { useAppSelector } from '@/store';
+import { SummaryCard } from '@/components/ui';
 
 const CorrelationDashboard: React.FC = () => {
-  const history = useSelector((state: any) => state.workout.history);
-  const adaptationHistory = useSelector((state: any) => state.liveSession.adaptationHistory);
+  const history = useAppSelector(state => state.workout.history);
+  const adaptationHistory = useAppSelector(state => state.liveSession.adaptationHistory);
   
   const correlationService = CorrelationService.getInstance();
 
@@ -113,30 +113,5 @@ const CorrelationDashboard: React.FC = () => {
     </Container>
   );
 };
-
-interface SummaryCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-  color: string;
-}
-
-const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, icon, color }) => (
-  <Paper withBorder p="md" radius="md" shadow="xs">
-    <Group justify="space-between">
-      <div>
-        <Text size="xs" color="dimmed" fw={700} tt="uppercase">
-          {title}
-        </Text>
-        <Text fw={700} size="xl">
-          {value}
-        </Text>
-      </div>
-      <ThemeIcon color={color} variant="light" size={38} radius="md">
-        {icon}
-      </ThemeIcon>
-    </Group>
-  </Paper>
-);
 
 export default CorrelationDashboard;
