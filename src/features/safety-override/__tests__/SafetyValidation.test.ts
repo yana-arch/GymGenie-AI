@@ -1,5 +1,5 @@
 /**
- * @p0 P0 Safety Validation Tests (R-003) - Simplified
+ * @p0 Safety Validation Tests (R-003) - Simplified
  * Epic 1 - AI-Powered Workout Coaching
  * 
  * Tests for multi-layer safety validation with conservative injury prevention
@@ -20,7 +20,11 @@ describe('@p0 Safety Validation Tests - Multi-Layer Injury Prevention', () => {
       validateRecommendation: vi.fn(),
       applyConservativeMargins: vi.fn(),
       handlePainSignal: vi.fn(),
-      generateWarning: vi.fn()
+      generateWarning: vi.fn(),
+      validateFormTechnique: vi.fn(),
+      validateProgressiveOverload: vi.fn(),
+      validateRecoveryRequirements: vi.fn(),
+      prioritizeSafety: vi.fn()
     };
   });
 
@@ -128,7 +132,7 @@ describe('@p0 Safety Validation Tests - Multi-Layer Injury Prevention', () => {
       ];
 
       // Mock form validation
-      vi.mocked(safetyValidationService.validateFormTechnique).mockImplementation(async (technique) => ({
+      vi.mocked(safetyValidationService.validateFormTechnique).mockImplementation(async (technique: any) => ({
         safe: technique.riskLevel !== 'high',
         blockedReason: technique.riskLevel === 'high' ? 'injury_risk' : undefined,
         alternative: technique.riskLevel === 'high' ? 'safer_alternative' : undefined
@@ -142,7 +146,7 @@ describe('@p0 Safety Validation Tests - Multi-Layer Injury Prevention', () => {
       );
 
       // Assert
-      results.forEach((result, index) => {
+      results.forEach((result) => {
         expect(result.safe).toBe(false);
         expect(result.blockedReason).toContain('injury_risk');
         expect(result.alternative).toBeDefined();
@@ -231,7 +235,7 @@ describe('@p0 Safety Validation Tests - Multi-Layer Injury Prevention', () => {
       };
 
       // Mock pain signal handling
-      vi.mocked(safetyValidationService.handlePainSignal).mockImplementation(async (pain) => ({
+      vi.mocked(safetyValidationService.handlePainSignal).mockImplementation(async (pain: any) => ({
         approved: pain.intensity >= 7,
         immediateStop: pain.intensity >= 7,
         medicalAttentionRecommended: pain.intensity >= 6,
@@ -265,7 +269,7 @@ describe('@p0 Safety Validation Tests - Multi-Layer Injury Prevention', () => {
       };
 
       // Mock warning generation
-      vi.mocked(safetyValidationService.generateWarning).mockImplementation(async (indicator) => ({
+      vi.mocked(safetyValidationService.generateWarning).mockImplementation(async (indicator: any) => ({
         level: indicator.severity === 'high' ? 'warning' : 'caution',
         message: `${indicator.type}_detected`,
         recommendedAction: indicator.severity === 'high' ? 'stop_workout' : 'reduce_intensity'

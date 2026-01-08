@@ -222,7 +222,7 @@ describe('AC7: Workout Adaptation Integration', () => {
       const initialSessionState = {
         isActive: true,
         currentExercise: { id: 'squat', name: 'Squat' },
-        adaptations: []
+        adaptations: [] as any[]
       };
       
       await formCorrectionService.initialize();

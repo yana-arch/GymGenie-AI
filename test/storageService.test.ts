@@ -1,4 +1,4 @@
-import { StorageService } from '@/services/storageService';
+import { StorageService } from '@/services/storage/StorageService';
 import { SessionStorageData, SessionState } from '@/types';
 
 // Mock localStorage

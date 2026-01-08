@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { DataIntegrityService } from '../services/DataIntegrityService';
+import { DataIntegrityService } from '@/services/DataIntegrityService';
 
 const validWorkout = {
   id: crypto.randomUUID(),

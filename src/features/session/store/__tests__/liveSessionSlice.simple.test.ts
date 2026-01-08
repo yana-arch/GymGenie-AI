@@ -17,11 +17,11 @@ describe('LiveSessionSlice', () => {
         equipmentStatus: 'available' as const,
       },
       isLoading: false,
-      error: null,
-      adaptation: null,
+      error: null as string | null,
+      adaptation: null as any,
     };
 
-    const result = liveSessionSlice(initialState, updateEnergyContext('tired'));
+    const result = liveSessionSlice(initialState as any, updateEnergyContext('tired'));
     expect(result.activeContext.energy).toBe('tired');
   });
 
@@ -33,11 +33,11 @@ describe('LiveSessionSlice', () => {
         equipmentStatus: 'available' as const,
       },
       isLoading: false,
-      error: null,
-      adaptation: null,
+      error: null as string | null,
+      adaptation: null as any,
     };
 
-    const result = liveSessionSlice(initialState, updateTimeContext('limited'));
+    const result = liveSessionSlice(initialState as any, updateTimeContext('limited'));
     expect(result.activeContext.time).toBe('limited');
   });
 });

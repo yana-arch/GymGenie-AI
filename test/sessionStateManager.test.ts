@@ -1,4 +1,4 @@
-import { SessionStateManager } from '@/src/features/session/services/sessionStateManager';
+import { SessionStateManager } from '@/features/session/services/sessionStateManager';
 import { SessionState, SessionError } from '@/types';
 
 // Mock localStorage

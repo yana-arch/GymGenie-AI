@@ -385,44 +385,44 @@ const feedbackPersonalizationSlice = createSlice({
 export const feedbackPersonalizationActions = feedbackPersonalizationSlice.actions;
 
 // Selectors
-export const selectFeedbackHistory = (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
+export const selectFeedbackHistory = (state: any) => 
   state.feedbackPersonalization.feedbackHistory;
 
-export const selectFeedbackPatterns = (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
+export const selectFeedbackPatterns = (state: any) => 
   state.feedbackPersonalization.patterns;
 
-export const selectFeedbackImpacts = (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
+export const selectFeedbackImpacts = (state: any) => 
   state.feedbackPersonalization.currentImpacts;
 
-export const selectFeedbackSettings = (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
+export const selectFeedbackSettings = (state: any) => 
   state.feedbackPersonalization.settings;
 
 export const selectFeedbackService = () => feedbackServiceManager.getService();
 
-export const selectFeedbackLoading = (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
+export const selectFeedbackLoading = (state: any) => 
   state.feedbackPersonalization.isLoading;
 
-export const selectFeedbackError = (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
+export const selectFeedbackError = (state: any) => 
   state.feedbackPersonalization.error;
 
-export const selectIsProcessingFeedback = (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
+export const selectIsProcessingFeedback = (state: any) => 
   state.feedbackPersonalization.isProcessingFeedback;
 
-export const selectValidationResult = (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
+export const selectValidationResult = (state: any) => 
   state.feedbackPersonalization.validationResult;
 
-export const selectShowValidationErrors = (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
+export const selectShowValidationErrors = (state: any) => 
   state.feedbackPersonalization.showValidationErrors;
 
 // Derived selectors
-export const selectFeedbackByExercise = (exerciseId: string) => (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
-  state.feedbackPersonalization.feedbackHistory.filter(feedback => feedback.exerciseId === exerciseId);
+export const selectFeedbackByExercise = (exerciseId: string) => (state: any) => 
+  state.feedbackPersonalization.feedbackHistory.filter((feedback: FeedbackData) => feedback.exerciseId === exerciseId);
 
-export const selectFeedbackByType = (feedbackType: FeedbackType) => (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
-  state.feedbackPersonalization.feedbackHistory.filter(feedback => feedback.type === feedbackType);
+export const selectFeedbackByType = (feedbackType: FeedbackType) => (state: any) => 
+  state.feedbackPersonalization.feedbackHistory.filter((feedback: FeedbackData) => feedback.type === feedbackType);
 
-export const selectPatternsByExercise = (exerciseId: string) => (state: { feedbackPersonalization: FeedbackPersonalizationState }) => 
-  state.feedbackPersonalization.patterns.filter(pattern => pattern.exerciseId === exerciseId);
+export const selectPatternsByExercise = (exerciseId: string) => (state: any) => 
+  state.feedbackPersonalization.patterns.filter((pattern: FeedbackPattern) => pattern.exerciseId === exerciseId);
 
 export const feedbackPersonalizationReducer = feedbackPersonalizationSlice.reducer;
 

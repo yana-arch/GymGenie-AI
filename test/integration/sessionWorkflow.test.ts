@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SessionStateManager } from '@/src/features/session/services/sessionStateManager';
+import { SessionStateManager } from '@/features/session/services/sessionStateManager';
 import { SessionState } from '@/types';
 
 describe('Session Workflow Integration Tests', () => {
@@ -225,8 +225,8 @@ describe('Session Workflow Integration Tests', () => {
             dayId: mockDayId,
             state: SessionState.ACTIVE,
             startTime: staleTimestamp,
-            completedTime: null,
-            loggedTime: null,
+            completedTime: null as number | null,
+            loggedTime: null as number | null,
             exerciseTimestamps: {},
             isReadOnly: false
           }
@@ -265,8 +265,8 @@ describe('Session Workflow Integration Tests', () => {
             dayId: mockDayId,
             state: SessionState.ACTIVE,
             startTime: staleTimestamp,
-            completedTime: null,
-            loggedTime: null,
+            completedTime: null as number | null,
+            loggedTime: null as number | null,
             exerciseTimestamps: { 'exercise-1': staleTimestamp + 1000 },
             isReadOnly: false
           }

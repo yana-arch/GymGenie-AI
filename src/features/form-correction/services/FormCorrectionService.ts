@@ -60,7 +60,7 @@ export class FormCorrectionService {
   async analyzeFormLocal(videoStream: MediaStream): Promise<any> {
     try {
       // Simulate local processing
-      const poses = await this.poseDetectionService.detectPoses(videoStream);
+      const poses = await this.poseDetectionService.detectPoses(videoStream as any);
       const analysis = await this.formAnalysisService.analyzeForm(poses, this.currentExercise);
       
       return {

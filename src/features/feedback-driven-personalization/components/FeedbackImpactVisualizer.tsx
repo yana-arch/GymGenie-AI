@@ -31,23 +31,23 @@ export const FeedbackImpactVisualizer: React.FC<FeedbackImpactVisualizerProps> =
   // Analyze impacts for visualization
   const impactAnalysis: ImpactAnalysis = useMemo(() => {
     const filteredImpacts = exerciseId
-      ? feedbackImpacts.filter(impact => impact.recommendationId.includes(exerciseId))
-      : feedbackImpacts;
+      ? (feedbackImpacts as FeedbackImpact[]).filter((impact: FeedbackImpact) => impact.recommendationId.includes(exerciseId))
+      : (feedbackImpacts as FeedbackImpact[]);
 
     const totalImpacts = filteredImpacts.length;
     const averageConfidence = totalImpacts > 0 
-      ? filteredImpacts.reduce((sum, impact) => sum + impact.confidence, 0) / totalImpacts
+      ? filteredImpacts.reduce((sum: number, impact: FeedbackImpact) => sum + impact.confidence, 0) / totalImpacts
       : 0;
     
-    const highConfidenceImpacts = filteredImpacts.filter(impact => impact.confidence >= 0.8).length;
+    const highConfidenceImpacts = filteredImpacts.filter((impact: FeedbackImpact) => impact.confidence >= 0.8).length;
 
-    const weightChanges = filteredImpacts.map(impact => ({
+    const weightChanges = filteredImpacts.map((impact: FeedbackImpact) => ({
       date: new Date().toISOString().split('T')[0],
       change: impact.adjustedWeight - impact.originalWeight,
       confidence: impact.confidence
     }));
 
-    const repsChanges = filteredImpacts.map(impact => ({
+    const repsChanges = filteredImpacts.map((impact: FeedbackImpact) => ({
       date: new Date().toISOString().split('T')[0],
       change: impact.adjustedReps - impact.originalReps,
       confidence: impact.confidence
@@ -55,8 +55,8 @@ export const FeedbackImpactVisualizer: React.FC<FeedbackImpactVisualizerProps> =
 
     // Analyze reasoning patterns
     const reasoningPatterns: Record<string, number> = {};
-    filteredImpacts.forEach(impact => {
-      impact.reasoning.forEach(reason => {
+    filteredImpacts.forEach((impact: FeedbackImpact) => {
+      impact.reasoning.forEach((reason: string) => {
         const key = reason.toLowerCase().split(' ')[0]; // Use first word as key
         reasoningPatterns[key] = (reasoningPatterns[key] || 0) + 1;
       });
@@ -183,7 +183,7 @@ export const FeedbackImpactVisualizer: React.FC<FeedbackImpactVisualizerProps> =
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-3">Recent Impact Details</h3>
           <div className="space-y-3">
-            {feedbackImpacts.slice(-3).reverse().map((impact, index) => (
+            {(feedbackImpacts as FeedbackImpact[]).slice(-3).reverse().map((impact: FeedbackImpact, index: number) => (
               <div key={index} className="border-l-4 border-blue-500 pl-4 bg-gray-50 p-3 rounded">
                 <div className="flex justify-between items-start mb-2">
                   <span className="font-medium text-gray-900">Recommendation {impact.recommendationId}</span>

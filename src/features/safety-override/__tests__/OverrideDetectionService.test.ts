@@ -136,8 +136,8 @@ describe('OverrideDetectionService', () => {
       const overrideEvent = await service.detectOverride(mockRecommendation, 'disagree');
       
       expect(overrideEvent).not.toBeNull();
-      expect(overrideEvent!.userId).toBeUndefined();
-      expect(overrideEvent!.personalInfo).toBeUndefined();
+      expect((overrideEvent as any).userId).toBeUndefined();
+      expect((overrideEvent as any).personalInfo).toBeUndefined();
     });
 
     it('should store only context data locally', async () => {

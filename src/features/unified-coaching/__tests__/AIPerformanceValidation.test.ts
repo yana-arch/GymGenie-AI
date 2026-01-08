@@ -8,11 +8,36 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
 import { AIAdaptationService } from '../services/AIAdaptationService';
 import { PerformanceMonitor } from '../services/PerformanceMonitor';
 import { CircuitBreaker } from '../services/CircuitBreaker';
 import { RequestQueue } from '../services/RequestQueue';
+
+// Helper types
+interface DeviceProfile {
+  cpuCores: number;
+  memory: number;
+  gpu?: boolean;
+  deviceType: 'high-end' | 'mid-range' | 'low-end';
+}
+
+interface AdaptationRequest {
+  userId: string;
+  context: {
+    energyLevel: 'normal' | 'tired';
+    timeRemaining: number;
+    equipmentAvailable?: string[];
+    history?: { exercise: string; performance: number; }[];
+  };
+  deviceProfile?: DeviceProfile;
+}
+
+interface AdaptationResponse {
+  adaptation: any;
+  responseTime: number;
+  slaBreach: boolean;
+  userId?: string;
+}
 
 describe('@p0 AI Performance Validation Tests', () => {
   let aiService: AIAdaptationService;
@@ -31,14 +56,14 @@ describe('@p0 AI Performance Validation Tests', () => {
   describe('@p0 Device-Specific Performance Validation', () => {
     it('should adapt response times based on device capabilities', async () => {
       // Arrange
-      const highEndDevice = {
+      const highEndDevice: DeviceProfile = {
         cpuCores: 8,
         memory: 8192,
         gpu: true,
         deviceType: 'high-end'
       };
 
-      const lowEndDevice = {
+      const lowEndDevice: DeviceProfile = {
         cpuCores: 2,
         memory: 2048,
         gpu: false,
@@ -46,8 +71,8 @@ describe('@p0 AI Performance Validation Tests', () => {
       };
 
       // Act
-      const highEndSLA = await performanceMonitor.calculateDeviceSLA(highEndDevice);
-      const lowEndSLA = await performanceMonitor.calculateDeviceSLA(lowEndDevice);
+      const highEndSLA = await (performanceMonitor as any).calculateDeviceSLA(highEndDevice);
+      const lowEndSLA = await (performanceMonitor as any).calculateDeviceSLA(lowEndDevice);
 
       // Assert - Flexible SLA based on device capability
       expect(highEndSLA.maxResponseTime).toBeLessThan(lowEndSLA.maxResponseTime);
@@ -57,7 +82,7 @@ describe('@p0 AI Performance Validation Tests', () => {
 
     it('should measure actual AI adaptation response time', async () => {
       // Arrange
-      const mockRequest = {
+      const mockRequest: AdaptationRequest = {
         userId: 'test-user',
         context: {
           energyLevel: 'normal',
@@ -71,11 +96,11 @@ describe('@p0 AI Performance Validation Tests', () => {
         }
       };
 
-      const performanceTracker = performanceMonitor.startTracking('ai_adaptation');
+      const performanceTracker = (performanceMonitor as any).startTracking('ai_adaptation');
 
       // Act
       const startTime = performance.now();
-      const result = await aiService.generateAdaptation(mockRequest);
+      const result = await (aiService as any).generateAdaptation(mockRequest);
       const endTime = performance.now();
       const actualResponseTime = endTime - startTime;
 
@@ -89,23 +114,29 @@ describe('@p0 AI Performance Validation Tests', () => {
 
     it('should report SLA breach when response time exceeds device threshold', async () => {
       // Arrange
-      const deviceProfile = {
+      const deviceProfile: DeviceProfile = {
         cpuCores: 2,
         memory: 2048,
         deviceType: 'low-end'
       };
 
-      const sla = await performanceMonitor.calculateDeviceSLA(deviceProfile);
-      const mockRequest = { userId: 'test-user', context: {} };
+      const sla = await (performanceMonitor as any).calculateDeviceSLA(deviceProfile);
+      const mockRequest: AdaptationRequest = { 
+        userId: 'test-user', 
+        context: {
+          energyLevel: 'normal',
+          timeRemaining: 1800
+        } 
+      };
 
       // Mock slow AI processing
-      vi.spyOn(aiService, 'generateAdaptation').mockImplementation(async () => {
+      vi.spyOn(aiService as any, 'generateAdaptation').mockImplementation(async () => {
         await new Promise(resolve => setTimeout(resolve, sla.maxResponseTime + 100));
         return { adaptation: 'test' };
       });
 
       // Act
-      const result = await aiService.generateAdaptationWithSLA(mockRequest, deviceProfile);
+      const result = await (aiService as any).generateAdaptationWithSLA(mockRequest, deviceProfile);
 
       // Assert
       expect(result.slaBreach).toBe(true);
@@ -117,7 +148,7 @@ describe('@p0 AI Performance Validation Tests', () => {
   describe('@p0 High-Concurrency Load Testing', () => {
     it('should handle 10 concurrent adaptation requests', async () => {
       // Arrange
-      const concurrentRequests = Array.from({ length: 10 }, (_, i) => ({
+      const concurrentRequests: AdaptationRequest[] = Array.from({ length: 10 }, (_, i) => ({
         userId: `user-${i}`,
         context: { energyLevel: 'normal', timeRemaining: 1800 }
       }));
@@ -126,14 +157,14 @@ describe('@p0 AI Performance Validation Tests', () => {
       const startTime = performance.now();
       const results = await Promise.all(
         concurrentRequests.map(request => 
-          aiService.generateAdaptation(request)
+          (aiService as any).generateAdaptation(request)
         )
       );
       const endTime = performance.now();
 
       // Assert
       expect(results).toHaveLength(10);
-      results.forEach((result, index) => {
+      results.forEach((result: any, index) => {
         expect(result).toBeDefined();
         expect(result.userId).toBe(`user-${index}`);
       });
@@ -145,7 +176,7 @@ describe('@p0 AI Performance Validation Tests', () => {
 
     it('should maintain performance under sustained load', async () => {
       // Arrange
-      const sustainedRequests = Array.from({ length: 50 }, (_, i) => ({
+      const sustainedRequests: AdaptationRequest[] = Array.from({ length: 50 }, (_, i) => ({
         userId: `load-test-${i}`,
         context: { energyLevel: 'normal', timeRemaining: 1800 }
       }));
@@ -158,7 +189,7 @@ describe('@p0 AI Performance Validation Tests', () => {
         const batchStart = performance.now();
         
         await Promise.all(
-          batch.map(request => aiService.generateAdaptation(request))
+          batch.map(request => (aiService as any).generateAdaptation(request))
         );
         
         const batchEnd = performance.now();
@@ -178,18 +209,18 @@ describe('@p0 AI Performance Validation Tests', () => {
 
     it('should queue requests when system is overloaded', async () => {
       // Arrange
-      requestQueue.setMaxSize(20);
-      requestQueue.setMaxConcurrent(3);
+      (requestQueue as any).setMaxSize(20);
+      (requestQueue as any).setMaxConcurrent(3);
 
       const overloadRequests = Array.from({ length: 25 }, (_, i) => ({
         id: `req-${i}`,
-        request: { userId: `user-${i}`, context: {} }
+        request: { userId: `user-${i}`, context: { energyLevel: 'normal' as const, timeRemaining: 1800 } }
       }));
 
       // Act
       const startTime = performance.now();
       const processingPromises = overloadRequests.map(({ id, request }) =>
-        requestQueue.enqueue(id, () => aiService.generateAdaptation(request))
+        (requestQueue as any).enqueue(id, () => (aiService as any).generateAdaptation(request))
       );
       
       const results = await Promise.allSettled(processingPromises);
@@ -210,14 +241,14 @@ describe('@p0 AI Performance Validation Tests', () => {
   describe('@p0 Circuit Breaker Testing', () => {
     it('should open circuit when failure threshold is reached', async () => {
       // Arrange
-      circuitBreaker.configure({
+      (circuitBreaker as any).configure({
         failureThreshold: 3,
         resetTimeout: 5000,
         monitoringPeriod: 10000
       });
 
       // Mock AI service failures
-      vi.spyOn(aiService, 'generateAdaptation')
+      vi.spyOn(aiService as any, 'generateAdaptation')
         .mockRejectedValueOnce(new Error('Service unavailable'))
         .mockRejectedValueOnce(new Error('Timeout'))
         .mockRejectedValueOnce(new Error('Service error'));
@@ -225,8 +256,8 @@ describe('@p0 AI Performance Validation Tests', () => {
       // Act - Trigger failures
       for (let i = 0; i < 3; i++) {
         try {
-          await circuitBreaker.execute(() => 
-            aiService.generateAdaptation({ userId: 'test', context: {} })
+          await (circuitBreaker as any).execute(() => 
+            (aiService as any).generateAdaptation({ userId: 'test', context: { energyLevel: 'normal', timeRemaining: 1800 } })
           );
         } catch (error) {
           // Expected failures
@@ -234,24 +265,24 @@ describe('@p0 AI Performance Validation Tests', () => {
       }
 
       // Assert
-      expect(circuitBreaker.getState()).toBe('open');
+      expect((circuitBreaker as any).getState()).toBe('open');
       
       // Subsequent calls should fail fast without hitting the service
       await expect(
-        circuitBreaker.execute(() => aiService.generateAdaptation({ userId: 'test', context: {} }))
+        (circuitBreaker as any).execute(() => (aiService as any).generateAdaptation({ userId: 'test', context: { energyLevel: 'normal', timeRemaining: 1800 } }))
       ).rejects.toThrow('Circuit breaker is open');
     });
 
     it('should attempt to close circuit after reset timeout', async () => {
       // Arrange
-      circuitBreaker.configure({
+      (circuitBreaker as any).configure({
         failureThreshold: 2,
         resetTimeout: 1000,
         monitoringPeriod: 5000
       });
 
       // Trigger circuit to open
-      vi.spyOn(aiService, 'generateAdaptation')
+      vi.spyOn(aiService as any, 'generateAdaptation')
         .mockRejectedValueOnce(new Error('Service unavailable'))
         .mockRejectedValueOnce(new Error('Timeout'))
         .mockResolvedValueOnce({ adaptation: 'success' });
@@ -259,34 +290,34 @@ describe('@p0 AI Performance Validation Tests', () => {
       // Act - Trigger failures to open circuit
       for (let i = 0; i < 2; i++) {
         try {
-          await circuitBreaker.execute(() => 
-            aiService.generateAdaptation({ userId: 'test', context: {} })
+          await (circuitBreaker as any).execute(() => 
+            (aiService as any).generateAdaptation({ userId: 'test', context: { energyLevel: 'normal', timeRemaining: 1800 } })
           );
         } catch (error) {
           // Expected failures
         }
       }
 
-      expect(circuitBreaker.getState()).toBe('open');
+      expect((circuitBreaker as any).getState()).toBe('open');
 
       // Wait for reset timeout
       await new Promise(resolve => setTimeout(resolve, 1100));
 
       // Try again - should attempt to close circuit
-      const result = await circuitBreaker.execute(() => 
-        aiService.generateAdaptation({ userId: 'test', context: {} })
-      );
+      const result = await (circuitBreaker as any).execute(() => 
+        (aiService as any).generateAdaptation({ userId: 'test', context: { energyLevel: 'normal', timeRemaining: 1800 } })
+      ) as any;
 
       // Assert
       expect(result.adaptation).toBe('success');
-      expect(circuitBreaker.getState()).toBe('closed');
+      expect((circuitBreaker as any).getState()).toBe('closed');
     });
   });
 
   describe('@p0 Performance Monitoring Integration', () => {
     it('should track and report performance metrics', async () => {
       // Arrange
-      const mockRequest = {
+      const mockRequest: AdaptationRequest = {
         userId: 'perf-test-user',
         context: { energyLevel: 'normal', timeRemaining: 1800 },
         deviceProfile: {
@@ -297,12 +328,12 @@ describe('@p0 AI Performance Validation Tests', () => {
       };
 
       // Act
-      const tracker = performanceMonitor.startTracking('test_operation');
-      await aiService.generateAdaptation(mockRequest);
+      const tracker = (performanceMonitor as any).startTracking('test_operation');
+      await (aiService as any).generateAdaptation(mockRequest);
       tracker.end();
 
       // Assert
-      const metrics = performanceMonitor.getMetrics();
+      const metrics = (performanceMonitor as any).getMetrics();
       expect(metrics).toHaveProperty('test_operation');
       expect(metrics.test_operation.count).toBe(1);
       expect(metrics.test_operation.averageTime).toBeGreaterThan(0);
@@ -312,31 +343,31 @@ describe('@p0 AI Performance Validation Tests', () => {
 
     it('should detect performance degradation', async () => {
       // Arrange
-      const baselineRequest = {
+      const baselineRequest: AdaptationRequest = {
         userId: 'baseline-user',
         context: { energyLevel: 'normal', timeRemaining: 1800 }
       };
 
       // Establish baseline
       for (let i = 0; i < 5; i++) {
-        const tracker = performanceMonitor.startTracking('baseline');
-        await aiService.generateAdaptation(baselineRequest);
+        const tracker = (performanceMonitor as any).startTracking('baseline');
+        await (aiService as any).generateAdaptation(baselineRequest);
         tracker.end();
       }
 
       // Mock degradation
-      vi.spyOn(aiService, 'generateAdaptation').mockImplementation(async () => {
+      vi.spyOn(aiService as any, 'generateAdaptation').mockImplementation(async () => {
         await new Promise(resolve => setTimeout(resolve, 3000)); // Slow response
         return { adaptation: 'slow_response' };
       });
 
       // Act
-      const degradedTracker = performanceMonitor.startTracking('degraded_test');
-      await aiService.generateAdaptation(baselineRequest);
+      const degradedTracker = (performanceMonitor as any).startTracking('degraded_test');
+      await (aiService as any).generateAdaptation(baselineRequest);
       degradedTracker.end();
 
       // Assert
-      const degradation = performanceMonitor.detectDegradation('baseline');
+      const degradation = (performanceMonitor as any).detectDegradation('baseline');
       expect(degradation.detected).toBe(true);
       expect(degradation.factor).toBeGreaterThan(2.0); // At least 2x slower
       expect(degradation.recommendation).toContain('investigate');
@@ -346,7 +377,7 @@ describe('@p0 AI Performance Validation Tests', () => {
   describe('@p0 Memory and Resource Management', () => {
     it('should monitor memory usage during AI processing', async () => {
       // Arrange
-      const largeRequests = Array.from({ length: 20 }, (_, i) => ({
+      const largeRequests: AdaptationRequest[] = Array.from({ length: 20 }, (_, i) => ({
         userId: `memory-test-${i}`,
         context: {
           energyLevel: 'normal',
@@ -360,13 +391,13 @@ describe('@p0 AI Performance Validation Tests', () => {
       }));
 
       // Act
-      const initialMemory = performanceMonitor.getMemoryUsage();
+      const initialMemory = (performanceMonitor as any).getMemoryUsage();
       
       await Promise.all(
-        largeRequests.map(request => aiService.generateAdaptation(request))
+        largeRequests.map(request => (aiService as any).generateAdaptation(request))
       );
       
-      const finalMemory = performanceMonitor.getMemoryUsage();
+      const finalMemory = (performanceMonitor as any).getMemoryUsage();
 
       // Assert
       expect(finalMemory.heapUsed).toBeGreaterThan(initialMemory.heapUsed);
@@ -379,47 +410,23 @@ describe('@p0 AI Performance Validation Tests', () => {
 
     it('should cleanup resources after processing', async () => {
       // Arrange
-      const request = {
+      const request: AdaptationRequest = {
         userId: 'cleanup-test',
         context: { energyLevel: 'normal', timeRemaining: 1800 }
       };
 
       // Act
-      const tracker = performanceMonitor.startTracking('cleanup_test');
-      await aiService.generateAdaptation(request);
+      const tracker = (performanceMonitor as any).startTracking('cleanup_test');
+      await (aiService as any).generateAdaptation(request);
       tracker.end();
 
       // Trigger cleanup
-      performanceMonitor.cleanup();
+      (performanceMonitor as any).cleanup();
 
       // Assert
-      const metrics = performanceMonitor.getMetrics();
+      const metrics = (performanceMonitor as any).getMetrics();
       // Should have cleaned up completed trackers
       expect(metrics.cleanup_test?.activeTrackers || 0).toBe(0);
     });
   });
 });
-
-// Helper types
-interface DeviceProfile {
-  cpuCores: number;
-  memory: number;
-  gpu: boolean;
-  deviceType: 'high-end' | 'mid-range' | 'low-end';
-}
-
-interface AIRequest {
-  userId: string;
-  context: {
-    energyLevel: 'normal' | 'tired';
-    timeRemaining: number;
-    equipmentAvailable?: string[];
-  };
-  deviceProfile?: DeviceProfile;
-}
-
-interface AIResponse {
-  adaptation: any;
-  responseTime: number;
-  slaBreach: boolean;
-}

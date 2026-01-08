@@ -63,31 +63,34 @@ const CreateWorkoutDay = memo(() => {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto space-y-4">
-          {(aiGeneratedExercises.length > 0 ? aiGeneratedExercises : selectedExercises).map((exercise, index) => (
-            <div key={exercise.id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold text-gray-900 dark:text-gray-100">{exercise.name}</h3>
-                {selectedExercises.includes(exercise as Exercise) && ( // Only show remove button for manually added exercises
-                  <Button
-                    variant="icon"
-                    size="sm"
-                    onClick={() => handleRemoveExercise(exercise.id)}
-                    className="text-gray-400 hover:text-red-600"
-                  >
-                    <X size={20} />
-                  </Button>
+          {(aiGeneratedExercises.length > 0 ? aiGeneratedExercises : selectedExercises).map((exercise, index) => {
+            const workoutEx = exercise as WorkoutExercise;
+            return (
+              <div key={exercise.id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100">{exercise.name}</h3>
+                  {selectedExercises.some(ex => ex.id === exercise.id) && ( // Only show remove button for manually added exercises
+                    <Button
+                      variant="icon"
+                      size="sm"
+                      onClick={() => handleRemoveExercise(exercise.id)}
+                      className="text-gray-400 hover:text-red-600"
+                    >
+                      <X size={20} />
+                    </Button>
+                  )}
+                </div>
+                {aiGeneratedExercises.length > 0 && (
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                    <p>Sets: {workoutEx.sets}</p>
+                    <p>Reps: {workoutEx.reps}</p>
+                    <p>Rest: {workoutEx.restSeconds}s</p>
+                    {workoutEx.notes && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Notes: {workoutEx.notes}</p>}
+                  </div>
                 )}
               </div>
-              {aiGeneratedExercises.length > 0 && (
-                <div className="text-sm text-gray-700 dark:text-gray-300">
-                  <p>Sets: {exercise.sets}</p>
-                  <p>Reps: {exercise.reps}</p>
-                  <p>Rest: {exercise.restSeconds}s</p>
-                  {exercise.notes && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Notes: {exercise.notes}</p>}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

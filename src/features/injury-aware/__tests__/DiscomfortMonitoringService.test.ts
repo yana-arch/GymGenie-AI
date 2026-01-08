@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DiscomfortMonitoringService } from '../services/DiscomfortMonitoringService';
-import type { DiscomfortEvent } from '../types';
 
 describe('DiscomfortMonitoringService', () => {
   let service: DiscomfortMonitoringService;
@@ -12,7 +11,7 @@ describe('DiscomfortMonitoringService', () => {
   describe('Discomfort Detection', () => {
     it('should detect and record discomfort events', async () => {
       const discomfortData = {
-        severity: 3,
+        severity: 3 as 1 | 2 | 3 | 4 | 5,
         location: 'left_knee',
         description: 'Sharp pain during squat',
         exercise: 'squats'
@@ -29,7 +28,7 @@ describe('DiscomfortMonitoringService', () => {
 
     it('should detect high severity discomfort requiring immediate response', async () => {
       const severeDiscomfort = {
-        severity: 5,
+        severity: 5 as 1 | 2 | 3 | 4 | 5,
         location: 'lower_back',
         description: 'Severe sharp pain',
         exercise: 'deadlifts'
@@ -47,14 +46,14 @@ describe('DiscomfortMonitoringService', () => {
       
       // Record multiple discomfort events
       await service.recordDiscomfort({
-        severity: 2,
+        severity: 2 as 1 | 2 | 3 | 4 | 5,
         location: 'left_knee',
         description: 'Mild discomfort',
         exercise: 'squats'
       });
 
       await service.recordDiscomfort({
-        severity: 3,
+        severity: 3 as 1 | 2 | 3 | 4 | 5,
         location: 'left_knee',
         description: 'Increasing discomfort',
         exercise: 'lunges'
@@ -73,7 +72,7 @@ describe('DiscomfortMonitoringService', () => {
       const startTime = Date.now();
       
       await service.recordDiscomfort({
-        severity: 2,
+        severity: 2 as 1 | 2 | 3 | 4 | 5,
         location: 'shoulder',
         description: 'Mild discomfort',
         exercise: 'pushups'
@@ -90,7 +89,7 @@ describe('DiscomfortMonitoringService', () => {
       service.setResponseCallback(responseCallback);
 
       await service.recordDiscomfort({
-        severity: 4,
+        severity: 4 as 1 | 2 | 3 | 4 | 5,
         location: 'right_shoulder',
         description: 'Intense pain',
         exercise: 'overhead_press'
@@ -106,7 +105,7 @@ describe('DiscomfortMonitoringService', () => {
 
     it('should provide discomfort history for AI learning', async () => {
       await service.recordDiscomfort({
-        severity: 2,
+        severity: 2 as 1 | 2 | 3 | 4 | 5,
         location: 'left_knee',
         description: 'Mild pain',
         exercise: 'squats'
@@ -124,7 +123,7 @@ describe('DiscomfortMonitoringService', () => {
   describe('Local Processing Compliance', () => {
     it('should store discomfort data locally only', async () => {
       const discomfortEvent = {
-        severity: 3,
+        severity: 3 as 1 | 2 | 3 | 4 | 5,
         location: 'right_ankle',
         description: 'Twinge',
         exercise: 'running'
@@ -146,7 +145,7 @@ describe('DiscomfortMonitoringService', () => {
       const fetchSpy = vi.spyOn(global, 'fetch');
       
       await service.recordDiscomfort({
-        severity: 1,
+        severity: 1 as 1 | 2 | 3 | 4 | 5,
         location: 'general',
         description: 'Fatigue',
         exercise: 'general'
@@ -162,7 +161,7 @@ describe('DiscomfortMonitoringService', () => {
     it('should identify problematic exercises', async () => {
       // Record discomfort for specific exercise
       await service.recordDiscomfort({
-        severity: 3,
+        severity: 3 as 1 | 2 | 3 | 4 | 5,
         location: 'left_knee',
         description: 'Pain',
         exercise: 'deep_squats'
@@ -175,7 +174,7 @@ describe('DiscomfortMonitoringService', () => {
 
     it('should suggest exercise alternatives', async () => {
       await service.recordDiscomfort({
-        severity: 3,
+        severity: 3 as 1 | 2 | 3 | 4 | 5,
         location: 'left_knee',
         description: 'Knee pain',
         exercise: 'jumping'

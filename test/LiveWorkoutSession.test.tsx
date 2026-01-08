@@ -63,11 +63,11 @@ describe('LiveWorkoutSession', () => {
     updatedAt: Date.now(),
     createdAt: Date.now(),
     timestamp: Date.now(),
-    completedTime: null,
-    loggedTime: null,
+    completedTime: null as number | null,
+    loggedTime: null as number | null,
     exerciseTimestamps: {},
     estimatedDuration: 30,
-    actualDuration: null,
+    actualDuration: null as number | null,
     environment: {},
   };
 

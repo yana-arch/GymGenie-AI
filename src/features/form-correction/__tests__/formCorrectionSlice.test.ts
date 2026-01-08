@@ -9,14 +9,7 @@ import formCorrectionReducer, {
   setLastAnalysis,
   resetFormCorrection,
   updatePerformanceMetrics,
-  setCameraPermission,
   setDetecting,
-  selectFormCorrectionState,
-  selectFormCorrectionActive,
-  selectCurrentPoses,
-  selectFormFeedback,
-  selectFormSettings,
-  selectCurrentExercise
 } from '../store/formCorrectionSlice';
 
 describe('FormCorrectionSlice', () => {
@@ -78,8 +71,8 @@ describe('FormCorrectionSlice', () => {
 
     it('should update current poses', () => {
       const mockPoses = [
-        { keypoints: [], score: 0.8 },
-        { keypoints: [], score: 0.7 }
+        { keypoints: [] as any[], score: 0.8 },
+        { keypoints: [] as any[], score: 0.7 }
       ];
 
       const newState = formCorrectionReducer(initialState, updateCurrentPoses(mockPoses));
@@ -162,7 +155,7 @@ describe('FormCorrectionSlice', () => {
     });
 
     it('should track frame count correctly', () => {
-const newState = formCorrectionReducer(initialState, setDetecting(true));
+      const newState = formCorrectionReducer(initialState, setDetecting(true));
 
       expect(newState.isDetecting).toBe(true);
     });
@@ -180,7 +173,7 @@ const newState = formCorrectionReducer(initialState, setDetecting(true));
     it('should handle multiple state updates in sequence', () => {
       let state = formCorrectionReducer(initialState, setInitialized(true));
       state = formCorrectionReducer(state, setCurrentExercise('squat'));
-      state = formCorrectionReducer(state, updateCurrentPoses([{ keypoints: [], score: 0.9 }]));
+      state = formCorrectionReducer(state, updateCurrentPoses([{ keypoints: [] as any[], score: 0.9 }]));
       state = formCorrectionReducer(state, updateFeedback('Good form detected'));
 
       expect(state.isInitialized).toBe(true);
@@ -216,7 +209,7 @@ const newState = formCorrectionReducer(initialState, setDetecting(true));
       const payload = {
         isActive: true,
         hasCameraPermission: true,
-        currentPoses: [{ keypoints: [], score: 0.8 }],
+        currentPoses: [{ keypoints: [] as any[], score: 0.8 }],
         feedback: 'Tracking pose...',
         performance: { lastProcessingTime: 100, averageProcessingTime: 95, frameCount: 10 }
       };

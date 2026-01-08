@@ -1,8 +1,8 @@
 import { test, expect, vi } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import AppErrorBoundary from '../components/AppErrorBoundary';
-import SessionErrorBoundary from '../src/features/session/components/SessionErrorBoundary';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
+import SessionErrorBoundary from '@/features/session/components/SessionErrorBoundary';
 
 const ThrowingComponent = () => {
   throw new Error('Test error');

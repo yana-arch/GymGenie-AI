@@ -24,7 +24,16 @@ const createMockServices = () => ({
     auditTrail: vi.fn()
   },
   tensorFlowService: {
-    predictPattern: vi.fn()
+    predictPattern: vi.fn(),
+    loadModel: vi.fn(() => Promise.resolve()),
+    isModelLoaded: vi.fn(() => true),
+    getModelMetadata: vi.fn(() => ({
+      version: '1.0.0',
+      trainedOn: new Date(),
+      accuracy: 0.9,
+      inputShape: [10],
+      outputShape: [5]
+    }))
   }
 });
 

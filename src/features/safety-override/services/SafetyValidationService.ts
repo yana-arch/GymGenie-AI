@@ -162,6 +162,7 @@ export class SafetyValidationService {
     proposedPlan: any
   ): Promise<SafetyValidationResult> {
     return {
+      approved: true,
       selectedApproach: 'safety_first',
       adjustedPlan: {
         injuryRisk: 0.05, // Very low risk
@@ -179,6 +180,7 @@ export class SafetyValidationService {
     const medicalAttention = pain.intensity >= 6;
 
     return {
+      approved: !immediateStop,
       immediateStop,
       emergencyProtocol: ['pain_emergency_stop'],
       followupRequired: true,
@@ -194,6 +196,7 @@ export class SafetyValidationService {
 
     if (severity === 'high' && trend === 'rapid') {
       return {
+        approved: false,
         level: 'warning',
         message: 'fatigue_emergency',
         recommendedAction: 'stop_workout'
@@ -202,6 +205,7 @@ export class SafetyValidationService {
 
     if (type === 'form_breakdown' && severity === 'medium') {
       return {
+        approved: true,
         level: 'caution',
         message: 'form_degradation',
         preventive: true
@@ -209,6 +213,7 @@ export class SafetyValidationService {
     }
 
     return {
+      approved: true,
       level: 'notice',
       preventive: false
     };

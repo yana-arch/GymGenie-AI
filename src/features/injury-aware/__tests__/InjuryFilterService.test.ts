@@ -11,7 +11,7 @@ describe('InjuryFilterService', () => {
 
   describe('AI Recommendation Filtering', () => {
     it('should filter recommendations against injury constraints', async () => {
-      const recommendations = [
+      const recommendations: AIRecommendation[] = [
         {
           id: '1',
           exercise: 'deep_squats',
@@ -48,7 +48,7 @@ describe('InjuryFilterService', () => {
     });
 
     it('should apply conservative safety defaults', async () => {
-      const recommendations = [
+      const recommendations: AIRecommendation[] = [
         {
           id: '1',
           exercise: 'overhead_press',
@@ -72,7 +72,7 @@ describe('InjuryFilterService', () => {
     });
 
     it('should recommend alternatives for blocked exercises', async () => {
-      const recommendations = [
+      const recommendations: AIRecommendation[] = [
         {
           id: '1',
           exercise: 'deep_squats',
@@ -97,7 +97,7 @@ describe('InjuryFilterService', () => {
 
   describe('Conservative Safety Application', () => {
     it('should reduce intensity for high-risk scenarios', async () => {
-      const recommendations = [
+      const recommendations: AIRecommendation[] = [
         {
           id: '1',
           exercise: 'squats',
@@ -119,7 +119,7 @@ describe('InjuryFilterService', () => {
     });
 
     it('should increase rest times for injury-prone users', async () => {
-      const recommendations = [
+      const recommendations: AIRecommendation[] = [
         {
           id: '1',
           exercise: 'lunges',
@@ -168,7 +168,7 @@ describe('InjuryFilterService', () => {
     });
 
     it('should maintain compatibility with form correction system', async () => {
-      const recommendations = [
+      const recommendations: AIRecommendation[] = [
         {
           id: '1',
           exercise: 'pushups',
@@ -194,7 +194,7 @@ describe('InjuryFilterService', () => {
 
   describe('Performance Requirements', () => {
     it('should complete filtering within 2-second requirement', async () => {
-      const recommendations = Array(100).fill({
+      const recommendations: AIRecommendation[] = Array(100).fill({
         exercise: 'test_exercise',
         variation: 'standard',
         intensity: 'moderate'
@@ -218,7 +218,7 @@ describe('InjuryFilterService', () => {
 
   describe('Local Processing Compliance', () => {
     it('should perform all filtering locally', async () => {
-      const recommendations = [
+      const recommendations: AIRecommendation[] = [
         {
           id: '1',
           exercise: 'test_exercise',

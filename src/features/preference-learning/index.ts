@@ -4,18 +4,23 @@
  */
 
 // Main service export
-export { PreferenceLearningService } from './PreferenceLearningService';
+import { PreferenceLearningService } from './PreferenceLearningService';
+export { PreferenceLearningService };
 export type { IPreferenceLearningService } from './types/preferenceLearning.types';
 
 // Supporting services
-export { PreferenceIntelligenceEngine } from './PreferenceIntelligenceEngine';
+import { PreferenceIntelligenceEngine } from './PreferenceIntelligenceEngine';
+export { PreferenceIntelligenceEngine };
 export type { IPreferenceIntelligenceEngine } from './types/preferenceLearning.types';
-export { PreferenceLearningIntegrationService } from './services/PreferenceLearningIntegrationService';
-export { PreferenceEncryptionService } from './services/PreferenceEncryptionService';
-export type { PrivacyPreservingStorage } from './types/preferenceLearning.types';
+import { PreferenceLearningIntegrationService } from './services/PreferenceLearningIntegrationService';
+export { PreferenceLearningIntegrationService };
+import { PreferenceEncryptionService } from './services/PreferenceEncryptionService';
+export { PreferenceEncryptionService };
+import type { PrivacyPreservingStorage } from './types/preferenceLearning.types';
+export type { PrivacyPreservingStorage };
 
 // All types
-export type {
+import type {
   PreferenceLearningInput,
   PreferenceLearningOutput,
   PreferencePattern,
@@ -34,6 +39,26 @@ export type {
   RecoveryPreference,
   StorageAuditEntry
 } from './types/preferenceLearning.types';
+
+export type {
+  PreferenceLearningInput,
+  PreferenceLearningOutput,
+  PreferencePattern,
+  PreferenceRecommendation,
+  WorkoutSession,
+  PreferenceType,
+  ExerciseSession,
+  PreferenceLearningConfig,
+  PreferenceLearningState,
+  PreferenceLearningReduxState,
+  CoachingPreferenceInput,
+  CoachingPreferenceOutput,
+  ExercisePreference,
+  IntensityPreference,
+  TimingPreference,
+  RecoveryPreference,
+  StorageAuditEntry
+};
 
 export { PreferenceLearningError } from './types/preferenceLearning.types';
 

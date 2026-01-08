@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { store } from '../index';
-import { startSession, completeSession } from '../../src/features/session/store/sessionSlice';
-import { setPlan, toggleExercise } from '../../src/features/workout/store/workoutSlice';
-import { setProfile, setEquipment } from '../../src/features/user/store/userSlice';
-import { startTimer, openModal } from '../../src/features/ui/store/uiSlice';
-import { SessionState, Gender, FitnessGoal } from '../../types';
+import { startSession, completeSession } from '@/features/session/store/sessionSlice';
+import { setPlan, toggleExercise } from '@/features/workout/store/workoutSlice';
+import { setProfile, setEquipment } from '@/features/user/store/userSlice';
+import { startTimer, openModal } from '@/features/ui/store/uiSlice';
+import { SessionState, Gender, FitnessGoal } from '@/types';
 
 describe('Redux Store Integration', () => {
   beforeEach(() => {

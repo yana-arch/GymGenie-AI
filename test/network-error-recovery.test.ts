@@ -1,5 +1,5 @@
 import { test, expect, vi } from 'vitest';
-import { CommonRecoveryStrategies } from '../services/error-handling';
+import { CommonRecoveryStrategies } from '@/services/error-handling';
 
 test('retryWithBackoff should retry a failing operation multiple times', async () => {
   const failingOperation = vi.fn()

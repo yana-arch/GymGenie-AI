@@ -22,7 +22,7 @@ vi.mock('@/hooks/useBreakpoint', () => ({
 // Mock the layout manager hook
 vi.mock('@/hooks/useLayoutManager', () => ({
   useResponsiveComponent: () => ({
-    ref: { current: null },
+    ref: { current: null as any },
     currentBreakpoint: 'mobile',
     updateLayout: vi.fn(),
     getLayoutConfig: vi.fn(),

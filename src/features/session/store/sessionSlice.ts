@@ -168,6 +168,24 @@ const sessionSlice = createSlice({
       state.currentSession = null;
     },
     
+    pauseSession: (state, action: PayloadAction<{ reason: string; timestamp: number }>) => {
+      if (state.currentSession && state.currentSession.state === SessionState.ACTIVE) {
+        const sessionKey = `${state.currentSession.weekId}-${state.currentSession.dayId}`;
+        state.currentSession.state = SessionState.PAUSED;
+        state.currentSession.updatedAt = action.payload.timestamp;
+        state.sessions[sessionKey] = state.currentSession;
+      }
+    },
+    
+    resumeSession: (state, action: PayloadAction<{ timestamp: number }>) => {
+      if (state.currentSession && state.currentSession.state === SessionState.PAUSED) {
+        const sessionKey = `${state.currentSession.weekId}-${state.currentSession.dayId}`;
+        state.currentSession.state = SessionState.ACTIVE;
+        state.currentSession.updatedAt = action.payload.timestamp;
+        state.sessions[sessionKey] = state.currentSession;
+      }
+    },
+    
     updateExerciseTimestamp: (state, action: PayloadAction<{ exerciseId: string; timestamp: number }>) => {
       const { exerciseId, timestamp } = action.payload;
       
@@ -255,6 +273,8 @@ export const {
   completeSession,
   logSession,
   abandonSession,
+  pauseSession,
+  resumeSession,
   updateExerciseTimestamp,
   removeExerciseTimestamp,
   setStaleSessionData,

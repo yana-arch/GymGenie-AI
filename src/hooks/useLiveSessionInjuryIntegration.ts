@@ -1,12 +1,12 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
+import { SessionState } from '@/types';
 import type { DiscomfortEvent } from '../features/injury-aware/types';
 import {
   recordDiscomfort,
   selectActiveSessionInjuryStatus,
   selectInjuryConstraints,
   filterAIRecommendations,
-  addDiscomfortEvent,
   updateSessionInjuryStatus
 } from '../features/injury-aware/store/injuryAwareSlice';
 import { selectCurrentSession } from '../features/session/store/sessionSlice';
@@ -24,10 +24,10 @@ export const useLiveSessionInjuryIntegration = () => {
 
   // Auto-stop session if severe injury detected
   useEffect(() => {
-    if (injuryStatus === 'stop' && currentSession?.state === 'ACTIVE') {
+    if (injuryStatus === 'stop' && currentSession?.state === SessionState.ACTIVE) {
       // Import here to avoid circular dependency
-      import('../features/session/store/sessionSlice').then(({ sessionSlice }) => {
-        dispatch(sessionSlice.actions.pauseSession({
+      import('../features/session/store/sessionSlice').then((sessionSliceActions) => {
+        dispatch(sessionSliceActions.pauseSession({
           reason: 'severe_discomfort',
           timestamp: Date.now()
         }));
@@ -64,7 +64,7 @@ export const useLiveSessionInjuryIntegration = () => {
         sessionId: sessionContext?.sessionId,
         weekId: sessionContext?.weekId,
         dayId: sessionContext?.dayId
-      }) as any);
+      } as any) as any);
 
       // Update session injury status based on discomfort severity
       if (result.payload) {

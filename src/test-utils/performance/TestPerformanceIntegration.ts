@@ -29,22 +29,22 @@ export const createPerformanceTest = (
 /**
  * Category-specific performance test creators
  */
-export const createSmokeTest = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
+export const wrapSmokeTest = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
   createPerformanceTest(testName, testId, '@smoke', testFn);
 
-export const createP0Test = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
+export const wrapP0Test = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
   createPerformanceTest(testName, testId, '@p0', testFn);
 
-export const createP1Test = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
+export const wrapP1Test = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
   createPerformanceTest(testName, testId, '@p1', testFn);
 
-export const createP2Test = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
+export const wrapP2Test = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
   createPerformanceTest(testName, testId, '@p2', testFn);
 
-export const createP3Test = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
+export const wrapP3Test = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
   createPerformanceTest(testName, testId, '@p3', testFn);
 
-export const createMediumPriorityTest = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
+export const wrapMediumPriorityTest = (testName: string, testId: string, testFn: () => Promise<void> | void) =>
   createPerformanceTest(testName, testId, '@p2', testFn);
 
 /**

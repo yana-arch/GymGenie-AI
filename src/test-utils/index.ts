@@ -57,6 +57,7 @@ export {
   createUnifiedTest,
   createPreferenceTest,
   createInjuryTest,
+  createSmokeTest,
   createCriticalTest,
   createHighPriorityTest,
   createMediumPriorityTest,
@@ -74,11 +75,11 @@ export {
 // Performance Test Integration
 export {
   createPerformanceTest,
-  createSmokeTest,
-  createP0Test,
-  createP1Test,
-  createP2Test,
-  createP3Test,
+  wrapSmokeTest,
+  wrapP0Test,
+  wrapP1Test,
+  wrapP2Test,
+  wrapP3Test,
   assertPerformanceWithinThreshold,
   setupPerformanceTracking
 } from './performance/TestPerformanceIntegration';

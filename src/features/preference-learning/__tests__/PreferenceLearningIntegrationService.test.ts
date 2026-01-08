@@ -94,7 +94,8 @@ describe('PreferenceLearningIntegrationService BDD Tests', () => {
           contributingSystems: [],
           conflictResolution: {
             strategy: 'priority',
-            originalResponses: []
+            conflicts: [],
+            reasoning: 'Test reasoning'
           },
           response: {
             type: 'unified-coaching',
@@ -132,7 +133,8 @@ describe('PreferenceLearningIntegrationService BDD Tests', () => {
           contributingSystems: [],
           conflictResolution: {
             strategy: 'priority',
-            originalResponses: []
+            conflicts: [],
+            reasoning: 'Test reasoning'
           },
           response: {
             type: 'unified-coaching',
@@ -189,7 +191,8 @@ describe('PreferenceLearningIntegrationService BDD Tests', () => {
           contributingSystems: [],
           conflictResolution: {
             strategy: 'priority',
-            originalResponses: []
+            conflicts: [],
+            reasoning: 'Test reasoning'
           },
           response: {
             type: 'unified-coaching',
@@ -244,7 +247,8 @@ describe('PreferenceLearningIntegrationService BDD Tests', () => {
           contributingSystems: [],
           conflictResolution: {
             strategy: 'priority',
-            originalResponses: []
+            conflicts: [],
+            reasoning: 'Test reasoning'
           },
           response: {
             type: 'unified-coaching',

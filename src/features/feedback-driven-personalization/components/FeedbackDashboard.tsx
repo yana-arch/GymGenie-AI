@@ -47,7 +47,7 @@ export const FeedbackDashboard: React.FC<FeedbackDashboardProps> = ({
   // Calculate feedback statistics
   const feedbackStats: FeedbackStats = useMemo(() => {
     const filteredFeedback = exerciseId 
-      ? feedbackHistory.filter(f => f.exerciseId === exerciseId)
+      ? feedbackHistory.filter((f: FeedbackData) => f.exerciseId === exerciseId)
       : feedbackHistory;
 
     if (filteredFeedback.length === 0) {
@@ -61,14 +61,14 @@ export const FeedbackDashboard: React.FC<FeedbackDashboardProps> = ({
     }
 
     const totalFeedback = filteredFeedback.length;
-    const averageRating = filteredFeedback.reduce((sum, f) => sum + f.rating, 0) / totalFeedback;
+    const averageRating = filteredFeedback.reduce((sum: number, f: FeedbackData) => sum + f.rating, 0) / totalFeedback;
     
-    const feedbackByType = filteredFeedback.reduce((acc, f) => {
+    const feedbackByType = filteredFeedback.reduce((acc: Record<string, number>, f: FeedbackData) => {
       acc[f.type] = (acc[f.type] || 0) + 1;
       return acc;
-    }, {} as Record<FeedbackType, number>);
+    }, {} as Record<string, number>);
 
-    const confidenceScore = filteredFeedback.reduce((sum, f) => {
+    const confidenceScore = filteredFeedback.reduce((sum: number, f: FeedbackData) => {
       const baseConfidence = 0.5;
       let additionalConfidence = 0;
 
@@ -81,7 +81,7 @@ export const FeedbackDashboard: React.FC<FeedbackDashboardProps> = ({
     }, 0) / totalFeedback;
 
     const lastFeedbackDate = filteredFeedback.length > 0 
-      ? new Date(Math.max(...filteredFeedback.map(f => new Date(f.timestamp).getTime()))).toISOString()
+      ? new Date(Math.max(...filteredFeedback.map((f: FeedbackData) => new Date(f.timestamp).getTime()))).toISOString()
       : null;
 
     return {
@@ -96,21 +96,21 @@ export const FeedbackDashboard: React.FC<FeedbackDashboardProps> = ({
   // Calculate impact statistics
   const impactStats: ImpactVisualization = useMemo(() => {
     const filteredImpacts = exerciseId
-      ? feedbackImpacts.filter(i => i.recommendationId.includes(exerciseId))
+      ? feedbackImpacts.filter((i: FeedbackImpact) => i.recommendationId.includes(exerciseId))
       : feedbackImpacts;
 
     const totalImpacts = filteredImpacts.length;
     const averageConfidence = totalImpacts > 0 
-      ? filteredImpacts.reduce((sum, i) => sum + i.confidence, 0) / totalImpacts
+      ? filteredImpacts.reduce((sum: number, i: FeedbackImpact) => sum + i.confidence, 0) / totalImpacts
       : 0;
 
-    const weightChanges = filteredImpacts.map(i => ({
+    const weightChanges = filteredImpacts.map((i: FeedbackImpact) => ({
       exerciseId: i.recommendationId,
       change: i.adjustedWeight - i.originalWeight,
       date: new Date().toISOString().split('T')[0]
     }));
 
-    const repsChanges = filteredImpacts.map(i => ({
+    const repsChanges = filteredImpacts.map((i: FeedbackImpact) => ({
       exerciseId: i.recommendationId,
       change: i.adjustedReps - i.originalReps,
       date: new Date().toISOString().split('T')[0]
@@ -296,7 +296,7 @@ export const FeedbackDashboard: React.FC<FeedbackDashboardProps> = ({
             <h3 className="text-lg font-medium text-gray-900 mb-3">Recent Impacts</h3>
             {impactStats.totalImpacts > 0 ? (
               <div className="space-y-3">
-                {feedbackImpacts.slice(0, 5).map((impact, index) => (
+                {feedbackImpacts.slice(0, 5).map((impact: FeedbackImpact, index: number) => (
                   <div key={index} className="border-l-4 border-blue-500 pl-4">
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-medium text-gray-900">Recommendation {impact.recommendationId}</span>
@@ -373,7 +373,7 @@ export const FeedbackDashboard: React.FC<FeedbackDashboardProps> = ({
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-medium text-gray-900 mb-3">Detailed Feedback</h3>
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {feedbackHistory.slice(-10).reverse().map((feedback, index) => (
+              {feedbackHistory.slice(-10).reverse().map((feedback: FeedbackData, index: number) => (
                 <div key={feedback.id} className="border-b pb-3 last:border-b-0">
                   <div className="flex justify-between items-start mb-1">
                     <span className="font-medium text-gray-900">{getFeedbackTypeLabel(feedback.type)}</span>
@@ -392,7 +392,7 @@ export const FeedbackDashboard: React.FC<FeedbackDashboardProps> = ({
                   )}
                   {feedback.tags && feedback.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {feedback.tags.map((tag, tagIndex) => (
+                      {feedback.tags.map((tag: string, tagIndex: number) => (
                         <span key={tagIndex} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                           {tag}
                         </span>

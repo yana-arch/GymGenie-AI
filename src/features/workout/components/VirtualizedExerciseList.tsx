@@ -1,14 +1,14 @@
 import React, { useMemo, useCallback } from 'react';
 import { List } from 'react-virtualized';
-import { CheckCircle2, Circle, Clock, Target, Zap, Info } from 'lucide-react';
+import { CheckCircle2, Target, Info } from 'lucide-react';
 import { useExerciseById } from '@/hooks/useSelectiveSubscription';
-import { Exercise } from '@/types'; // Assuming Exercise interface is defined in types
+import { Exercise, WorkoutExercise } from '@/types'; // Assuming Exercise interface is defined in types
 import CompletionStats from './CompletionStats';
 
 export interface VirtualizedExerciseListProps {
   exerciseIds: string[];
   onToggleExercise: (exerciseId: string) => void;
-  onExerciseDetails?: (exercise: Exercise) => void;
+  onExerciseDetails?: (exercise: Exercise | WorkoutExercise) => void;
   showCompletionStatus?: boolean;
   height?: number;
   width?: number; // Add width prop for react-virtualized List
@@ -37,7 +37,21 @@ const VirtualizedExerciseList: React.FC<VirtualizedExerciseListProps> = ({
     }
   }, []);
 
-  const ExerciseListItem = ({ exerciseId, style, onToggleExercise, onExerciseDetails, showCompletionStatus, getDifficultyColor }) => {
+  const ExerciseListItem = ({ 
+    exerciseId, 
+    style, 
+    onToggleExercise, 
+    onExerciseDetails, 
+    showCompletionStatus, 
+    getDifficultyColor 
+  }: { 
+    exerciseId: string; 
+    style: React.CSSProperties; 
+    onToggleExercise: (id: string) => void; 
+    onExerciseDetails?: (exercise: Exercise | WorkoutExercise) => void; 
+    showCompletionStatus: boolean; 
+    getDifficultyColor: (difficulty?: string) => string;
+  }) => {
     const exerciseData = useExerciseById(exerciseId);
     
     if (!exerciseData || !exerciseData.exercise) return null;

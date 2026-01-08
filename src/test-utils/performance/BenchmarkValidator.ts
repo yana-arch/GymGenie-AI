@@ -156,7 +156,7 @@ export class BenchmarkValidator {
       endTime: duration,
       duration,
       category,
-      passedThreshold: duration <= PERFORMANCE_THRESHOLDS[category]?.individualMs || 15000
+      passedThreshold: duration <= (PERFORMANCE_THRESHOLDS[category]?.individualMs || 15000)
     };
 
     return this.validatePerformance([metric]);

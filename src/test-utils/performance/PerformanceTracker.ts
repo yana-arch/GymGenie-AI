@@ -179,7 +179,7 @@ export class PerformanceTracker {
       
       if (result.slowTests.length > 0) {
         report += `    Slow Test Details:\n`;
-        result.slowTests.forEach(test => {
+        result.slowTests.forEach((test: TestPerformanceMetrics) => {
           const testDuration = (test.duration / 1000).toFixed(2);
           report += `      - ${test.testId}: ${testDuration}s\n`;
         });

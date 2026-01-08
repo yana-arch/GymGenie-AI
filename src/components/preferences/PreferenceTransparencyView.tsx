@@ -75,7 +75,7 @@ export const PreferenceTransparencyView: React.FC<PreferenceTransparencyViewProp
           contradictions: 3,
           data: {
             timingPreferences: [
-              { timeOfDay: 'morning', preference: 'optimal', confidence: 0.68, performanceImpact: 0.85 }
+              { timeOfDay: 'morning', preference: 'optimal', confidence: 0.68, performanceImpact: 0.85, dayOfWeek: ['Monday', 'Wednesday', 'Friday'] }
             ]
           }
         }
@@ -204,25 +204,24 @@ export const PreferenceTransparencyView: React.FC<PreferenceTransparencyViewProp
             </div>
           </div>
 
-          {/* Preferences by Type */}
           {Object.entries(groupedPreferences).map(([type, typePreferences]) => (
-            typePreferences.length > 0 && (
+            (typePreferences as PreferencePattern[]).length > 0 && (
               <div key={type} className="border border-gray-200 rounded-lg overflow-hidden">
                 <button
-                  onClick={() => toggleTypeExpansion(type)}
+                  onClick={() => toggleTypeExpansion(type as PreferenceType)}
                   className="w-full px-4 py-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center hover:bg-gray-100"
                 >
                   <div className="flex items-center space-x-3">
                     <span className="text-lg font-medium text-gray-900">
-                      {getStrengthIndicator(typePreferences.reduce((sum, p) => sum + p.strength, 0) / typePreferences.length)}
+                      {getStrengthIndicator((typePreferences as PreferencePattern[]).reduce((sum, p) => sum + p.strength, 0) / (typePreferences as PreferencePattern[]).length)}
                     </span>
                     <span className="font-medium">
-                      {formatPreferenceType(type)}
+                      {formatPreferenceType(type as PreferenceType)}
                     </span>
-                    <span className="text-gray-500 text-sm">({typePreferences.length})</span>
+                    <span className="text-gray-500 text-sm">({(typePreferences as PreferencePattern[]).length})</span>
                   </div>
                   <svg
-                    className={`w-5 h-5 transition-transform ${expandedTypes.has(type) ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 transition-transform ${expandedTypes.has(type as PreferenceType) ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 20 20"
@@ -231,9 +230,9 @@ export const PreferenceTransparencyView: React.FC<PreferenceTransparencyViewProp
                   </svg>
                 </button>
 
-                {expandedTypes.has(type) && (
+                {expandedTypes.has(type as PreferenceType) && (
                   <div className="border-t border-gray-200 p-4 space-y-4 max-h-96 overflow-y-auto">
-                    {typePreferences.map(preference => {
+                    {(typePreferences as PreferencePattern[]).map(preference => {
                       const health = getHealthStatus(preference);
                       
                       return (

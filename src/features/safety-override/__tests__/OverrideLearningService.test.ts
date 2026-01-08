@@ -73,7 +73,7 @@ describe('OverrideLearningService', () => {
       
       // Should store locally, not transmit externally
       expect(storageSpy).toHaveBeenCalledWith(
-        expect.stringContaining('safety-override-history'),
+        expect.stringContaining('safety-override-learning'),
         expect.any(String)
       );
       
@@ -108,12 +108,12 @@ describe('OverrideLearningService', () => {
       // Log multiple similar overrides to create a pattern
       const similarOverrides = [
         mockOverrideEvent,
-        { ...mockOverrideEvent, id: 'override-2', timestamp: Date.now() + 1000 },
-        { ...mockOverrideEvent, id: 'override-3', timestamp: Date.now() + 2000 }
+        { ...mockOverrideEvent, id: 'override-2', timestamp: Date.now() + 1000, type: 'exercise_modification' },
+        { ...mockOverrideEvent, id: 'override-3', timestamp: Date.now() + 2000, type: 'exercise_modification' }
       ];
 
       for (const override of similarOverrides) {
-        await service.logOverride(override);
+        await service.logOverride(override as any);
       }
 
       await service.analyzePatterns();
@@ -128,40 +128,42 @@ describe('OverrideLearningService', () => {
       const tiredOverride = {
         ...mockOverrideEvent,
         id: 'override-1',
-        context: { ...mockOverrideEvent.context, energyLevel: 'tired' }
+        type: 'exercise_modification',
+        context: { ...mockOverrideEvent.context, energyLevel: 'tired' as const }
       };
 
       const normalOverride = {
         ...mockOverrideEvent,
         id: 'override-2',
-        context: { ...mockOverrideEvent.context, energyLevel: 'normal' }
+        type: 'exercise_modification',
+        context: { ...mockOverrideEvent.context, energyLevel: 'normal' as const }
       };
 
-      await service.logOverride(tiredOverride);
-      await service.logOverride(normalOverride);
+      await service.logOverride(tiredOverride as any);
+      await service.logOverride(normalOverride as any);
       await service.analyzePatterns();
 
       const patterns = service.getLearningPatterns();
-      expect(patterns.contextPatterns.energyLevel.tired).toBe(1);
-      expect(patterns.contextPatterns.energyLevel.normal).toBe(1);
+      expect(patterns['exercise_modification'].contexts.energyLevel.tired).toBe(1);
+      expect(patterns['exercise_modification'].contexts.energyLevel.normal).toBe(1);
     });
 
     it('should detect recommendation type preferences', async () => {
-      const exerciseOverride = { ...mockOverrideEvent, userAction: 'disagree' };
+      const exerciseOverride = { ...mockOverrideEvent, userAction: 'disagree' as const, type: 'exercise_modification' };
       const restOverride = { 
         ...mockOverrideEvent, 
         id: 'override-2', 
-        userAction: 'skip_exercise',
-        type: 'rest_adjustment' as const
+        userAction: 'skip_exercise' as const,
+        type: 'rest_adjustment'
       };
 
-      await service.logOverride(exerciseOverride);
-      await service.logOverride(restOverride);
+      await service.logOverride(exerciseOverride as any);
+      await service.logOverride(restOverride as any);
       await service.analyzePatterns();
 
       const patterns = service.getLearningPatterns();
-      expect(patterns.recommendationTypes['exercise_modification']).toBe(1);
-      expect(patterns.recommendationTypes['rest_adjustment']).toBe(1);
+      expect(patterns['exercise_modification'].preferences.recommendationTypes['exercise_modification']).toBe(1);
+      expect(patterns['rest_adjustment'].preferences.recommendationTypes['rest_adjustment']).toBe(1);
     });
 
     it('should provide confidence scores for patterns', async () => {
@@ -170,9 +172,10 @@ describe('OverrideLearningService', () => {
         const override = {
           ...mockOverrideEvent,
           id: `override-${i}`,
+          type: 'exercise_modification',
           timestamp: Date.now() + (i * 1000)
         };
-        await service.logOverride(override);
+        await service.logOverride(override as any);
       }
 
       await service.analyzePatterns();
@@ -190,39 +193,47 @@ describe('OverrideLearningService', () => {
         const override = {
           ...mockOverrideEvent,
           id: `override-${i}`,
-          context: { energyLevel: 'tired', timeRemaining: 15, equipmentAvailable: ['bodyweight'] },
-          userAction: 'disagree'
+          type: 'exercise_modification',
+          context: { energyLevel: 'tired' as const, timeRemaining: 15, equipmentAvailable: ['bodyweight'] },
+          userAction: 'disagree' as const
         };
-        await service.logOverride(override);
+        await service.logOverride(override as any);
       }
 
       await service.analyzePatterns();
       const recommendations = service.getAdaptiveRecommendations({
-        context: { energyLevel: 'tired', timeRemaining: 15, equipmentAvailable: ['bodyweight'] }
+        energyLevel: 'tired', timeRemaining: 15, equipmentAvailable: ['bodyweight']
       });
 
-      expect(recommendations.adjustments).toContain('reduce_intensity');
+      expect(recommendations.recommendations[0].type).toBe('reduce_intensity');
       expect(recommendations.confidence).toBeGreaterThan(0.5);
     });
 
     it('should respect safety constraints in recommendations', async () => {
+      // Log some data first to avoid empty patterns
+      for (let i = 0; i < 5; i++) {
+        await service.logOverride({...mockOverrideEvent, id: `ob-${i}`, type: 'exercise_modification'} as any);
+      }
       await service.analyzePatterns();
-      const recommendations = service.getAdaptiveRecommendations({
-        context: mockOverrideEvent.context
-      });
+      const recommendations = service.getAdaptiveRecommendations(mockOverrideEvent.context);
 
       // Should never recommend unsafe adjustments
-      expect(recommendations.adjustments).not.toContain('increase_beyond_safety');
+      expect(recommendations.recommendations.map(r => r.type)).not.toContain('increase_beyond_safety');
       expect(recommendations.safetyConstraints).toBeDefined();
     });
 
     it('should provide different strategies for different contexts', async () => {
+      // Log some data first
+      for (let i = 0; i < 5; i++) {
+        await service.logOverride({...mockOverrideEvent, id: `oc-${i}`, type: 'exercise_modification'} as any);
+      }
+      await service.analyzePatterns();
       const recommendations = service.getAdaptiveRecommendations({
-        context: { energyLevel: 'normal', timeRemaining: 5, equipmentAvailable: ['bodyweight'] }
+        energyLevel: 'normal', timeRemaining: 5, equipmentAvailable: ['bodyweight']
       });
 
       const timeRecommendations = service.getAdaptiveRecommendations({
-        context: { energyLevel: 'tired', timeRemaining: 30, equipmentAvailable: ['bodyweight'] }
+        energyLevel: 'tired', timeRemaining: 30, equipmentAvailable: ['bodyweight']
       });
 
       // Different recommendations for different contexts
@@ -241,9 +252,9 @@ describe('OverrideLearningService', () => {
       expect(storedOverride.context).toBeDefined();
       
       // Should not contain personal identifiers
-      expect(storedOverride.userId).toBeUndefined();
-      expect(storedOverride.personalInfo).toBeUndefined();
-      expect(storedOverride.location).toBeUndefined();
+      expect((storedOverride as any).userId).toBeUndefined();
+      expect((storedOverride as any).personalInfo).toBeUndefined();
+      expect((storedOverride as any).location).toBeUndefined();
     });
 
     it('should allow clearing all learning data', async () => {
@@ -258,7 +269,7 @@ describe('OverrideLearningService', () => {
       expect(service.getState().learningPatterns).toEqual({});
       
       // Should also clear local storage
-      expect(localStorage.getItem('safety-override-history')).toBeNull();
+      expect(localStorage.getItem('safety-override-learning')).toBeNull();
     });
 
     it('should respect data retention policies', async () => {

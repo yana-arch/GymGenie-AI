@@ -1,10 +1,10 @@
 import React from 'react';
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest'; // Added Mock
+import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 import { render, screen, fireEvent } from './test-utils';
 import '@testing-library/jest-dom';
-import OptimizedResponsiveWorkoutCard, { OptimizedResponsiveWorkoutCardList } from '@/src/features/workout/components/OptimizedResponsiveWorkoutCard'; // Updated import
+import OptimizedResponsiveWorkoutCard, { OptimizedResponsiveWorkoutCardList } from '@/features/workout/components/OptimizedResponsiveWorkoutCard';
 import { WorkoutExercise } from '@/types';
-import { useExerciseById } from '@/hooks/useSelectiveSubscription'; // Added import
+import { useExerciseById } from '@/hooks/useSelectiveSubscription';
 
 // Mock the breakpoint hook
 const mockBreakpoint = {
@@ -22,7 +22,7 @@ vi.mock('@/hooks/useBreakpoint', () => ({
 // Mock the layout manager hook
 vi.mock('@/hooks/useLayoutManager', () => ({
   useResponsiveComponent: () => ({
-    ref: { current: null },
+    ref: { current: null as any },
     currentBreakpoint: 'mobile',
     updateLayout: vi.fn(),
     getLayoutConfig: vi.fn(),
@@ -45,7 +45,7 @@ vi.mock('@/hooks/useSelectiveSubscription', () => ({
 }));
 
 // Mock VirtualizedExerciseListWrapper for OptimizedResponsiveWorkoutCardList
-vi.mock('@/src/features/workout/components/VirtualizedExerciseListWrapper', () => ({
+vi.mock('@/features/workout/components/VirtualizedExerciseListWrapper', () => ({
   default: ({ exerciseIds, onToggleExercise, onExerciseDetails }: any) => (
     <div>
       {exerciseIds.map((id: string) => (
@@ -512,22 +512,6 @@ describe('OptimizedResponsiveWorkoutCardList', () => {
         onViewDetails={mockHandlers.onViewDetails}
       />
     );
-
-    // The VirtualizedExerciseListWrapper mock will render buttons for toggle and details, 
-    // but reordering controls are inside the card which is mocked by useExerciseById. 
-    // This test needs refinement if it's meant to check reordering UI directly. 
-    // For now, we verify the list renders and passes props down, implicitly through the mock. 
-
-    // In the actual OptimizedResponsiveWorkoutCard, reorder controls are conditional on isReordering. 
-    // The mock above for useExerciseById doesn't fully simulate this, but we've mocked the wrapper. 
-    // For a deeper test, a more elaborate mock for individual cards or a direct rendering of OptimizedResponsiveWorkoutCard 
-    // within a virtualized context would be needed. 
-
-    // For the current setup, we check if the wrapper is called with isReordering. 
-    // Since the wrapper directly renders exercise IDs and not the full card UI, 
-    // checking for 'up'/'down' buttons here directly would be incorrect with current mocks. 
-
-    // We'll rely on the snapshot or a more targeted unit test for OptimizedResponsiveWorkoutCard for reordering controls. 
 
     // Verify handlers are passed and callable through the mock wrapper
     fireEvent.click(screen.getByText('Toggle'));

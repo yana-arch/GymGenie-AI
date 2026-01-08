@@ -1,5 +1,5 @@
 import { test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OfflineRequestQueue } from '../services/OfflineRequestQueue';
+import { OfflineRequestQueue } from '@/services/OfflineRequestQueue';
 
 // Mock localStorage
 const localStorageMock = (() => {

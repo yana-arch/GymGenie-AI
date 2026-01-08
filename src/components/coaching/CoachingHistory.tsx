@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useAppSelector } from '../../store';
 import { selectCoachingHistory } from '../../store/unifiedCoachingSlice';
-import { CoachingDecision, CoachingPriority } from '../../features/unified-coaching/types/unifiedCoaching.types';
+import { CoachingDecision, CoachingPriority, CoachingContribution } from '../../features/unified-coaching/types/unifiedCoaching.types';
 
 interface CoachingHistoryProps {
   className?: string;

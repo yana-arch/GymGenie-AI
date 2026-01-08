@@ -457,7 +457,7 @@ export class WorkoutSession implements EnhancedWorkoutSession {
     let newExerciseDataMap = { ...this.exerciseData };
 
     if (currentExerciseData) {
-      const newExerciseData = {
+      const newExerciseData: ExerciseSessionData = {
         ...currentExerciseData,
         isCompleted: false,
         completedAt: undefined

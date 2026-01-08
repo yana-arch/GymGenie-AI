@@ -212,7 +212,7 @@ describe('FormFeedbackOverlay', () => {
 
       // Should not draw low confidence keypoints
       const arcCalls = mockCanvasContext.arc.mock.calls;
-      const lowConfidenceCall = arcCalls.find(call => 
+      const lowConfidenceCall = arcCalls.find((call: any) => 
         call[0] === 50 && call[1] === 100 // Coordinates of low confidence point
       );
       expect(lowConfidenceCall).toBeUndefined();

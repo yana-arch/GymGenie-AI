@@ -41,10 +41,10 @@ describe('Type Safety Enhancements', () => {
           workoutsPerWeek: 4,
           preferredTimeOfDay: TimeOfDay.Morning,
           equipmentPreferences: ['Dumbbells', 'Barbell'],
-          exerciseRestrictions: []
+          exerciseRestrictions: [] as string[]
         },
         fitnessLevel: FitnessLevel.Intermediate,
-        medicalConditions: []
+        medicalConditions: [] as string[]
       };
 
       expect(userProfile.name).toBe('John Doe');
@@ -62,13 +62,13 @@ describe('Type Safety Enhancements', () => {
         dayId: '789e0123-e89b-12d3-a456-426614174000',
         state: SessionState.ACTIVE,
         startTime: Date.now(),
-        completedTime: null,
-        loggedTime: null,
+        completedTime: null as number | null,
+        loggedTime: null as number | null,
         exerciseTimestamps: {},
         totalExercises: 5,
         completedExercises: 2,
         estimatedDuration: 60,
-        actualDuration: null,
+        actualDuration: null as number | null,
         isReadOnly: false,
         environment: {
           location: 'gym',
@@ -103,10 +103,10 @@ describe('Type Safety Enhancements', () => {
           workoutsPerWeek: 4,
           preferredTimeOfDay: 'Morning',
           equipmentPreferences: ['Dumbbells'],
-          exerciseRestrictions: []
+          exerciseRestrictions: [] as string[]
         },
         fitnessLevel: 'Intermediate',
-        medicalConditions: []
+        medicalConditions: [] as string[]
       };
 
       const result = Schemas.EnhancedUserProfile.parse(validProfile);
@@ -132,11 +132,11 @@ describe('Type Safety Enhancements', () => {
           workoutDuration: 60,
           workoutsPerWeek: 4,
           preferredTimeOfDay: 'Morning',
-          equipmentPreferences: [],
-          exerciseRestrictions: []
+          equipmentPreferences: [] as string[],
+          exerciseRestrictions: [] as string[]
         },
         fitnessLevel: 'Intermediate',
-        medicalConditions: []
+        medicalConditions: [] as string[]
       };
 
       expect(() => Schemas.EnhancedUserProfile.parse(invalidProfile)).toThrow();
@@ -163,10 +163,10 @@ describe('Type Safety Enhancements', () => {
           workoutsPerWeek: 4,
           preferredTimeOfDay: 'Morning',
           equipmentPreferences: ['Dumbbells'],
-          exerciseRestrictions: []
+          exerciseRestrictions: [] as string[]
         },
         fitnessLevel: 'Intermediate',
-        medicalConditions: []
+        medicalConditions: [] as string[]
       };
 
       const serialized = TypeSafeSerializer.serialize(profile, Schemas.EnhancedUserProfile);
@@ -219,9 +219,9 @@ describe('Type Safety Enhancements', () => {
         mood: 'Focused',
         summary: 'Great workout session with consistent effort.',
         advice: 'Try increasing weight on compound movements.',
-        strengths: [],
-        improvements: [],
-        nextWorkoutRecommendations: []
+        strengths: [] as string[],
+        improvements: [] as string[],
+        nextWorkoutRecommendations: [] as any[]
       };
 
       const result = ApiResponseValidator.validateWorkoutAnalysisResponse(validAnalysis);
@@ -235,9 +235,9 @@ describe('Type Safety Enhancements', () => {
         mood: '',  // Invalid: empty
         summary: 'Valid summary',
         advice: 'Valid advice',
-        strengths: [],
-        improvements: [],
-        nextWorkoutRecommendations: []
+        strengths: [] as string[],
+        improvements: [] as string[],
+        nextWorkoutRecommendations: [] as any[]
       };
 
       expect(() => 
@@ -293,10 +293,10 @@ describe('Type Safety Enhancements', () => {
           workoutsPerWeek: 5,
           preferredTimeOfDay: 'Evening',
           equipmentPreferences: ['Cardio Equipment'],
-          exerciseRestrictions: []
+          exerciseRestrictions: [] as string[]
         },
         fitnessLevel: 'Beginner',
-        medicalConditions: []
+        medicalConditions: [] as string[]
       };
 
       const serialized = DomainSerializers.serializeUserProfile(profile as EnhancedUserProfile);

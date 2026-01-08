@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { WorkoutSession } from '../src/features/session/services/WorkoutSession';
 import { SessionConflictDetector } from '../src/features/session/services/SessionConflictDetector';
 import { SessionRecoverySystem } from '../src/features/session/services/SessionRecoverySystem';
-import { SessionState } from '../types';
+import { SessionState } from '@/types';
 
 describe('Enhanced Session Management', () => {
   describe('WorkoutSession', () => {
@@ -60,8 +60,8 @@ describe('Enhanced Session Management', () => {
         dayId: 'day1',
         state: SessionState.ACTIVE,
         startTime: Date.now(),
-        completedTime: null,
-        loggedTime: null,
+        completedTime: null as number | null,
+        loggedTime: null as number | null,
         exerciseTimestamps: {},
         isReadOnly: false
       };
@@ -163,8 +163,8 @@ describe('Enhanced Session Management', () => {
             dayId: 'day2',
             state: SessionState.ACTIVE,
             startTime: Date.now(),
-            completedTime: null,
-            loggedTime: null,
+            completedTime: null as number | null,
+            loggedTime: null as number | null,
             exerciseTimestamps: {},
             isReadOnly: false
           }

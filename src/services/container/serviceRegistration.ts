@@ -164,16 +164,16 @@ function createMockWorkoutService(): IWorkoutService {
 
 function createMockStorageService(): IStorageService {
   return {
-    save: async <T>(key: string, data: T) => {
+    save: async <T>(key: string, data: T): Promise<void> => {
       // Mock implementation
     },
-    load: async <T>(key: string) => {
+    load: async <T>(key: string): Promise<T | null> => {
       return null;
     },
-    remove: async (key: string) => {
+    remove: async (key: string): Promise<void> => {
       // Mock implementation
     },
-    clear: async () => {
+    clear: async (): Promise<void> => {
       // Mock implementation
     },
     backup: async () => {
