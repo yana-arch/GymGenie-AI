@@ -341,11 +341,8 @@ export class AICoachingOrchestrator {
       return false;
     }
     
+    // Action is required, message is optional
     if (!recommendation.action || typeof recommendation.action !== 'string') {
-      return false;
-    }
-    
-    if (!recommendation.message || typeof recommendation.message !== 'string') {
       return false;
     }
     

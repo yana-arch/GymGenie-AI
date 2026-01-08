@@ -135,7 +135,7 @@ describe('Injury System Performance Tests', () => {
   describe('Recommendation Filtering Performance', () => {
     const largeRecommendationsList: AIRecommendation[] = Array.from({ length: 100 }, (_, i) => ({
       id: `exercise_${i}`,
-      exercise: `Exercise ${i}`,
+      exercise: i % 10 === 0 ? 'jumping_jacks' : i % 10 === 1 ? 'deep_squats' : `Exercise ${i}`,
       variation: i % 2 === 0 ? 'standard' : 'modified',
       intensity: i % 3 === 0 ? 'high' : i % 2 === 0 ? 'moderate' : 'low',
       restTime: 60 + (i % 5) * 30,
@@ -238,6 +238,9 @@ describe('Injury System Performance Tests', () => {
     });
 
     it('should analyze discomfort patterns within 500ms', async () => {
+      // Clear previous history to ensure exact frequency
+      await discomfortMonitoringService.clearDiscomfortHistory();
+      
       // First, record some discomfort events
       await discomfortMonitoringService.recordDiscomfort({
         location: 'left_knee',

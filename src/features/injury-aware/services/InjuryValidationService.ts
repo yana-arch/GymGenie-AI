@@ -34,6 +34,26 @@ export class InjuryValidationService {
       constraints: ['no_jumping'],
       blockedMovements: ['jumping', 'running'],
       alternatives: ['seated_cardio', 'upper_body_workout']
+    },
+    wrist: {
+      constraints: ['no_weight_bearing'],
+      blockedMovements: ['push_ups', 'plank', 'handstand'],
+      alternatives: ['lower_body_exercises', 'cardio']
+    },
+    hip: {
+      constraints: ['no_high_impact'],
+      blockedMovements: ['jumping', 'sprinting', 'deep_lunges'],
+      alternatives: ['swimming', 'upper_body_focus']
+    },
+    elbow: {
+      constraints: ['no_heavy_lifting'],
+      blockedMovements: ['bench_press', 'tricep_dips', 'heavy_curls'],
+      alternatives: ['lighter_weights', 'bodyweight_exercises']
+    },
+    neck: {
+      constraints: ['no_strain'],
+      blockedMovements: ['crunches', 'neck_bridges'],
+      alternatives: ['core_stability', 'posture_exercises']
     }
   } as const;
 
@@ -189,9 +209,9 @@ export class InjuryValidationService {
       
       if (injuryConfig) {
         // Add pre-defined constraints for better performance
-        injuryConfig.constraints.forEach(constraint => constraints.add(constraint));
-        injuryConfig.blockedMovements.forEach(movement => blockedMovements.add(movement));
-        injuryConfig.alternatives.forEach(alternative => recommendedAlternatives.add(alternative));
+        injuryConfig.constraints.forEach((constraint: any) => constraints.add(constraint));
+        injuryConfig.blockedMovements.forEach((movement: any) => blockedMovements.add(movement));
+        injuryConfig.alternatives.forEach((alternative: any) => recommendedAlternatives.add(alternative));
       }
       
       // Add specific restrictions from injury data

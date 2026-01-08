@@ -19,14 +19,6 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import type { HistoricalPattern } from '../../features/historical-patterns/types/historicalPatterns.types';
-
-interface PerformanceCorrelationViewProps {
-  patterns: HistoricalPattern[];
-  height?: number;
-  interactive?: boolean;
-  onCorrelationSelect?: (correlation: any) => void;
-}
 
 interface CorrelationData {
   factor: string;
@@ -36,10 +28,11 @@ interface CorrelationData {
   direction: 'positive' | 'negative' | 'neutral';
 }
 
-interface PerformanceDistribution {
-  range: string;
-  count: number;
-  color: string;
+interface PerformanceCorrelationViewProps {
+  patterns: any[];
+  height?: number;
+  interactive?: boolean;
+  onCorrelationSelect?: (correlation: CorrelationData) => void;
 }
 
 export const PerformanceCorrelationView: React.FC<PerformanceCorrelationViewProps> = React.memo(({
@@ -63,8 +56,11 @@ export const PerformanceCorrelationView: React.FC<PerformanceCorrelationViewProp
           const strength = Math.abs(correlation.correlation);
           let direction: 'positive' | 'negative' | 'neutral' = 'neutral';
           
-          if (correlation.correlation > 0.1) direction = 'positive';
-          else if (correlation.correlation < -0.1) direction = 'negative';
+          if (correlation.correlation > 0.1) {
+            direction = 'positive';
+          } else if (correlation.correlation < -0.1) {
+            direction = 'negative';
+          }
 
           correlations.push({
             factor: correlation.factor,
@@ -173,75 +169,80 @@ export const PerformanceCorrelationView: React.FC<PerformanceCorrelationViewProp
             >
               Distribution
             </button>
+            <button
+              onClick={() => setViewMode('trends')}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'trends' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Trends
+            </button>
           </div>
         </div>
-        <p className="text-sm text-gray-600">
-          Analysis of how different factors correlate with your workout performance
-        </p>
-      </div>
 
-      {/* Main Content Area */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        {/* Correlation Chart */}
         {viewMode === 'correlation' && (
-          <ResponsiveContainer width="100%" height={height}>
-            <ScatterChart data={correlationData} margin={{ top: 20, right: 30, left: 60, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis 
-                dataKey="factor" 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={100}
-                interval={0}
-              />
-              <YAxis 
-                dataKey="correlation" 
-                tick={{ fontSize: 12 }}
-                label={{ value: 'Correlation (%)', angle: -90, position: 'insideLeft' }}
-                domain={[-100, 100]}
-              />
-              <Tooltip content={<CorrelationTooltip />} />
-              <Legend />
-              <Scatter
-                dataKey="correlation"
-                fill="#3b82f6"
-                strokeWidth={2}
-                onClick={handleCorrelationClick}
-                shape={(props: any) => {
-                  const { cx, cy, payload } = props;
-                  const isSelected = selectedCorrelation === payload.factor;
-                  return (
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={isSelected ? 8 : 6}
-                      fill={payload.direction === 'positive' ? '#10b981' : 
-                             payload.direction === 'negative' ? '#ef4444' : '#6b7280'}
-                      stroke={isSelected ? '#1f2937' : '#fff'}
-                      strokeWidth={isSelected ? 3 : 2}
-                      style={{ cursor: interactive ? 'pointer' : 'default' }}
-                    />
-                  );
-                }}
-              />
-            </ScatterChart>
-          </ResponsiveContainer>
+          <div style={{ height: height - 100 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 20, right: 20, bottom: 60, left: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="factor"
+                  type="category"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                  tick={{ fontSize: 12, fill: '#6b7280' }}
+                />
+                <YAxis
+                  dataKey="correlation"
+                  domain={[-100, 100]}
+                  tick={{ fontSize: 12, fill: '#6b7280' }}
+                  label={{ value: 'Correlation (%)', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
+                />
+                <Tooltip content={<CorrelationTooltip />} />
+                <Legend />
+                <Scatter
+                  name="Correlations"
+                  data={correlationData}
+                  fill="#3b82f6"
+                  shape={(props: any) => {
+                    const { cx, cy, payload } = props;
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={6}
+                        fill={
+                          payload.direction === 'positive' ? '#10b981' : 
+                          payload.direction === 'negative' ? '#ef4444' : '#6b7280'
+                        }
+                        onClick={() => handleCorrelationClick(payload)}
+                        style={{ cursor: interactive ? 'pointer' : 'default' }}
+                      />
+                    );
+                  }}
+                />
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div>
         )}
 
+        {/* Distribution Chart */}
         {viewMode === 'distribution' && (
-          <div className="space-y-6">
-            <ResponsiveContainer width="100%" height={height / 2}>
+          <div style={{ height: height - 100 }}>
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={performanceDistribution}
-                  dataKey="count"
-                  nameKey="range"
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
-                  label={({ range, count, percent }) => (
+                  labelLine={false}
+                  label={(entry: any) => (
                     <text fill="#374151" fontSize={12}>
-                      {`${range}: ${count} (${(percent * 100).toFixed(0)}%)`}
+                      {`${entry.range}: ${entry.count} (${(entry.percent * 100).toFixed(0)}%)`}
                     </text>
                   )}
                 >
@@ -250,64 +251,89 @@ export const PerformanceCorrelationView: React.FC<PerformanceCorrelationViewProp
                   ))}
                 </Pie>
                 <Tooltip />
-                <Legend />
               </PieChart>
             </ResponsiveContainer>
+          </div>
+        )}
 
-            <ResponsiveContainer width="100%" height={height / 2}>
-              <BarChart data={performanceDistribution} margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                <XAxis 
-                  dataKey="range" 
-                  tick={{ fontSize: 12 }}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12 }}
-                  label={{ value: 'Number of Correlations', angle: -90, position: 'insideLeft' }}
-                />
-                <Tooltip />
-                <Bar dataKey="count">
-                  {performanceDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-                <Legend />
-              </BarChart>
-            </ResponsiveContainer>
+        {/* Trends View */}
+        {viewMode === 'trends' && (
+          <div className="space-y-4">
+            {correlationData.slice(0, 10).map((correlation, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-lg border ${
+                  selectedCorrelation === correlation.factor
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 bg-white'
+                } ${interactive ? 'cursor-pointer hover:border-gray-300' : ''}`}
+                onClick={() => handleCorrelationClick(correlation)}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-800">{correlation.factor}</h4>
+                    <p className="text-sm text-gray-600">
+                      Strength: {correlation.strength.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-lg font-semibold ${
+                      correlation.direction === 'positive' ? 'text-green-600' : 
+                      correlation.direction === 'negative' ? 'text-red-600' : 'text-gray-600'
+                    }`}>
+                      {correlation.direction === 'positive' ? '+' : ''}{correlation.correlation.toFixed(1)}%
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Significance: {correlation.significance.toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         {/* Selected Correlation Details */}
-        {selectedCorrelation && interactive && (
+        {selectedCorrelation && (
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-semibold text-blue-900 mb-2">Selected Correlation</h4>
-            <p className="text-blue-800">
-              <strong>Factor:</strong> {selectedCorrelation}
+            <h4 className="font-medium text-blue-900 mb-2">Selected: {selectedCorrelation}</h4>
+            <p className="text-sm text-blue-700">
+              This factor shows a {
+                correlationData.find(c => c.factor === selectedCorrelation)?.direction
+              } correlation with your performance patterns.
             </p>
-            <div className="mt-2 space-y-1">
-              <p className="text-sm text-blue-700">
-                <strong>Direction:</strong>{' '}
-                <span className={
-                  correlationData.find(c => c.factor === selectedCorrelation)?.direction === 'positive' ? 'text-green-600' : 
-                  correlationData.find(c => c.factor === selectedCorrelation)?.direction === 'negative' ? 'text-red-600' : 'text-gray-600'
-                }>
-                  {correlationData.find(c => c.factor === selectedCorrelation)?.direction}
-                </span>
-              </p>
-              <p className="text-sm text-blue-700">
-                <strong>Strength:</strong> {
-                  correlationData.find(c => c.factor === selectedCorrelation)?.strength.toFixed(1)
-                }%
-              </p>
-              <p className="text-sm text-blue-700">
-                <strong>Significance:</strong> {
-                  correlationData.find(c => c.factor === selectedCorrelation)?.significance.toFixed(1)
-                }%
-              </p>
-            </div>
           </div>
         )}
       </div>
+
+      {/* Summary Statistics */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Summary Statistics</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-blue-600">{correlationData.length}</p>
+            <p className="text-sm text-gray-600">Total Correlations</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-green-600">
+              {correlationData.filter(c => c.direction === 'positive').length}
+            </p>
+            <p className="text-sm text-gray-600">Positive</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-red-600">
+              {correlationData.filter(c => c.direction === 'negative').length}
+            </p>
+            <p className="text-sm text-gray-600">Negative</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-gray-600">
+              {correlationData.filter(c => c.strength >= 70).length}
+            </p>
+            <p className="text-sm text-gray-600">Strong (&gt;70%)</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
+});

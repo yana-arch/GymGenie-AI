@@ -388,4 +388,4 @@ export const HistoricalPatternsChart: React.FC<HistoricalPatternsChartProps> = R
       )}
     </div>
   );
-};
+});

@@ -3,7 +3,7 @@
  * Manages state for integrated AI coaching orchestration
  */
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import {
   CoachingDecision,
   UnifiedCoachingState,
@@ -230,27 +230,41 @@ export const {
 } = unifiedCoachingSlice.actions;
 
 // Export selectors
-export const selectCurrentDecision = (state: any) => 
-  state.unifiedCoaching?.currentDecision;
+const selectUnifiedCoachingState = (state: any) => state.unifiedCoaching;
 
-export const selectCoachingHistory = (state: any) => 
-  state.unifiedCoaching?.coachingHistory || [];
+export const selectCurrentDecision = createSelector(
+  [selectUnifiedCoachingState],
+  (state) => state?.currentDecision
+);
 
-export const selectCoachingSession = (state: any) => ({
-  isActive: state.unifiedCoaching?.isActive || false,
-  sessionStartTime: state.unifiedCoaching?.sessionStartTime || null,
-  lastUpdated: state.unifiedCoaching?.lastUpdated || null
-});
+export const selectCoachingHistory = createSelector(
+  [selectUnifiedCoachingState],
+  (state) => state?.coachingHistory || []
+);
 
-export const selectCoachingMetrics = (state: any) => ({
-  totalProcessingTime: state.unifiedCoaching?.totalProcessingTime || 0,
-  averageProcessingTime: state.unifiedCoaching?.averageProcessingTime || 0,
-  conflictCount: state.unifiedCoaching?.conflictCount || 0,
-  decisionCount: state.unifiedCoaching?.coachingHistory?.length || 0
-});
+export const selectCoachingSession = createSelector(
+  [selectUnifiedCoachingState],
+  (state) => ({
+    isActive: state?.isActive || false,
+    sessionStartTime: state?.sessionStartTime || null,
+    lastUpdated: state?.lastUpdated || null
+  })
+);
 
-export const selectCoachingIsActive = (state: any) => 
-  state.unifiedCoaching?.isActive || false;
+export const selectCoachingMetrics = createSelector(
+  [selectUnifiedCoachingState],
+  (state) => ({
+    totalProcessingTime: state?.totalProcessingTime || 0,
+    averageProcessingTime: state?.averageProcessingTime || 0,
+    conflictCount: state?.conflictCount || 0,
+    decisionCount: state?.coachingHistory?.length || 0
+  })
+);
+
+export const selectCoachingIsActive = createSelector(
+  [selectUnifiedCoachingState],
+  (state) => state?.isActive || false
+);
 
 // Export reducer
 export default unifiedCoachingSlice.reducer;

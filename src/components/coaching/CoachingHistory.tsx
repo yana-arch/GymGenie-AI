@@ -203,7 +203,7 @@ export const CoachingHistory: React.FC<CoachingHistoryProps> = ({
                     <PriorityIcon className="h-5 w-5" />
                     <div>
                       <div className="font-medium text-gray-900">
-                        {decision.priority.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        {decision.priority.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                       </div>
                       <div className="text-sm text-gray-600">
                         {formatTime(decision.metadata.timestamp)} • 
@@ -263,7 +263,7 @@ export const CoachingHistory: React.FC<CoachingHistoryProps> = ({
                     <div>
                       <h4 className="font-medium text-gray-900 mb-1">Contributing Systems</h4>
                       <div className="space-y-1">
-                        {decision.contributingSystems.map((contribution, sysIndex) => (
+                        {decision.contributingSystems.map((contribution: CoachingContribution, sysIndex: number) => (
                           <div 
                             key={sysIndex}
                             className="flex items-center justify-between text-sm"
