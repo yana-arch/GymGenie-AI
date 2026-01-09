@@ -69,6 +69,7 @@ interface LiveSessionState {
   activeExerciseIndex: number;
   sessionStartTime: number | null;
   sessionProgress: number; // 0 to 1
+  focusMode: boolean;
   // Note: injuryFilterService is managed outside Redux to avoid non-serializable state
 }
 
@@ -111,6 +112,7 @@ const initialState: LiveSessionState = {
     activeExerciseIndex: 0,
     sessionStartTime: null,
     sessionProgress: 0,
+    focusMode: false,
   };
 
 export const fetchWorkoutAdaptation = createAsyncThunk(
@@ -310,6 +312,9 @@ const liveSessionSlice = createSlice({
     toggleQuietMode(state) {
       state.quietMode = !state.quietMode;
     },
+    toggleFocusMode(state) {
+      state.focusMode = !state.focusMode;
+    },
     recordAdaptationEvent(state, action: PayloadAction<AdaptationEvent>) {
       state.adaptationHistory.push(action.payload);
       // Keep last 20 adaptation events
@@ -402,6 +407,7 @@ export const {
   addMilestone,
   clearMilestones,
   toggleQuietMode,
+  toggleFocusMode,
   recordAdaptationEvent,
   setTransitionStatus,
   setNextExercise,

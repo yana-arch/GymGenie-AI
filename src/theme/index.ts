@@ -8,9 +8,20 @@ import { createTheme, MantineThemeOverride, MantineTheme } from '@mantine/core';
     },
     defaultRadius: 'md',
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    lineHeights: {
+      xs: '1.4',
+      sm: '1.45',
+      md: '1.5',
+      lg: '1.6',
+      xl: '1.6',
+    },
     headings: {
       fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-      fontWeight: '700',
+      fontWeight: '900',
+      sizes: {
+        h1: { fontSize: '2.5rem', lineHeight: '1.1' },
+        h2: { fontSize: '2rem', lineHeight: '1.2' },
+      },
     },
     other: {
       transitions: {

@@ -8,20 +8,33 @@ import { sessionGuidanceService } from '../services/SessionGuidanceService';
 import { EncouragementService } from '../services/EncouragementService';
 import { AudioCoachingService } from '@/features/form-correction/services/AudioCoachingService';
 import { RootState } from '@/store';
-import { CoachingPriority } from '@/features/unified-coaching/types/unifiedCoaching.types';
+import { 
+  CoachingPriority,
+  LiveSessionState as CoachingLiveSessionState,
+  FormCorrectionState as CoachingFormCorrectionState,
+  SafetyOverrideState as CoachingSafetyOverrideState,
+  InjuryAwareState as CoachingInjuryAwareState
+} from '@/features/unified-coaching/types/unifiedCoaching.types';
 
 export const useGuidanceLoop = (isActive: boolean, progress: number) => {
   const dispatch = useDispatch();
   const lastMessageRef = useRef<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   
-  const liveSession = useSelector((state: RootState) => state.liveSession);
-  const quietMode = liveSession.quietMode;
+  const isActiveStored = useSelector((state: RootState) => state.liveSession.isActive);
+  const currentAdaptation = useSelector((state: RootState) => state.liveSession.adaptation);
+  const energy = useSelector((state: RootState) => state.liveSession.activeContext.energy);
+  const time = useSelector((state: RootState) => state.liveSession.activeContext.time);
+  const sessionVolume = useSelector((state: RootState) => state.liveSession.sessionVolume);
+  const quietMode = useSelector((state: RootState) => state.liveSession.quietMode);
   
   // Get other coaching contexts from state
-  const formCorrection = useSelector((state: RootState) => (state as any).formCorrection || { isActive: false });
-  const safetyOverride = useSelector((state: RootState) => (state as any).safetyOverride || { isActive: false });
-  const injuryAware = useSelector((state: RootState) => (state as any).injuryAware || { isActive: false });
+  const formCorrection = useSelector((state: RootState) => state.formCorrection);
+  const safetyOverride = useSelector((state: RootState) => state.safetyOverride);
+  const injuryAware = useSelector((state: RootState) => state.injuryAware);
+
+  const activeGuidance = useSelector((state: RootState) => state.liveSession.activeGuidance);
+  const milestoneHistory = useSelector((state: RootState) => state.liveSession.milestoneHistory);
 
   useEffect(() => {
     if (isActive) {
@@ -32,29 +45,26 @@ export const useGuidanceLoop = (isActive: boolean, progress: number) => {
           // Prepare compatible objects for the orchestrator
           const orchestratorInput = {
             liveSession: {
-              isActive: liveSession.isActive,
-              currentAdaptation: liveSession.adaptation,
-              confidence: 0.9,
-              energy: liveSession.activeContext.energy,
-              time: liveSession.activeContext.time
-            },
+              isActive: isActiveStored,
+              currentAdaptation: currentAdaptation,
+              confidence: 0.9
+            } as CoachingLiveSessionState,
             formCorrection: {
               isActive: formCorrection.isActive,
-              currentCorrection: formCorrection.currentCorrection,
-              confidence: formCorrection.confidence
-            },
+              currentCorrection: formCorrection.feedback,
+              confidence: 0.9
+            } as CoachingFormCorrectionState,
             safetyOverride: {
-              isActive: safetyOverride.isActive,
-              overrideAction: safetyOverride.overrideAction
-            },
+              isActive: safetyOverride.isMonitoring,
+            } as CoachingSafetyOverrideState,
             injuryAware: {
-              isActive: injuryAware.isActive,
-              currentRecommendation: injuryAware.currentRecommendation,
-              confidence: injuryAware.confidence
-            }
+              isActive: injuryAware.activeSessionInjuryStatus !== 'unknown',
+              currentRecommendation: injuryAware.filteredRecommendations,
+              confidence: 0.9
+            } as CoachingInjuryAwareState
           };
 
-          const decision = await sessionGuidanceService.processGuidanceTick(orchestratorInput as any);
+          const decision = await sessionGuidanceService.processGuidanceTick(orchestratorInput);
           
           dispatch(setActiveGuidance(decision));
 
@@ -67,7 +77,7 @@ export const useGuidanceLoop = (isActive: boolean, progress: number) => {
           }
           
           // Check for milestones
-          const reachedMilestones = sessionGuidanceService.checkMilestones(progress, liveSession.activeContext.energy);
+          const reachedMilestones = sessionGuidanceService.checkMilestones(progress, energy);
           reachedMilestones.forEach(m => {
             dispatch(addMilestone(m));
             // Milestones are lower priority - don't cancel safety warnings
@@ -86,8 +96,8 @@ export const useGuidanceLoop = (isActive: boolean, progress: number) => {
           encouragementService.checkFatigue();
           
           // Volume milestone check
-          if (liveSession.sessionVolume > 0) {
-            encouragementService.celebrateVolume(liveSession.sessionVolume);
+          if (sessionVolume > 0) {
+            encouragementService.celebrateVolume(sessionVolume);
           }
           
         } catch (error) {
@@ -115,10 +125,10 @@ export const useGuidanceLoop = (isActive: boolean, progress: number) => {
         intervalRef.current = null;
       }
     };
-  }, [isActive, dispatch, progress, liveSession.isActive, liveSession.adaptation, formCorrection, safetyOverride, injuryAware]);
+  }, [isActive, dispatch, progress, isActiveStored, currentAdaptation, energy, time, sessionVolume, formCorrection, safetyOverride, injuryAware]);
 
   return {
-    activeGuidance: liveSession.activeGuidance,
-    milestoneHistory: liveSession.milestoneHistory
+    activeGuidance,
+    milestoneHistory
   };
 };

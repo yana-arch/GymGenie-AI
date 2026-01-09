@@ -1,7 +1,11 @@
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement, ReactNode } from 'react';
 import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import sessionSlice from '../../features/session/store/sessionSlice';
+import liveSessionSlice from '../../features/session/store/liveSessionSlice';
+import workoutSlice from '../../features/workout/store/workoutSlice';
+import userSlice from '../../features/user/store/userSlice';
 import { EnhancedUserProfile } from '../../types/enhanced';
 import { vi } from 'vitest';
 
@@ -9,10 +13,15 @@ import { vi } from 'vitest';
  * Mock store configuration for testing
  */
 export function createMockStore(preloadedState = {}) {
+  const rootReducer = combineReducers({
+    session: sessionSlice,
+    liveSession: liveSessionSlice,
+    workout: workoutSlice,
+    user: userSlice,
+  });
+
   return configureStore({
-    reducer: {
-      test: (state = {}) => state,
-    },
+    reducer: rootReducer,
     preloadedState,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({

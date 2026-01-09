@@ -8,7 +8,8 @@ const SessionProgressHUD: React.FC = () => {
     sessionVolume, 
     exercisesCompleted,
     activeExerciseIndex,
-    sessionStartTime
+    sessionStartTime,
+    focusMode
   } = useAppSelector(state => state.liveSession);
 
   const [duration, setDuration] = useState('0:00');
@@ -49,6 +50,8 @@ const SessionProgressHUD: React.FC = () => {
   const setProgress = targetReps > 0 ? (currentRepCount / targetReps) : 0;
   const overallProgress = totalExercises > 0 ? (exercisesCompleted / totalExercises) * 100 : 0;
 
+  if (focusMode) return null;
+
   return (
     <Box
       style={{
@@ -60,42 +63,53 @@ const SessionProgressHUD: React.FC = () => {
         pointerEvents: 'none'
       }}
     >
-      <Paper shadow="xl" p="sm" radius="lg" withBorder style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+      <Paper 
+        shadow="xl" 
+        p="sm" 
+        radius="xl" 
+        withBorder 
+        style={{ 
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(20px)',
+          borderColor: 'rgba(255, 255, 255, 0.2)',
+          color: 'white'
+        }}
+      >
         <Stack gap="xs">
           <Group justify="space-between">
             <Group gap="xs">
-              <ThemeIcon color="brand" variant="light" size="sm">
+              <ThemeIcon color="brand" variant="filled" size="sm">
                 <Dumbbell size={14} />
               </ThemeIcon>
-              <Text size="xs" fw={700} tt="uppercase">Progress</Text>
+              <Text size="xs" fw={800} tt="uppercase" c="white" style={{ letterSpacing: '1px' }}>Progress</Text>
             </Group>
             <Badge size="xs" variant="filled" color="brand">{sessionVolume.toLocaleString()} kg</Badge>
           </Group>
 
           <Box>
             <Group justify="space-between" mb={2}>
-              <Text size="xs" c="dimmed">Workout</Text>
-              <Text size="xs" fw={700}>{Math.round(overallProgress)}%</Text>
+              <Text size="xs" c="white" style={{ opacity: 0.6 }}>Workout</Text>
+              <Text size="xs" fw={700} c="white">{Math.round(overallProgress)}%</Text>
             </Group>
             <Progress value={overallProgress} size="sm" radius="xl" color="brand" animated />
           </Box>
 
           <Box>
             <Group justify="space-between" mb={2}>
-              <Text size="xs" c="dimmed">Current Set</Text>
-              <Text size="xs" fw={700}>{Math.round(setProgress * 100)}%</Text>
+              <Text size="xs" c="white" style={{ opacity: 0.6 }}>Current Set</Text>
+              <Text size="xs" fw={700} c="white">{Math.round(setProgress * 100)}%</Text>
             </Group>
             <Progress value={setProgress * 100} size="xs" radius="xl" color="green" />
           </Box>
 
           <Group justify="space-between" mt={2}>
             <Group gap="xs">
-              <Clock size={14} className="text-blue-500" />
-              <Text size="xs" fw={600}>{duration}</Text>
+              <Clock size={14} className="text-brand-400" />
+              <Text size="xs" fw={700} c="white">{duration}</Text>
             </Group>
             <Group gap="xs">
-              <Trophy size={14} className="text-yellow-500" />
-              <Text size="xs" fw={600}>{exercisesCompleted} / {totalExercises}</Text>
+              <Trophy size={14} className="text-yellow-400" />
+              <Text size="xs" fw={700} c="white">{exercisesCompleted} / {totalExercises}</Text>
             </Group>
           </Group>
         </Stack>

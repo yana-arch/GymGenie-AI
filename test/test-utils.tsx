@@ -21,6 +21,10 @@ import sessionSlice from '../src/features/session/store/sessionSlice';
 import workoutSlice from '../src/features/workout/store/workoutSlice';
 import userSlice from '../src/features/user/store/userSlice';
 import uiSlice from '../src/features/ui/store/uiSlice';
+import liveSessionSlice from '../src/features/session/store/liveSessionSlice';
+import formCorrectionSlice from '../src/features/form-correction/store/formCorrectionSlice';
+import safetyOverrideSlice from '../src/features/safety-override/store/safetyOverrideSlice';
+import injuryAwareSlice from '../src/features/injury-aware/store/injuryAwareSlice';
 import achievementSlice from '../src/features/analytics/store/achievementSlice';
 import { JSX } from 'react/jsx-dev-runtime';
 
@@ -30,16 +34,20 @@ const theme = createTheme({
 
 const rootReducer = combineReducers({
   session: sessionSlice,
+  liveSession: liveSessionSlice,
   workout: workoutSlice,
   user: userSlice,
   ui: uiSlice,
+  formCorrection: formCorrectionSlice,
+  safetyOverride: safetyOverrideSlice,
+  injuryAware: injuryAwareSlice,
   achievement: achievementSlice,
 });
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["user", "workout", "session", "achievement"],
+  whitelist: ["user", "workout", "session", "liveSession", "formCorrection", "safetyOverride", "injuryAware", "achievement"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
