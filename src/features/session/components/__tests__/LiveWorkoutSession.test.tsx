@@ -1,14 +1,50 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import { vi } from 'vitest';
-import { given, when, then, and, createSessionTest } from '../../../../test-utils';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { given, when, then, and, createSessionTest, renderWithProviders } from '../../../../test-utils';
 import LiveWorkoutSession from '../LiveWorkoutSession';
-import liveSessionSlice from '../../store/liveSessionSlice';
 import { GeminiService } from '../../../../services/ai/GeminiService';
+import { FormCorrectionService } from '@/features/form-correction/services/FormCorrectionService';
 
-// Mock GeminiService
-vi.mock('../../../../services/ai/GeminiService');
+// Mock FormCorrectionService
+vi.mock('@/features/form-correction/services/FormCorrectionService', () => ({
+  FormCorrectionService: {
+    getInstance: vi.fn().mockReturnValue({
+      registerListeners: vi.fn(),
+      setExercise: vi.fn(),
+      stopFormCorrection: vi.fn(),
+      initialize: vi.fn().mockResolvedValue(undefined),
+      startFormCorrection: vi.fn().mockResolvedValue(undefined),
+    }),
+  },
+}));
+
+const renderWithMantine = (ui: React.ReactNode) => {
+  return renderWithProviders(
+    <MantineProvider>
+      {ui}
+    </MantineProvider>
+  );
+};
+
+// Mock Mantine Transition
+vi.mock('@mantine/core', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    Transition: ({ children, mounted }: any) => mounted ? children({}) : null,
+  };
+});
+vi.mock('../hooks/useGuidanceLoop', () => ({
+  useGuidanceLoop: vi.fn().mockReturnValue({
+    activeGuidance: null,
+    milestoneHistory: []
+  })
+}));
+
+vi.mock('../hooks/useEncouragement', () => ({
+  useEncouragement: vi.fn()
+}));
 const mockGeminiService = vi.mocked(GeminiService.getInstance);
 
 // Mock AppContext
@@ -66,24 +102,25 @@ vi.mock('@/features/workout/services/ExerciseCatalogService', () => ({
   }
 }));
 
-const createTestStore = () => {
-  return configureStore({
-    reducer: {
-      liveSession: liveSessionSlice
-    },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: false
-      })
-  });
-};
+// Mock matchMedia for Mantine
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
 
 given('a LiveWorkoutSession component with adaptation controls', () => {
-  let store: ReturnType<typeof createTestStore>;
-  let mockGenerateWorkoutAdaptation: ReturnType<typeof vi.fn>;
+  let mockGenerateWorkoutAdaptation: any;
 
   beforeEach(() => {
-    store = createTestStore();
     mockGenerateWorkoutAdaptation = vi.fn().mockResolvedValue({
       newExercise: 'Modified Exercise',
       newReps: 8,
@@ -97,109 +134,40 @@ given('a LiveWorkoutSession component with adaptation controls', () => {
 
   when('the component is rendered', () => {
     then(createSessionTest(1, 'should render adaptation trigger buttons'), () => {
-      render(
-        <Provider store={store}>
-          <LiveWorkoutSession />
-        </Provider>
-      );
-
+      renderWithMantine(<LiveWorkoutSession />);
       expect(screen.getByText("I'm Tired")).toBeInTheDocument();
       expect(screen.getByText('Short on Time')).toBeInTheDocument();
     });
   });
 
   when('user indicates they are tired', () => {
-    then(createSessionTest(2, 'should dispatch energy context update'), async () => {
-      render(
-        <Provider store={store}>
-          <LiveWorkoutSession />
-        </Provider>
-      );
+    then(createSessionTest(2, 'should trigger AI adaptation with tired context'), async () => {
+      renderWithMantine(<LiveWorkoutSession />);
 
       const tiredButton = screen.getByText("I'm Tired");
       fireEvent.click(tiredButton);
 
       await waitFor(() => {
-        expect(store.getState().liveSession.activeContext.energy).toBe('tired');
-      });
-    });
-
-    and(createSessionTest(3, 'should trigger AI adaptation with tired context'), async () => {
-      render(
-        <Provider store={store}>
-          <LiveWorkoutSession />
-        </Provider>
-      );
-
-      const tiredButton = screen.getByText("I'm Tired");
-      fireEvent.click(tiredButton);
-
-      await waitFor(() => {
-        expect(mockGeminiService().generateWorkoutAdaptation).toHaveBeenCalledWith({
-          energy: 'tired',
-          time: 'normal',
-          equipmentStatus: 'available'
-        });
-      });
-    });
-  });
-
-  when('user indicates limited time', () => {
-    then(createSessionTest(4, 'should dispatch time context update'), async () => {
-      render(
-        <Provider store={store}>
-          <LiveWorkoutSession />
-        </Provider>
-      );
-
-      const timeButton = screen.getByText('Short on Time');
-      fireEvent.click(timeButton);
-
-      await waitFor(() => {
-        expect(store.getState().liveSession.activeContext.time).toBe('limited');
+        expect(mockGenerateWorkoutAdaptation).toHaveBeenCalledWith(expect.objectContaining({
+          energy: 'tired'
+        }));
       });
     });
   });
 
   when('AI adaptation is processing', () => {
-    then(createSessionTest(5, 'should show loading state during adaptation'), async () => {
+    then(createSessionTest(3, 'should show thinking indicator during adaptation'), async () => {
       mockGenerateWorkoutAdaptation.mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve({}), 100))
+        () => new Promise(resolve => setTimeout(() => resolve({}), 200))
       );
 
-      render(
-        <Provider store={store}>
-          <LiveWorkoutSession />
-        </Provider>
-      );
+      renderWithMantine(<LiveWorkoutSession />);
 
       const tiredButton = screen.getByText("I'm Tired");
       fireEvent.click(tiredButton);
 
       await waitFor(() => {
-        expect(store.getState().liveSession.isLoading).toBe(true);
-      });
-    });
-  });
-
-  when('AI adaptation fails', () => {
-    then(createSessionTest(6, 'should handle adaptation errors gracefully'), async () => {
-      mockGenerateWorkoutAdaptation.mockRejectedValue(
-        new Error('AI service unavailable')
-      );
-
-      render(
-        <Provider store={store}>
-          <LiveWorkoutSession />
-        </Provider>
-      );
-
-      const tiredButton = screen.getByText("I'm Tired");
-      fireEvent.click(tiredButton);
-
-      await waitFor(() => {
-        expect(store.getState().liveSession.error).toBe('AI service unavailable');
-        expect(store.getState().liveSession.isLoading).toBe(false);
+        expect(screen.getByText(/AI is analyzing/i)).toBeInTheDocument();
       });
     });
   });

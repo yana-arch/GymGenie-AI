@@ -38,8 +38,11 @@ export const MotionFeedback: React.FC<MotionFeedbackProps> = ({
           )}
           {type === 'glow' && visible && (
             <div 
-              className="absolute inset-0 rounded-inherit shadow-[0_0_20px_var(--mantine-primary-color-light-hover)] transition-shadow duration-500"
-              style={{ pointerEvents: 'none' }}
+              className="absolute inset-0 rounded-inherit transition-shadow duration-500"
+              style={{ 
+                pointerEvents: 'none',
+                boxShadow: `0 0 20px ${color}`
+              }}
             />
           )}
           {children}
