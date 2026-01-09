@@ -141,4 +141,50 @@ export class PrivacyShieldService {
     PrivacyAuditService.logDecryption('Local Storage');
     return this.encryptionService.decrypt(encryptedData);
   }
+
+  private isIsolated = false;
+  private originalFetch = global.fetch;
+
+  /**
+   * Logs access to specific data fields
+   */
+  async logDataAccess(accessor: string, fields: string[], purpose: string): Promise<void> {
+    await PrivacyAuditService.log('access', accessor, 'success', `Accessed: ${fields.join(', ')} for ${purpose}`);
+  }
+
+  /**
+   * Retrieves all audit logs
+   */
+  async getAuditLogs(): Promise<any[]> {
+    const { store } = await import('@/store');
+    return (store.getState() as any).privacy.auditLog;
+  }
+
+  /**
+   * Enables hard network isolation by intercepting fetch
+   */
+  async enableNetworkIsolation(): Promise<void> {
+    if (this.isIsolated) return;
+    this.isIsolated = true;
+    this.originalFetch = global.fetch;
+    
+    // @ts-ignore
+    global.fetch = async (...args: any[]) => {
+      console.warn('❌ Network call blocked during privacy-isolated processing:', args[0]);
+      throw new Error('Privacy Violation: Network access blocked during sensitive processing');
+    };
+    
+    await PrivacyAuditService.log('setting_change', 'network_isolation', 'success', 'Enabled');
+  }
+
+  /**
+   * Restores original fetch
+   */
+  async disableNetworkIsolation(): Promise<void> {
+    if (!this.isIsolated) return;
+    global.fetch = this.originalFetch;
+    this.isIsolated = false;
+    
+    await PrivacyAuditService.log('setting_change', 'network_isolation', 'success', 'Disabled');
+  }
 }

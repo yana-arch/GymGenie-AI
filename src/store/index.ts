@@ -27,6 +27,7 @@ import privacyReducer from "@/features/privacy/store/privacySlice";
 import achievementReducer from "@/features/analytics/store/achievementSlice";
 import analyticsReducer from "@/features/analytics/store/analyticsSlice";
 import { secureStorage } from "@/features/privacy/services/SecureStorage";
+import { preferenceLearningMiddleware } from "./middleware/preferenceLearningMiddleware";
 
 const rootReducer = combineReducers({
   session: sessionSlice,
@@ -63,7 +64,7 @@ export const store = configureStore({
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         ignoredPaths: ['feedbackPersonalization.service'],
       },
-    }),
+    }).concat(preferenceLearningMiddleware),
   devTools: process.env.NODE_ENV !== "production",
 });
 

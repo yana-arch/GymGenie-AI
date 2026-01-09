@@ -170,6 +170,41 @@ export class InjuryValidationService {
   }
 
   /**
+   * Retrieves the full permanent safety record
+   */
+  async getPermanentSafetyRecord(): Promise<any[]> {
+    const history = await this.loadInjuryHistory();
+    return history.injuries;
+  }
+
+  /**
+   * Filters recommendations against the full historical record
+   */
+  async filterAgainstHistory(recommendations: any[]): Promise<{ filtered: any[]; warnings: any[] }> {
+    const history = await this.loadInjuryHistory();
+    const warnings: any[] = [];
+    const filtered: any[] = [];
+
+    for (const rec of recommendations) {
+      const exerciseName = rec.exercise.toLowerCase();
+      // Check if any injury (even recovered) has restrictions on this
+      const relevantInjury = history.injuries.find(injury =>
+        injury.restrictions.some(r => this.matchesConstraint(exerciseName, '', r))
+      );
+
+      if (relevantInjury) {
+        warnings.push({
+          exercise: rec.exercise,
+          reason: `Previous ${relevantInjury.type} injury reported on ${relevantInjury.date}. Use caution.`
+        });
+      }
+      filtered.push(rec);
+    }
+
+    return { filtered, warnings };
+  }
+
+  /**
    * Validate injury history structure
    */
   private isValidInjuryHistory(history: any): history is InjuryHistory {

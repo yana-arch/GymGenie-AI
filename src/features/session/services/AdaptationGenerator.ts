@@ -37,8 +37,34 @@ export class AdaptationGenerator {
       suggestedRest?: number;
       difficulty?: string;
     },
-    triggers: AdaptationTrigger[]
+    triggers: AdaptationTrigger[],
+    context?: {
+      userProfile?: {
+        injuries: string[];
+      }
+    }
   ): Promise<AdaptationRecommendation> {
+    // Injury-Aware: Check if current exercise is contraindicated
+    const injuries = context?.userProfile?.injuries || [];
+    if (injuries.length > 0 && this.isContraindicated(currentExercise.name, injuries)) {
+      const alternatives = await exerciseCatalogService.getAlternatives(currentExercise.id);
+      const safeAlternative = alternatives.find(ex => !this.isContraindicated(ex.name, injuries));
+      
+      if (safeAlternative) {
+        return {
+          action: 'substitute_exercise',
+          modifications: {
+            alternativeExerciseId: safeAlternative.id,
+            alternativeExerciseName: safeAlternative.name,
+            suggestedSets: currentExercise.suggestedSets,
+            suggestedReps: currentExercise.suggestedReps
+          },
+          message: `Substituting ${currentExercise.name} with ${safeAlternative.name} to respect your injury history and ensure joint safety.`,
+          reasoning: 'Current exercise conflicts with documented injury history; safe alternative selected for injury prevention.'
+        };
+      }
+    }
+
     // Severe Fatigue: Substitute with lower intensity alternative
     if (triggers.includes(AdaptationTrigger.FATIGUE) && currentExercise.difficulty !== 'beginner') {
       const alternatives = await exerciseCatalogService.getAlternatives(currentExercise.id);
@@ -63,6 +89,8 @@ export class AdaptationGenerator {
     if (triggers.includes(AdaptationTrigger.FATIGUE) || triggers.includes(AdaptationTrigger.FORM_BREAKDOWN)) {
       const weight = currentExercise.suggestedWeight;
       const reps = currentExercise.suggestedReps;
+      
+      const isFormBreakdown = triggers.includes(AdaptationTrigger.FORM_BREAKDOWN);
 
       return {
         action: 'reduce_intensity',
@@ -70,8 +98,12 @@ export class AdaptationGenerator {
           suggestedWeight: weight ? Math.round(weight * 0.9) : undefined,
           suggestedReps: reps ? Math.max(1, reps - 2) : undefined
         },
-        message: 'Noticing some fatigue - let\'s drop the weight by 10% to keep your form perfect.',
-        reasoning: 'Fatigue detected via form quality trends or performance drop.'
+        message: isFormBreakdown 
+          ? 'Safety Priority: Form quality is dropping. Reducing load to ensure your safety and joint health.'
+          : 'Noticing some fatigue - let\'s drop the weight by 10% to keep your form perfect.',
+        reasoning: isFormBreakdown
+          ? 'Form breakdown detected; reducing intensity for immediate injury prevention.'
+          : 'Fatigue detected via form quality trends or performance drop.'
       };
     }
 
@@ -110,5 +142,31 @@ export class AdaptationGenerator {
       message: 'Maintain current pace',
       reasoning: 'No specific adaptation triggers identified'
     };
+  }
+
+  /**
+   * Check if an exercise is contraindicated for a given set of injuries
+   */
+  private isContraindicated(exerciseName: string, injuries: string[]): boolean {
+    if (!injuries.length) return false;
+    
+    const lowerName = exerciseName.toLowerCase();
+    
+    if (injuries.includes('shoulder-impingement')) {
+      const risky = ['overhead', 'press', 'dip', 'pull up'];
+      if (risky.some(r => lowerName.includes(r))) return true;
+    }
+    
+    if (injuries.includes('lower-back-pain')) {
+      const risky = ['deadlift', 'squat', 'row', 'good morning'];
+      if (risky.some(r => lowerName.includes(r))) return true;
+    }
+    
+    if (injuries.includes('knee-strain')) {
+      const risky = ['squat', 'lunge', 'leg press', 'jump'];
+      if (risky.some(r => lowerName.includes(r))) return true;
+    }
+    
+    return false;
   }
 }

@@ -19,11 +19,16 @@ import type {
 } from '../../unified-coaching/types/unifiedCoaching.types';
 import { AICoachingOrchestrator } from '../../unified-coaching/AICoachingOrchestrator';
 
+import { PreferenceLearningService } from '../PreferenceLearningService';
+import { RealTensorFlowJSService } from './RealTensorFlowJSService';
+import { secureStorage } from '../../privacy/services/SecureStorage';
+
 /**
  * Preference Learning Integration Service
  * Bridges preference learning with unified coaching system
  */
 export class PreferenceLearningIntegrationService {
+  private static instance: PreferenceLearningIntegrationService;
   private preferenceService: IPreferenceLearningService;
   private config: PreferenceLearningConfig;
   private orchestrator: AICoachingOrchestrator;
@@ -35,6 +40,38 @@ export class PreferenceLearningIntegrationService {
     this.preferenceService = preferenceService;
     this.config = config;
     this.orchestrator = new AICoachingOrchestrator();
+  }
+
+  /**
+   * Get singleton instance
+   */
+  public static getInstance(): PreferenceLearningIntegrationService {
+    if (!PreferenceLearningIntegrationService.instance) {
+      const config: PreferenceLearningConfig = {
+        learningRate: 0.1,
+        confidenceThreshold: 0.7,
+        maxContradictions: 3,
+        minSessions: 5,
+        gradualAdaptationRate: 0.05,
+        privacySettings: {
+          localOnly: true,
+          encryptionEnabled: true,
+          retentionDays: 90
+        }
+      };
+
+      const preferenceService = new PreferenceLearningService({
+        privacyService: secureStorage as any,
+        tensorFlowService: new RealTensorFlowJSService(),
+        config
+      });
+
+      PreferenceLearningIntegrationService.instance = new PreferenceLearningIntegrationService(
+        preferenceService,
+        config
+      );
+    }
+    return PreferenceLearningIntegrationService.instance;
   }
 
   /**

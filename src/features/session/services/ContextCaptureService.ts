@@ -9,6 +9,7 @@ export interface SessionContextState {
   exercisesRemaining: number;
   energyLevel?: 'low' | 'medium' | 'high';
   manualFatigueReport?: boolean;
+  comfortLevel?: 'none' | 'discomfort' | 'pain';
 }
 
 /**
@@ -21,7 +22,8 @@ export class ContextCaptureService {
   private formQualityHistory: number[] = [];
   private sessionState: SessionContextState = {
     timeRemaining: 3600,
-    exercisesRemaining: 0
+    exercisesRemaining: 0,
+    comfortLevel: 'none'
   };
 
   private constructor() {}
@@ -43,8 +45,27 @@ export class ContextCaptureService {
     this.formQualityHistory = [];
     this.sessionState = {
       timeRemaining: 3600,
-      exercisesRemaining: 0
+      exercisesRemaining: 0,
+      comfortLevel: 'none'
     };
+  }
+
+  /**
+   * Record user comfort level
+   */
+  public recordUserComfort(level: 'none' | 'discomfort' | 'pain'): AdaptationTrigger[] {
+    this.sessionState.comfortLevel = level;
+    return this.getActiveTriggers();
+  }
+
+  /**
+   * Get current comfort context
+   */
+  public getComfortContext(): { severity: 'low' | 'medium' | 'high', immediateAction?: 'none' | 'stop_exercise' } {
+    const level = this.sessionState.comfortLevel;
+    if (level === 'pain') return { severity: 'high', immediateAction: 'stop_exercise' };
+    if (level === 'discomfort') return { severity: 'medium', immediateAction: 'none' };
+    return { severity: 'low', immediateAction: 'none' };
   }
 
   /**
@@ -99,6 +120,11 @@ export class ContextCaptureService {
     // Energy level detection
     if (this.sessionState.energyLevel === 'low' || this.sessionState.manualFatigueReport) {
       triggers.add(AdaptationTrigger.ENERGY_LOW);
+    }
+
+    // Discomfort detection
+    if (this.sessionState.comfortLevel === 'discomfort' || this.sessionState.comfortLevel === 'pain') {
+      triggers.add(AdaptationTrigger.DISCOMFORT);
     }
 
     return Array.from(triggers);

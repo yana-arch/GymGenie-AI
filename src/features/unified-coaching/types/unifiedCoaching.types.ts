@@ -16,7 +16,8 @@ export enum AdaptationTrigger {
   TIME_CONSTRAINT = 'time_constraint',
   ENERGY_LOW = 'energy_low',
   FORM_BREAKDOWN = 'form_breakdown',
-  PERFORMANCE_DROP = 'performance_drop'
+  PERFORMANCE_DROP = 'performance_drop',
+  DISCOMFORT = 'discomfort'
 }
 
 export interface AISystemResponse {

@@ -12,6 +12,8 @@ export type ConfidenceLevel = 'High' | 'Medium' | 'Low';
 export interface PredictionResult {
   points: PredictionPoint[];
   confidence: ConfidenceLevel;
+  confidenceScore: number;
+  influenceFactors: { factor: string; impact: 'positive' | 'negative' }[];
   modelUsed: 'linear' | 'exponential';
 }
 
@@ -44,11 +46,25 @@ export class PredictionService {
   public predictFuturePerformance(
     data: { date: string; value: number }[],
     daysIntoFuture: number,
-    model: 'linear' | 'exponential' = 'linear',
+    model: 'linear' | 'exponential' | 'auto' = 'linear',
     isPlateau: boolean = false
   ): PredictionResult {
     if (data.length < 2) {
-      return { points: [], confidence: 'Low', modelUsed: model };
+      return { 
+        points: [], 
+        confidence: 'Low', 
+        confidenceScore: 0, 
+        influenceFactors: [], 
+        modelUsed: model === 'auto' ? 'linear' : model 
+      };
+    }
+
+    // Auto model detection
+    let selectedModel: 'linear' | 'exponential' = model === 'auto' ? 'linear' : model;
+    if (model === 'auto') {
+      const linearFit = this.calculateRSquared(data, 'linear');
+      const exponentialFit = this.calculateRSquared(data, 'exponential');
+      selectedModel = linearFit >= exponentialFit ? 'linear' : 'exponential';
     }
 
     const n = data.length;
@@ -56,7 +72,7 @@ export class PredictionService {
     
     // Convert dates to days from start to handle irregular intervals
     const x = data.map(d => (new Date(d.date).getTime() - startDate) / (24 * 60 * 60 * 1000));
-    const y = model === 'exponential' 
+    const y = selectedModel === 'exponential' 
       ? data.map(d => Math.log(Math.max(d.value, 0.001))) 
       : data.map(d => d.value);
 
@@ -92,7 +108,7 @@ export class PredictionService {
       const nextX = lastX + i;
       const nextYRaw = intercept + slope * nextX;
       
-      let value = model === 'exponential' ? Math.exp(nextYRaw) : nextYRaw;
+      let value = selectedModel === 'exponential' ? Math.exp(nextYRaw) : nextYRaw;
       
       // Ensure no negative values (Physical Reality check)
       value = Math.max(0, value);
@@ -104,25 +120,69 @@ export class PredictionService {
       points.push({
         date: new Date(lastDate.getTime() + i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         value,
-        confidenceIntervalUpper: Math.max(0, model === 'exponential' ? Math.exp(ciUpperRaw) : ciUpperRaw),
-        confidenceIntervalLower: Math.max(0, model === 'exponential' ? Math.exp(ciLowerRaw) : ciLowerRaw)
+        confidenceIntervalUpper: Math.max(0, selectedModel === 'exponential' ? Math.exp(ciUpperRaw) : ciUpperRaw),
+        confidenceIntervalLower: Math.max(0, selectedModel === 'exponential' ? Math.exp(ciLowerRaw) : ciLowerRaw)
       });
     }
 
     // Confidence level based on data volume and consistency
-    // AC 1.3: "High Confidence" if 10+ data points in last 30 days
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const recentPoints = data.filter(d => new Date(d.date) >= thirtyDaysAgo).length;
 
     let confidence: ConfidenceLevel = 'Low';
-    if (recentPoints >= 10 && stdDev < (model === 'exponential' ? 0.2 : 5)) {
+    let confidenceScore = Math.min(n / 20, 0.5) + Math.min(recentPoints / 10, 0.5);
+    
+    if (recentPoints >= 10 && stdDev < (selectedModel === 'exponential' ? 0.2 : 5)) {
       confidence = 'High';
+      confidenceScore = Math.min(0.95, confidenceScore + 0.2);
     } else if (recentPoints >= 5 || n >= 10) {
       confidence = 'Medium';
+      confidenceScore = Math.min(0.7, confidenceScore + 0.1);
     }
 
-    return { points, confidence, modelUsed: model };
+    // Identify influence factors
+    const influenceFactors: { factor: string; impact: 'positive' | 'negative' }[] = [];
+    if (slope > 0) influenceFactors.push({ factor: 'Consistent Progress', impact: 'positive' });
+    if (recentPoints > 5) influenceFactors.push({ factor: 'High Data Density', impact: 'positive' });
+    if (isPlateau) influenceFactors.push({ factor: 'Recent Plateau', impact: 'negative' });
+    if (stdDev > (selectedModel === 'exponential' ? 0.3 : 10)) influenceFactors.push({ factor: 'High Variance', impact: 'negative' });
+
+    return { 
+      points, 
+      confidence, 
+      confidenceScore, 
+      influenceFactors, 
+      modelUsed: selectedModel 
+    };
+  }
+
+  /**
+   * Calculate R-squared for model fit
+   */
+  private calculateRSquared(data: { date: string; value: number }[], model: 'linear' | 'exponential'): number {
+    const n = data.length;
+    const startDate = new Date(data[0].date).getTime();
+    const x = data.map(d => (new Date(d.date).getTime() - startDate) / (24 * 60 * 60 * 1000));
+    const y = model === 'exponential' 
+      ? data.map(d => Math.log(Math.max(d.value, 0.001))) 
+      : data.map(d => d.value);
+
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0, sumYY = 0;
+    for (let i = 0; i < n; i++) {
+      sumX += x[i];
+      sumY += y[i];
+      sumXY += x[i] * y[i];
+      sumXX += x[i] * x[i];
+      sumYY += y[i] * y[i];
+    }
+
+    const num = (n * sumXY - sumX * sumY);
+    const den = Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
+    
+    if (den === 0) return 0;
+    const r = num / den;
+    return r * r;
   }
 
   /**
