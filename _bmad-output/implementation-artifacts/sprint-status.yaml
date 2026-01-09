@@ -76,12 +76,12 @@ development_status:
   5-5-progress-predictions: done
   epic-5-retrospective: optional
 
-  epic-6: in-progress
+  epic-6: done
   6-1-brand-identity-theme-integration: done
   6-2-interactive-micro-interactions-motion: done
   6-3-visual-feedback-for-ai-adaptations: done
   6-4-high-fidelity-workout-dashboard: done
-  6-5-responsive-polish-multi-device-harmony: backlog
+  6-5-responsive-polish-multi-device-harmony: done
   epic-6-retrospective: optional
 
   epic-7: backlog

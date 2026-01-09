@@ -30,6 +30,14 @@ import { createTheme, MantineThemeOverride, MantineTheme } from '@mantine/core';
         long: '500ms',
         spring: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
       },
+      zIndices: {
+        background: -1,
+        hud: 500,
+        progress: 600,
+        modal: 1000,
+        overlay: 1100,
+        toast: 2000,
+      },
     },
     components: {
       Button: {

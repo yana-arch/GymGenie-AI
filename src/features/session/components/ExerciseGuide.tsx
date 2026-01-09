@@ -17,39 +17,46 @@ const ExerciseGuide: React.FC<ExerciseGuideProps> = ({ gifUrl, exerciseName, isM
       style={{
         position: 'relative',
         width: '100%',
-        maxWidth: '400px',
+        maxWidth: 'clamp(320px, 80vw, 600px)',
         margin: '0 auto',
-        borderRadius: '24px',
+        borderRadius: '32px',
         overflow: 'hidden',
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        transition: 'all 0.3s ease',
-        height: isMinimized ? '48px' : '240px',
+        background: 'rgba(255, 255, 255, 0.03)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        maxHeight: isMinimized ? '56px' : '500px',
+        height: 'auto',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        willChange: 'max-height, transform'
       }}
     >
-      <Box style={{ padding: '8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: isMinimized ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
-        <span style={{ fontSize: '10px', fontWeight: 800, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-          {isMinimized ? `${exerciseName} Guide` : 'Exercise Form Guide'}
+      <Box style={{ padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: isMinimized ? 'none' : '1px solid rgba(255,255,255,0.05)', height: '56px' }}>
+        <span style={{ fontSize: 'clamp(10px, 1.2vw, 12px)', fontWeight: 900, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '2px' }}>
+          {isMinimized ? `${exerciseName} Guide` : 'AI Form Intelligence'}
         </span>
-        <ActionIcon variant="transparent" onClick={onToggle} color="gray" size="sm">
-          {isMinimized ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+        <ActionIcon variant="light" onClick={onToggle} color="gray" size="md" radius="xl" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+          {isMinimized ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
         </ActionIcon>
       </Box>
       
-      {!isMinimized && (
-        <Box style={{ padding: '12px', height: '192px' }}>
-          <Image
-            src={gifUrl}
-            alt={exerciseName}
-            radius="xl"
-            h="100%"
-            w="100%"
-            fit="contain"
-            style={{ background: 'rgba(0,0,0,0.2)' }}
-          />
-        </Box>
-      )}
+      <Box style={{ 
+        padding: '20px', 
+        opacity: isMinimized ? 0 : 1,
+        transform: isMinimized ? 'translateY(-10px)' : 'translateY(0)',
+        transition: 'opacity 0.3s ease, transform 0.3s ease',
+        display: isMinimized ? 'none' : 'block'
+      }}>
+        <Image
+          src={gifUrl}
+          alt={exerciseName}
+          radius="24px"
+          h="clamp(200px, 35vh, 400px)"
+          w="100%"
+          fit="contain"
+          style={{ background: 'rgba(0,0,0,0.3)', padding: '10px' }}
+        />
+      </Box>
     </Box>
   );
 };

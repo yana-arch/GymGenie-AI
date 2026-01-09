@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Text, Group } from '@mantine/core';
+import { Box, Text, Group, useMantineTheme } from '@mantine/core';
 import { Shield, Activity } from 'lucide-react';
 
 interface WorkoutHUDProps {
@@ -13,14 +13,16 @@ const WorkoutHUD: React.FC<WorkoutHUDProps> = ({
   aiStatus = 'Monitoring Form',
   isThinking = false
 }) => {
+  const theme = useMantineTheme();
+  
   return (
     <Box
       style={{
         position: 'absolute',
         inset: 0,
         pointerEvents: 'none',
-        zIndex: 5,
-        padding: '20px',
+        zIndex: (theme as any).other.zIndices.hud,
+        padding: theme.spacing.xl,
       }}
     >
       <style>
@@ -52,21 +54,21 @@ const WorkoutHUD: React.FC<WorkoutHUDProps> = ({
       />
 
       {/* Top Left: Safety Status */}
-      <Box style={{ position: 'absolute', top: 20, left: 20 }}>
-        <Group gap="xs" style={{ background: 'rgba(0,0,0,0.4)', padding: '4px 12px', borderRadius: '8px', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <Shield size={14} color={safetyStatus === 'safe' ? '#10b981' : safetyStatus === 'warning' ? '#f59e0b' : '#ef4444'} />
-          <Text size="xs" fw={700} tt="uppercase" c="white" style={{ letterSpacing: '1px' }}>
+      <Box style={{ position: 'absolute', top: 'clamp(10px, 4%, 40px)', left: 'clamp(10px, 4%, 40px)' }}>
+        <Group gap="xs" style={{ background: 'rgba(0,0,0,0.6)', padding: 'clamp(4px, 1vw, 8px) clamp(12px, 2vw, 24px)', borderRadius: '12px', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+          <Shield size={16} color={safetyStatus === 'safe' ? '#10b981' : safetyStatus === 'warning' ? '#f59e0b' : '#ef4444'} />
+          <Text size="xs" fw={800} tt="uppercase" c="white" style={{ letterSpacing: '1.5px', fontSize: 'clamp(10px, 1.2vw, 14px)' }}>
             Safety: {safetyStatus}
           </Text>
         </Group>
       </Box>
 
       {/* Top Right: AI Status */}
-      <Box style={{ position: 'absolute', top: 20, right: 20 }}>
-        <Group gap="xs" style={{ background: 'rgba(0,0,0,0.4)', padding: '4px 12px', borderRadius: '8px', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <Activity size={14} color="#3b82f6" style={{ animation: isThinking ? 'pulse-hud 1s infinite' : 'none' }} />
-          <Text size="xs" fw={700} tt="uppercase" c="white" style={{ letterSpacing: '1px' }}>
-            {isThinking ? 'AI Analyzing...' : aiStatus}
+      <Box style={{ position: 'absolute', top: 'clamp(10px, 4%, 40px)', right: 'clamp(10px, 4%, 40px)' }}>
+        <Group gap="xs" style={{ background: 'rgba(0,0,0,0.6)', padding: 'clamp(4px, 1vw, 8px) clamp(12px, 2vw, 24px)', borderRadius: '12px', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+          <Activity size={16} color="#3b82f6" style={{ animation: isThinking ? 'pulse-hud 1.5s infinite' : 'none' }} />
+          <Text size="xs" fw={800} tt="uppercase" c="white" style={{ letterSpacing: '1.5px', fontSize: 'clamp(10px, 1.2vw, 14px)' }}>
+            {isThinking ? 'AI Thinking...' : aiStatus}
           </Text>
         </Group>
       </Box>

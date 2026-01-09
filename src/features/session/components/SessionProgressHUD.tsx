@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Paper, Text, Progress, Group, Stack, Badge, ThemeIcon, Box } from '@mantine/core';
+import { Paper, Text, Progress, Group, Stack, Badge, ThemeIcon, Box, useMantineTheme } from '@mantine/core';
 import { Dumbbell, Clock, Trophy } from 'lucide-react';
 import { useAppSelector } from '@/store';
 
 const SessionProgressHUD: React.FC = () => {
+  const theme = useMantineTheme();
   const { 
     sessionVolume, 
     exercisesCompleted,
@@ -56,34 +57,35 @@ const SessionProgressHUD: React.FC = () => {
     <Box
       style={{
         position: 'fixed',
-        bottom: '80px',
-        left: '20px',
-        width: '280px',
-        zIndex: 900,
+        bottom: 'clamp(80px, 10vh, 120px)',
+        left: 'clamp(20px, 5vw, 40px)',
+        width: 'clamp(280px, 20vw, 360px)',
+        zIndex: (theme as any).other.zIndices.progress,
         pointerEvents: 'none'
       }}
     >
       <Paper 
         shadow="xl" 
-        p="sm" 
-        radius="xl" 
+        p="clamp(12px, 1.5vw, 20px)" 
+        radius="24px" 
         withBorder 
         style={{ 
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(20px)',
-          borderColor: 'rgba(255, 255, 255, 0.2)',
-          color: 'white'
+          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(30px)',
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          color: 'white',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
         }}
       >
-        <Stack gap="xs">
+        <Stack gap="sm">
           <Group justify="space-between">
             <Group gap="xs">
-              <ThemeIcon color="brand" variant="filled" size="sm">
-                <Dumbbell size={14} />
+              <ThemeIcon color="brand" variant="filled" size="md" radius="md">
+                <Dumbbell size={16} />
               </ThemeIcon>
-              <Text size="xs" fw={800} tt="uppercase" c="white" style={{ letterSpacing: '1px' }}>Progress</Text>
+              <Text size="xs" fw={900} tt="uppercase" c="white" style={{ letterSpacing: '1.5px', fontSize: 'clamp(10px, 1vw, 12px)' }}>Live Stats</Text>
             </Group>
-            <Badge size="xs" variant="filled" color="brand">{sessionVolume.toLocaleString()} kg</Badge>
+            <Badge size="sm" variant="filled" color="brand" style={{ borderRadius: '6px' }}>{sessionVolume.toLocaleString()} kg</Badge>
           </Group>
 
           <Box>

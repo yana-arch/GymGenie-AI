@@ -680,25 +680,31 @@ const LiveWorkoutSession = () => {
             </Button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 pb-24 flex flex-col items-center z-10">
-            <div className="w-full max-w-md space-y-6">
-              <div className="text-center space-y-4">
+          <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-24 flex flex-col items-center z-10">
+            <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl space-y-6 md:space-y-10">
+              <div className="text-center space-y-4 md:space-y-6">
                 <div className="relative">
-                  <p className="text-[10px] font-bold text-brand-400 uppercase tracking-[0.2em] mb-2">
+                  <p className="text-[10px] md:text-xs font-bold text-brand-400 uppercase tracking-[0.2em] mb-2">
                     {activeExerciseIndex + 1} / {totalExercises} • {day?.title}
                   </p>
                   <div className="flex items-center justify-center gap-2">
-                    <h1 className="text-4xl font-black text-white leading-tight">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight">
                       {currentExercise ? toTitleCase(currentExercise.name) : ''}
                     </h1>
                     {!focusMode && (
-                      <button onClick={() => setShowHowTo(true)} className="p-2 bg-white/10 text-white hover:text-brand-400 rounded-full transition-colors active:scale-95 backdrop-blur-sm border border-white/10"><Search size={16} /></button>
+                      <button 
+                        onClick={() => setShowHowTo(true)} 
+                        className="p-2 md:p-3 bg-white/10 text-white hover:text-brand-400 rounded-full transition-all active:scale-95 backdrop-blur-sm border border-white/10"
+                        aria-label="Exercise details"
+                      >
+                        <Search size={18} />
+                      </button>
                     )}
                   </div>
                 </div>
                 
                 {cameraEnabled && (
-                  <div className="relative w-full aspect-video bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white/10">
+                  <div className="relative w-full aspect-video bg-black rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white/10 max-w-3xl mx-auto">
                     <video
                       ref={videoRef}
                       className="w-full h-full object-cover"
@@ -728,51 +734,55 @@ const LiveWorkoutSession = () => {
                   </div>
                 )}
 
-                <div className="flex justify-center gap-2">
-                  <span className="px-3 py-1 bg-white/10 text-gray-300 text-[10px] font-bold rounded-full border border-white/10 backdrop-blur-md shadow-sm uppercase tracking-wider">{currentExercise?.sets} Sets</span>
-                  <span className="px-3 py-1 bg-white/10 text-gray-300 text-[10px] font-bold rounded-full border border-white/10 backdrop-blur-md shadow-sm uppercase tracking-wider">{currentExercise?.reps} Reps</span>
-                  <span className="px-3 py-1 bg-white/10 text-brand-400 text-[10px] font-bold rounded-full border border-white/10 backdrop-blur-md shadow-sm uppercase tracking-wider flex items-center gap-1">
-                    <Clock size={10} /> {currentExercise?.restSeconds}s
+                <div className="flex justify-center gap-2 md:gap-4">
+                  <span className="px-3 md:px-5 py-1 md:py-2 bg-white/10 text-gray-300 text-[10px] md:text-xs font-bold rounded-full border border-white/10 backdrop-blur-md shadow-sm uppercase tracking-wider">{currentExercise?.sets} Sets</span>
+                  <span className="px-3 md:px-5 py-1 md:py-2 bg-white/10 text-gray-300 text-[10px] md:text-xs font-bold rounded-full border border-white/10 backdrop-blur-md shadow-sm uppercase tracking-wider">{currentExercise?.reps} Reps</span>
+                  <span className="px-3 md:px-5 py-1 md:py-2 bg-white/10 text-brand-400 text-[10px] md:text-xs font-bold rounded-full border border-white/10 backdrop-blur-md shadow-sm uppercase tracking-wider flex items-center gap-1">
+                    <Clock size={12} /> {currentExercise?.restSeconds}s
                   </span>
                 </div>
 
                 {!focusMode && currentCatalogExercise?.media?.gif && (
-                  <ExerciseGuide 
-                    gifUrl={currentCatalogExercise.media.gif} 
-                    exerciseName={currentExercise?.name || ''} 
-                    isMinimized={isGuideMinimized}
-                    onToggle={() => setIsGuideMinimized(!isGuideMinimized)}
-                  />
+                  <div className="w-full max-w-xl mx-auto">
+                    <ExerciseGuide 
+                      gifUrl={currentCatalogExercise.media.gif} 
+                      exerciseName={currentExercise?.name || ''} 
+                      isMinimized={isGuideMinimized}
+                      onToggle={() => setIsGuideMinimized(!isGuideMinimized)}
+                    />
+                  </div>
                 )}
               </div>
 
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-8 shadow-2xl space-y-8">
+              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-8 max-w-2xl mx-auto">
                 <div className="flex justify-between items-center border-b border-white/10 pb-6">
                    <div>
                       <p className="text-brand-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-1">Current Set</p>
-                      <p className="text-4xl font-black text-white">
-                        {completedSetsCount + 1} <span className="text-2xl text-white/30 font-medium">/ {currentExercise?.sets}</span>
+                      <p className="text-4xl md:text-5xl font-black text-white">
+                        {completedSetsCount + 1} <span className="text-2xl md:text-3xl text-white/30 font-medium">/ {currentExercise?.sets}</span>
                       </p>
                    </div>
-                   <div className="w-14 h-14 bg-brand-400/20 rounded-2xl flex items-center justify-center"><Dumbbell className="text-brand-400" size={28} /></div>
+                   <div className="w-14 h-14 md:w-16 md:h-16 bg-brand-400/20 rounded-2xl flex items-center justify-center"><Dumbbell className="text-brand-400" size={28} /></div>
                 </div>
                 
-                <div className="space-y-4">
-                   <div className="flex justify-between text-[10px] font-bold text-white/50 uppercase tracking-widest"><span>Weight (kg)</span></div>
-                   <div className="flex items-center gap-4">
-                       <button onClick={() => adjustWeight(-2.5)} className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center active:scale-90 transition-all text-white/50 hover:text-white border border-white/10"><Minus size={24} /></button>
-                       <div className="flex-1 bg-white/5 h-14 rounded-2xl flex items-center justify-center border border-white/10 shadow-inner"><span className="text-3xl font-black text-white">{inputWeight}</span></div>
-                       <button onClick={() => adjustWeight(2.5)} className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center active:scale-90 transition-all text-white/50 hover:text-white border border-white/10"><Plus size={24} /></button>
-                   </div>
-                </div>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                     <div className="flex justify-between text-[10px] font-bold text-white/50 uppercase tracking-widest"><span>Weight (kg)</span></div>
+                     <div className="flex items-center gap-4">
+                         <button onClick={() => adjustWeight(-2.5)} className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center active:scale-90 transition-all text-white/50 hover:text-white border border-white/10" aria-label="Decrease weight"><Minus size={24} /></button>
+                         <div className="flex-1 bg-white/5 h-14 md:h-16 rounded-2xl flex items-center justify-center border border-white/10 shadow-inner"><span className="text-3xl md:text-4xl font-black text-white">{inputWeight}</span></div>
+                         <button onClick={() => adjustWeight(2.5)} className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center active:scale-90 transition-all text-white/50 hover:text-white border border-white/10" aria-label="Increase weight"><Plus size={24} /></button>
+                     </div>
+                  </div>
 
-                <div className="space-y-4">
-                   <div className="flex justify-between text-[10px] font-bold text-white/50 uppercase tracking-widest"><span>Reps</span></div>
-                   <div className="flex items-center gap-4">
-                       <button onClick={() => adjustReps(-1)} className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center active:scale-90 transition-all text-white/50 hover:text-white border border-white/10"><Minus size={24} /></button>
-                       <div className="flex-1 bg-white/5 h-14 rounded-2xl flex items-center justify-center border border-white/10 shadow-inner"><span className="text-3xl font-black text-white">{inputReps}</span></div>
-                       <button onClick={() => adjustReps(1)} className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center active:scale-90 transition-all text-white/50 hover:text-white border border-white/10"><Plus size={24} /></button>
-                   </div>
+                  <div className="space-y-4">
+                     <div className="flex justify-between text-[10px] font-bold text-white/50 uppercase tracking-widest"><span>Reps</span></div>
+                     <div className="flex items-center gap-4">
+                         <button onClick={() => adjustReps(-1)} className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center active:scale-90 transition-all text-white/50 hover:text-white border border-white/10" aria-label="Decrease reps"><Minus size={24} /></button>
+                         <div className="flex-1 bg-white/5 h-14 md:h-16 rounded-2xl flex items-center justify-center border border-white/10 shadow-inner"><span className="text-3xl md:text-4xl font-black text-white">{inputReps}</span></div>
+                         <button onClick={() => adjustReps(1)} className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center active:scale-90 transition-all text-white/50 hover:text-white border border-white/10" aria-label="Increase reps"><Plus size={24} /></button>
+                     </div>
+                  </div>
                 </div>
               </div>
 
@@ -787,13 +797,13 @@ const LiveWorkoutSession = () => {
                   withBorder 
                   processing
                 >
-                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-6 shadow-2xl space-y-4">
+                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-4 max-w-2xl mx-auto">
                     <div className="text-center">
                       <p className="text-brand-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-4">Need an Adjustment?</p>
                       <p className="text-white/50 text-sm">Let AI adapt your workout to your current state</p>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
                       <MotionFeedback visible={true} type="glow" color="var(--mantine-color-blue-6)">
                         <button
                           onClick={() => {
@@ -808,9 +818,9 @@ const LiveWorkoutSession = () => {
                               } : undefined
                             }));
                           }}
-                          className="w-full flex flex-col items-center gap-2 p-4 bg-blue-500/10 hover:bg-blue-500/20 rounded-2xl transition-colors active:scale-95 border border-blue-500/30"
+                          className="w-full flex flex-col items-center gap-2 p-4 md:p-6 bg-blue-500/10 hover:bg-blue-500/20 rounded-2xl transition-colors active:scale-95 border border-blue-500/30"
                         >
-                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-lg"><span className="text-white text-lg">😴</span></div>
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg"><span className="text-white text-lg md:text-xl">😴</span></div>
                           <span className="text-sm font-bold text-blue-300">I'm Tired</span>
                         </button>
                       </MotionFeedback>
@@ -829,9 +839,9 @@ const LiveWorkoutSession = () => {
                               } : undefined
                             }));
                           }}
-                          className="w-full flex flex-col items-center gap-2 p-4 bg-orange-500/10 hover:bg-orange-500/20 rounded-2xl transition-colors active:scale-95 border border-orange-500/30"
+                          className="w-full flex flex-col items-center gap-2 p-4 md:p-6 bg-orange-500/10 hover:bg-orange-500/20 rounded-2xl transition-colors active:scale-95 border border-orange-500/30"
                         >
-                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-lg"><span className="text-white text-lg">⏰</span></div>
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center shadow-lg"><span className="text-white text-lg md:text-xl">⏰</span></div>
                           <span className="text-sm font-bold text-orange-300">Short on Time</span>
                         </button>
                       </MotionFeedback>
@@ -840,21 +850,23 @@ const LiveWorkoutSession = () => {
                 </Indicator>
               )}
 
-              <Button 
-                variant="primary" 
-                size="xl" 
-                onClick={handleLogSet} 
-                disabled={currentExercise ? completedSetsCount >= currentExercise.sets : true} 
-                className={`w-full font-black text-xl uppercase tracking-widest shadow-2xl transition-all active:scale-95 ${(currentExercise && completedSetsCount >= currentExercise.sets) ? 'bg-white/10 text-white/30 cursor-not-allowed border-white/10' : 'bg-brand-600 hover:bg-brand-500 border-none'}`}
-              >
-                <CheckCircle2 size={28} />
-                {(currentExercise && completedSetsCount >= currentExercise.sets) ? 'Exercise Complete' : `Log Set ${completedSetsCount + 1}`}
-              </Button>
+              <div className="max-w-2xl mx-auto w-full">
+                <Button 
+                  variant="primary" 
+                  size="xl" 
+                  onClick={handleLogSet} 
+                  disabled={currentExercise ? completedSetsCount >= currentExercise.sets : true} 
+                  className={`w-full font-black text-xl md:text-2xl uppercase tracking-widest shadow-2xl transition-all active:scale-95 h-16 md:h-20 ${(currentExercise && completedSetsCount >= currentExercise.sets) ? 'bg-white/10 text-white/30 cursor-not-allowed border-white/10' : 'bg-brand-600 hover:bg-brand-500 border-none'}`}
+                >
+                  <CheckCircle2 size={32} />
+                  {(currentExercise && completedSetsCount >= currentExercise.sets) ? 'Exercise Complete' : `Log Set ${completedSetsCount + 1}`}
+                </Button>
+              </div>
 
               <div className="flex flex-col items-center gap-4 py-4">
                 {activeExerciseIndex < totalExercises - 1 && (
-                   <button onClick={handleNextExercise} className="text-white/30 font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:text-white transition-colors">
-                     Skip to Next Exercise <SkipForward size={16} />
+                   <button onClick={handleNextExercise} className="text-white/30 font-bold text-sm md:text-base uppercase tracking-widest flex items-center justify-center gap-2 hover:text-white transition-colors">
+                     Skip to Next Exercise <SkipForward size={18} />
                    </button>
                 )}
               </div>
