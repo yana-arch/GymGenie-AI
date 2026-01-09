@@ -13,7 +13,24 @@ export interface EncryptionResult {
 export class EncryptionService {
   private static readonly ALGORITHM = 'AES-256-GCM';
   private static readonly KEY_LENGTH = 32; // 256 bits
-  private sessionKeys: Map<string, CryptoKey> = new Map();
+  private sessionKey: CryptoKey | null = null;
+
+  /**
+   * Get or create the session encryption key
+   */
+  private async getSessionKey(): Promise<CryptoKey> {
+    if (!this.sessionKey) {
+      this.sessionKey = await crypto.subtle.generateKey(
+        {
+          name: 'AES-GCM',
+          length: 256
+        },
+        true,
+        ['encrypt', 'decrypt']
+      );
+    }
+    return this.sessionKey;
+  }
 
   /**
    * Encrypt data using AES-256-GCM
@@ -24,12 +41,12 @@ export class EncryptionService {
       const encoder = new TextEncoder();
       const dataBuffer = encoder.encode(jsonString);
 
-      const key = await this.generateSessionKey();
+      const key = await this.getSessionKey();
       const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV for GCM
 
       const encryptedData = await crypto.subtle.encrypt(
         {
-          name: EncryptionService.ALGORITHM,
+          name: 'AES-GCM',
           iv: iv
         },
         key,
@@ -58,11 +75,11 @@ export class EncryptionService {
       const iv = encryptedBuffer.slice(0, 12);
       const data = encryptedBuffer.slice(12);
 
-      const key = await this.getOrCreateKey();
+      const key = await this.getSessionKey();
 
       const decryptedData = await crypto.subtle.decrypt(
         {
-          name: EncryptionService.ALGORITHM,
+          name: 'AES-GCM',
           iv: iv
         },
         key,
@@ -85,34 +102,23 @@ export class EncryptionService {
   }
 
   /**
-   * Generate a unique session key
+   * Generate a unique session key (replaces existing)
    */
   async generateSessionKey(): Promise<CryptoKey> {
-    const key = await crypto.subtle.generateKey(
-      {
-        name: 'AES-GCM',
-        length: 256
-      },
-      true,
-      ['encrypt', 'decrypt']
-    );
-
-    const keyId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    this.sessionKeys.set(keyId, key);
-
-    return key;
+    this.sessionKey = null;
+    return await this.getSessionKey();
   }
 
   /**
    * Encrypt a buffer (for in-memory encryption)
    */
   async encryptBuffer(buffer: ArrayBuffer): Promise<ArrayBuffer> {
-    const key = await this.getOrCreateKey();
+    const key = await this.getSessionKey();
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
     const encryptedData = await crypto.subtle.encrypt(
       {
-        name: EncryptionService.ALGORITHM,
+        name: 'AES-GCM',
         iv: iv
       },
       key,
@@ -126,30 +132,17 @@ export class EncryptionService {
     return result.buffer;
   }
 
-  private async getOrCreateKey(): Promise<CryptoKey> {
-    if (this.sessionKeys.size === 0) {
-      await this.generateSessionKey();
-    }
-    
-    const firstKey = this.sessionKeys.values().next().value;
-    if (!firstKey) {
-      return await this.generateSessionKey();
-    }
-    
-    return firstKey;
-  }
-
   /**
-   * Clear all session keys (cleanup)
+   * Clear session key (cleanup)
    */
   clearSessionKeys(): void {
-    this.sessionKeys.clear();
+    this.sessionKey = null;
   }
 
   /**
    * Get current key count
    */
   getKeyCount(): number {
-    return this.sessionKeys.size;
+    return this.sessionKey ? 1 : 0;
   }
 }

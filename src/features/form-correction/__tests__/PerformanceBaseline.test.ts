@@ -10,7 +10,16 @@ import { FormAnalysisService, FormAnalysis, FormIssue } from '@/features/form-co
 
 // Mock dependencies
 vi.mock('@/features/form-correction/services/PoseDetectionService');
-vi.mock('@/features/form-correction/services/FormAnalysisService');
+vi.mock('@/features/form-correction/services/FormAnalysisService', () => {
+  const mockInstance = {
+    analyzeForm: vi.fn(),
+  };
+  return {
+    FormAnalysisService: {
+      getInstance: vi.fn(() => mockInstance),
+    },
+  };
+});
 
 describe('P0 Performance Baseline Tests - Flexible Device SLAs', () => {
   let poseDetectionService: PoseDetectionService;

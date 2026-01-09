@@ -358,41 +358,6 @@ export class FormCorrectionService {
           currentExercise: this.currentExercise
         });
       }
-
-      // Legacy support for direct store access if listeners not registered
-      if (!this.onStatusUpdate && !this.onMilestoneReached) {
-        const store = window.__REDUX_STORE__ || (window as any).reduxStore;
-        if (store && store.dispatch) {
-          milestones.forEach(m => {
-            store.dispatch({
-              type: 'liveSession/addMilestone',
-              payload: m
-            });
-          });
-
-          store.dispatch({
-            type: 'liveSession/setFormCorrectionStatus',
-            payload: {
-              formScore: formAnalysis.score,
-              hasIssues: !formAnalysis.isValid,
-              exerciseType: this.currentExercise,
-              repCount: this.formAnalysisService.getRepCount(),
-              timestamp: Date.now()
-            }
-          });
-          
-          if (shouldAdapt) {
-            store.dispatch({
-              type: 'liveSession/requestAdaptation',
-              payload: {
-                reason: 'form_correction',
-                formScore: formAnalysis.score,
-                currentExercise: this.currentExercise
-              }
-            });
-          }
-        }
-      }
     } catch (error) {
       // Graceful degradation if sync fails
       console.warn('Failed to sync with LiveSession:', error);

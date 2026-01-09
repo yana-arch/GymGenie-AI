@@ -10,8 +10,31 @@ import { PoseDetectionService, Pose, PoseKeypoint } from '@/features/form-correc
 import { FormAnalysisService, FormAnalysis } from '@/features/form-correction/services/FormAnalysisService';
 
 // Mock dependencies
-vi.mock('@/services/privacy/PrivacyValidationService');
-vi.mock('@/features/form-correction/services/FormAnalysisService');
+vi.mock('@/services/privacy/PrivacyValidationService', () => {
+  const mockInstance = {
+    validateDataForAI: vi.fn(),
+    getPrivacyMetrics: vi.fn(),
+    clearLogs: vi.fn(),
+    exportAuditLog: vi.fn(),
+  };
+  return {
+    PrivacyValidationService: {
+      getInstance: vi.fn(() => mockInstance),
+    },
+    privacyValidationService: mockInstance,
+  };
+});
+vi.mock('@/features/form-correction/services/FormAnalysisService', () => {
+  const mockInstance = {
+    analyzeForm: vi.fn(),
+    getRepCount: vi.fn(),
+  };
+  return {
+    FormAnalysisService: {
+      getInstance: vi.fn(() => mockInstance),
+    },
+  };
+});
 vi.mock('@/features/form-correction/services/PoseDetectionService');
 
 describe('P0 Security Tests - Form Correction Data Protection', () => {
@@ -155,7 +178,7 @@ describe('P0 Security Tests - Form Correction Data Protection', () => {
 
       // Assert
       expect(result.isCompliant).toBe(false);
-      expect(result.violations).toContain('Data size too large');
+      expect(result.violations[0]).toContain('Data size too large');
     });
   });
 
@@ -407,7 +430,7 @@ describe('P0 Security Tests - Form Correction Data Protection', () => {
 
       // Assert
       expect(result.safeToSend).toBe(false);
-      expect(result.violations).toContain('Medical alert detected');
+      expect(result.violations[0]).toContain('Medical alert detected');
     });
   });
 });

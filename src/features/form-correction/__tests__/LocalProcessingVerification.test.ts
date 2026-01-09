@@ -11,8 +11,31 @@ import { PrivacyValidationService } from '@/services/privacy/PrivacyValidationSe
 
 // Mock dependencies
 vi.mock('@/features/form-correction/services/PoseDetectionService');
-vi.mock('@/features/form-correction/services/FormAnalysisService');
-vi.mock('@/services/privacy/PrivacyValidationService');
+vi.mock('@/features/form-correction/services/FormAnalysisService', () => {
+  const mockInstance = {
+    analyzeForm: vi.fn(),
+    getRepCount: vi.fn(),
+  };
+  return {
+    FormAnalysisService: {
+      getInstance: vi.fn(() => mockInstance),
+    },
+  };
+});
+vi.mock('@/services/privacy/PrivacyValidationService', () => {
+  const mockInstance = {
+    validateDataForAI: vi.fn(),
+    getPrivacyMetrics: vi.fn(),
+    clearLogs: vi.fn(),
+    exportAuditLog: vi.fn(),
+  };
+  return {
+    PrivacyValidationService: {
+      getInstance: vi.fn(() => mockInstance),
+    },
+    privacyValidationService: mockInstance,
+  };
+});
 
 describe('P0 Local Processing Tests - Verification of Local-Only Processing', () => {
   let poseDetectionService: PoseDetectionService;
