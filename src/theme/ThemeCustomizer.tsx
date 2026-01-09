@@ -2,14 +2,14 @@ import React from 'react';
 import { Group, ColorSwatch, Text, Paper, Stack, useMantineTheme } from '@mantine/core';
 import { useApp } from '@/context/AppContext';
 
-import { brandColors } from './colors';
+import { brandColors, vibeColors } from './colors';
 
 const THEME_OPTIONS = [
   { label: 'Brand', color: 'brand', value: brandColors[5] },
-  { label: 'Classic', color: 'blue', value: '#228be6' },
-  { label: 'Energy', color: 'lime', value: '#82c91e' },
-  { label: 'Power', color: 'red', value: '#fa5252' },
-  { label: 'Premium', color: 'grape', value: '#be4bdb' },
+  { label: 'Classic', color: 'blue', value: vibeColors.blue },
+  { label: 'Energy', color: 'lime', value: vibeColors.lime },
+  { label: 'Power', color: 'red', value: vibeColors.red },
+  { label: 'Premium', color: 'grape', value: vibeColors.grape },
 ];
 
 export const ThemeCustomizer: React.FC = () => {
@@ -17,9 +17,9 @@ export const ThemeCustomizer: React.FC = () => {
   const theme = useMantineTheme();
 
   return (
-    <Paper p="md" withBorder radius="lg">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
       <Stack gap="xs">
-        <Text size="sm" fw={700}>Select Your Vibe</Text>
+        <Text size="sm" fw={700} className="dark:text-white">Select Your Vibe</Text>
         <Group gap="xs">
           {THEME_OPTIONS.map((option) => (
             <Stack key={option.color} align="center" gap={4}>
@@ -29,21 +29,21 @@ export const ThemeCustomizer: React.FC = () => {
                 style={{ 
                   cursor: 'pointer', 
                   border: themeColor === option.color ? '3px solid var(--mantine-color-text)' : 'none',
-                  transform: themeColor === option.color ? 'scale(1.2)' : 'scale(1)',
-                  boxShadow: themeColor === option.color ? `0 0 15px ${option.value}88` : 'none',
-                  transition: 'all 0.2s ease'
+                  transform: themeColor === option.color ? 'scale(1.15)' : 'scale(1)',
+                  boxShadow: themeColor === option.color ? `0 8px 20px -5px ${option.value}aa` : 'none',
+                  transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                 }}
-                size={32}
+                size={36}
               >
                 {themeColor === option.color && (
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'white' }} />
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'white', boxShadow: '0 0 5px rgba(0,0,0,0.2)' }} />
                 )}
               </ColorSwatch>
-              <Text size="xs">{option.label}</Text>
+              <Text size="xs" fw={themeColor === option.color ? 700 : 500} className="dark:text-gray-400">{option.label}</Text>
             </Stack>
           ))}
         </Group>
       </Stack>
-    </Paper>
+    </div>
   );
 };

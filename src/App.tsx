@@ -40,7 +40,7 @@ const AppContent = memo(() => {
 
 
   return (
-    <div className="h-screen bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100 transition-colors duration-500">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 vibe-background font-sans text-gray-900 dark:text-gray-100 transition-colors duration-500">
       <ResponsiveNavigation>
         {/* Global Overlay Loader */}
         {isLoading && (

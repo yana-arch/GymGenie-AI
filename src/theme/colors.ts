@@ -16,3 +16,13 @@ export const brandColors: MantineColorsTuple = [
   '#9a3412', // 800
   '#7c2d12', // 900
 ];
+
+/**
+ * Standard Vibe Base Colors
+ */
+export const vibeColors = {
+  blue: '#228be6',
+  lime: '#82c91e',
+  red: '#fa5252',
+  grape: '#be4bdb',
+} as const;

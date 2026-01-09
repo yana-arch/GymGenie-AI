@@ -100,17 +100,20 @@ opencode (gemini-2.0-flash-exp)
 ### AI Code Review Follow-up (Adversarial Review)
 
 - **Issues Fixed**: 
-  - 🔴 **CRITICAL**: Fixed `App.tsx` to use `defaultColorScheme="dark"` for premium dark-first bias.
-  - 🟠 **HIGH**: Refactored `DashboardHeader` and `DashboardBottomNav` to use Mantine CSS variables (`var(--mantine-primary-color-filled)`) for dynamic color synchronization.
+  - 🔴 **CRITICAL**: Fixed `App.tsx` to use `defaultColorScheme="dark"` and added `vibe-background` for premium atmospheric feel.
+  - 🟠 **HIGH**: Refactored `DashboardHeader` and `DashboardBottomNav` to use Mantine CSS variables (`var(--mantine-primary-color-filled)`, `var(--mantine-primary-color-light)`) for dynamic color synchronization across all vibes.
   - 🟠 **HIGH**: Fixed `any` type violation in `src/theme/index.ts` using `MantineTheme`.
+  - 🟠 **HIGH**: Corrected Tailwind 4 variable mapping in `index.css` (`brand-500` -> `index 6`) to match Mantine's primary filled state.
   - 🟡 **MEDIUM**: Implemented Glassmorphism in `DashboardHeader.tsx` (backdrop-blur + opacity).
-  - 🟡 **MEDIUM**: Removed hardcoded hex in `ThemeCustomizer.tsx`, importing from `colors.ts`.
-  - 🟡 **MEDIUM**: Improved `theme.test.tsx` assertions to verify primary color mapping.
+  - 🟡 **MEDIUM**: Centralized all vibe colors in `src/theme/colors.ts` and updated `ThemeCustomizer.tsx` to remove hardcoded hex values.
+  - 🟡 **MEDIUM**: Added Inter font family import via Google Fonts in `index.css`.
+  - 🟡 **MEDIUM**: Improved `theme.test.tsx` assertions to verify computed styles and theme configuration.
+  - 🟡 **MEDIUM**: Redesigned `ThemeCustomizer` card with custom Tailwind classes for a solid, polished feel.
   - 🟢 **LOW**: Aligned active state styling across navigation components.
   - 💎 **PREMIUM**: Implemented "Atmospheric Vibe" architecture:
     - Cards now feature semi-transparent backgrounds with `backdrop-blur` and vibe-based tints.
     - Added high-performance hover animations (glow + scale) to all Card and Paper elements.
-    - Integrated a dynamic radial gradient background that pulses with the chosen vibe color.
+    - Integrated a dynamic radial gradient background that pulses with the chosen vibe color via `vibe-background`.
     - Synchronized all Tailwind `brand-` utility classes to follow the active Mantine theme.
 
 ### Debug Log References

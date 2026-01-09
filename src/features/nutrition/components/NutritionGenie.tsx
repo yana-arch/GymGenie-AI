@@ -118,9 +118,9 @@ const NutritionGenie = () => {
         {/* Left Column - Stats & Actions */}
         <div className="lg:col-span-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Calorie Goal</p>
-              <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{user?.tdee} <span className="text-sm font-normal text-gray-400 dark:text-gray-500">kcal</span></p>
+            <div className="bg-brand-50/30 dark:bg-brand-500/5 p-4 rounded-xl border border-brand-100 dark:border-brand-500/10 shadow-sm text-center backdrop-blur-sm">
+              <p className="text-sm text-brand-600 dark:text-brand-400 font-bold uppercase tracking-wider text-[10px]">Calorie Goal</p>
+              <p className="text-2xl font-bold text-brand-900 dark:text-brand-200">{user?.tdee} <span className="text-sm font-normal text-gray-400 dark:text-gray-500">kcal</span></p>
             </div>
             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400">Progress</p>
@@ -152,7 +152,7 @@ const NutritionGenie = () => {
           {/* Desktop Extra: Weekly Analysis placeholder */}
           <div className="hidden lg:block bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2"><BarChart size={20} className="text-orange-500" /> Weekly Nutrition</h3>
+                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2"><BarChart size={20} className="text-brand-600 dark:text-brand-400" /> Weekly Nutrition</h3>
                 <span className="text-xs text-gray-400 dark:text-gray-500">Last 7 Days</span>
             </div>
             <div className="h-40 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 text-sm">

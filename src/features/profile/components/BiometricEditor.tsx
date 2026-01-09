@@ -82,15 +82,15 @@ const BiometricEditor: React.FC<BiometricEditorProps> = ({ profile }) => {
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Height</p>
                 <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{profile.heightCm} cm</p>
             </div>
-            <div className="bg-brand-50 dark:bg-brand-900/20 p-3 rounded-xl border border-brand-100 dark:border-brand-800">
+            <div className="bg-brand-50 dark:bg-brand-500/10 p-3 rounded-xl border border-brand-100 dark:border-brand-500/20 backdrop-blur-sm">
                 <p className="text-xs text-brand-600 dark:text-brand-400 font-medium uppercase">BMI</p>
                 <p className="text-lg font-bold text-brand-900 dark:text-brand-200 truncate" title={String(profile.bmi)}>
                     {Number(profile.bmi).toFixed(1)}
                 </p>
             </div>
-            <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800">
-                <p className="text-xs text-orange-600 dark:text-orange-400 font-medium uppercase">TDEE (Est.)</p>
-                <p className="text-lg font-bold text-orange-900 dark:text-orange-200">~{profile.tdee} kcal</p>
+            <div className="bg-brand-50 dark:bg-brand-500/10 p-3 rounded-xl border border-brand-100 dark:border-brand-500/20 backdrop-blur-sm">
+                <p className="text-xs text-brand-600 dark:text-brand-400 font-medium uppercase">TDEE (Est.)</p>
+                <p className="text-lg font-bold text-brand-900 dark:text-brand-200">~{profile.tdee} kcal</p>
             </div>
         </div>
       </div>

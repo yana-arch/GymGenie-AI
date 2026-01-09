@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 @theme {
   --color-brand-50: var(--mantine-primary-color-0);
@@ -6,10 +7,10 @@
   --color-brand-200: var(--mantine-primary-color-2);
   --color-brand-300: var(--mantine-primary-color-3);
   --color-brand-400: var(--mantine-primary-color-4);
-  --color-brand-500: var(--mantine-primary-color-5);
-  --color-brand-600: var(--mantine-primary-color-6);
-  --color-brand-700: var(--mantine-primary-color-7);
-  --color-brand-800: var(--mantine-primary-color-8);
+  --color-brand-500: var(--mantine-primary-color-6);
+  --color-brand-600: var(--mantine-primary-color-7);
+  --color-brand-700: var(--mantine-primary-color-8);
+  --color-brand-800: var(--mantine-primary-color-9);
   --color-brand-900: var(--mantine-primary-color-9);
 }
 

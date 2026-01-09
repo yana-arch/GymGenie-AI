@@ -39,14 +39,20 @@ describe('Theme Configuration', () => {
   });
 
   it('should verify that components use the correct primary color variable @p1', () => {
-    render(
+    const { getByRole } = render(
       <MantineProvider theme={theme}>
         <Button>Theme Test</Button>
       </MantineProvider>
     );
-    const button = screen.getByRole('button');
-    // In Mantine 8, we can check if the primary color matches our brand
+    const button = getByRole('button');
+    
+    // In Mantine 8, primary color is applied via CSS variables. 
+    // We check if the theme configuration itself is correct.
     expect(theme.primaryColor).toBe('brand');
     expect(theme.colors?.brand?.[5]).toBe('#f97316');
+    
+    // Verify that the button has the expected transition and weight from our theme overrides
+    const styles = window.getComputedStyle(button);
+    expect(styles.fontWeight).toBe('700');
   });
 });

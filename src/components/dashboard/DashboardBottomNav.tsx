@@ -29,7 +29,7 @@ const DashboardBottomNav: React.FC = () => {
               onClick={() => setActiveView(item.key as ActiveView)}
               className={`relative flex flex-col items-center justify-center min-h-[64px] min-w-[64px] rounded-2xl transition-all duration-300 active:scale-90 ${
                 isActive
-                  ? 'bg-brand-500/10'
+                  ? ''
                   : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
               }`}
               style={isActive ? { 
