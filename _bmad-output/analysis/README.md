@@ -8,7 +8,7 @@
 |----------|-------------|------|------|
 | **[BDD_CONVERSION_SUMMARY.md](./BDD_CONVERSION_SUMMARY.md)** | Detailed BDD conversion analysis and results | Analysis | 2025-01-07 |
 | **[FeedbackFactory-Implementation-Summary.md](./FeedbackFactory-Implementation-Summary.md)** | Complete FeedbackFactory implementation analysis | Technical | 2025-01-07 |
-| **[test-review.md](../test-review.md)** | Original test quality review (52/100 score) | Assessment | 2025-01-07 |
+| **[test-review.md](../testing/test-review.md)** | Original test quality review (52/100 score) | Assessment | 2025-01-07 |
 
 ### 🎯 Key Findings
 

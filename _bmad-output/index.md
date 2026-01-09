@@ -38,10 +38,26 @@
 
 ## Generated Documentation
 
+### Planning & Strategy
+- [PRD](./planning-artifacts/specs/prd.md) - Product Requirements Document
+- [UX Specification](./planning-artifacts/specs/ux-design-specification.md) - User Experience design details
+- [Epic Definitions](./planning-artifacts/specs/epics.md) - High-level project milestones
+- [Market Research](./planning-artifacts/research/market-gym-apps-with-ai-support-research-2026-01-05.md) - Competitive analysis
+
+### Implementation & Status
+- [Active Stories](./implementation-artifacts/) - Current build artifacts
+- [Validation Reports](./implementation-artifacts/status/) - Quality assurance and validation history
+- [Sprint Status](./implementation-artifacts/status/sprint-status.yaml) - Current development progress
+
+### Quality & Validation
+- [Test Designs](./testing/) - Detailed test plans for each epic
+- [ATDD Checklists](./testing/) - Acceptance Criteria validation checklists
+- [Test Review](./testing/test-review.md) - Comprehensive quality assessment
+
 ### Technology & Architecture
 - [Technology Stack](./technology-stack-main.md) - Complete tech stack analysis with justifications
-- [Architecture Documentation](./planning-artifacts/architecture.md) - System design and component overview
-- [System-Level Test Design](./test-design-system.md) - Testability assessment and testing strategy
+- [Architecture Documentation](./planning-artifacts/specs/architecture.md) - System design and component overview
+- [System-Level Test Design](./testing/test-design-system.md) - Testability assessment and testing strategy
 - [API Contracts](./api-contracts-main.md) _(To be generated)_ - API endpoints and data contracts
 - [Data Models](./data-models-main.md) _(To be generated)_ - Database schema and entity relationships
 

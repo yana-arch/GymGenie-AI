@@ -2,7 +2,9 @@
 
 ## Phase-based approach for GymGenie-AI test quality enhancement
 
-### 📋 Available Planning Documents
+### 📋 Core Specifications
+
+Core project definitions and architectural blueprints are now located in the **[specs/](./specs/)** sub-directory.
 
 | Document | Description | Status | Date |
 |-----------|-------------|---------|------|
