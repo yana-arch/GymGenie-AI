@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AudioCoachingService } from '../services/AudioCoachingService';
 import { FormAnalysis } from '../services/FormAnalysisService';
@@ -65,6 +66,7 @@ describe('AudioCoachingService', () => {
   let audioService: AudioCoachingService;
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     vi.useFakeTimers();
     vi.clearAllMocks();
     AudioCoachingService.resetInstance();

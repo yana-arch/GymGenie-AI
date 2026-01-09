@@ -97,6 +97,7 @@ export const AdaptationPrompt: React.FC<AdaptationPromptProps> = ({
       centered
       radius="md"
       padding="xl"
+      transitionProps={{ transition: 'slide-up', duration: 400 }}
       styles={{
         header: { marginBottom: 15 },
         title: { fontSize: '1.1rem' }

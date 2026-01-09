@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 /**
  * P0 Security Tests for Form Correction Data (R-001)
  * Tests security and privacy validation for sensitive form correction data
@@ -80,6 +81,7 @@ describe('P0 Security Tests - Form Correction Data Protection', () => {
   };
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     vi.clearAllMocks();
     
     // Initialize mock services

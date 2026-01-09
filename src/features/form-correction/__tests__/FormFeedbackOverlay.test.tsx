@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
@@ -98,6 +99,7 @@ describe('FormFeedbackOverlay', () => {
   };
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     vi.clearAllMocks();
   });
 

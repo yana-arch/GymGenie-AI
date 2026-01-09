@@ -26,10 +26,14 @@ import LiveGuidanceOverlay from './LiveGuidanceOverlay';
 import MilestoneCelebration from './MilestoneCelebration';
 import TransitionPrep from './TransitionPrep';
 import SessionProgressHUD from './SessionProgressHUD';
+import { MotionFeedback } from '@/components/ui/MotionFeedback';
 
 import { sessionGuidanceService } from '../services/SessionGuidanceService';
 import { EncouragementService } from '../services/EncouragementService';
-import { FormAnalysisService } from '@/features/form-correction/services/FormAnalysisService';
+import { FormAnalysisService, FormAnalysis } from '@/features/form-correction/services/FormAnalysisService';
+import { FormCorrectionService } from '@/features/form-correction/services/FormCorrectionService';
+import { FormFeedbackOverlay } from '@/features/form-correction/components/FormFeedbackOverlay';
+import { Pose } from '@/features/form-correction/services/PoseDetectionService';
 
 const LiveWorkoutSession = () => {
   const { showToast } = useToast();
@@ -92,17 +96,6 @@ const LiveWorkoutSession = () => {
   const [manualOverrideOpen, setManualOverrideOpen] = useState(false);
   const audioService = useRef<AudioCoachingService | null>(null);
 
-  useEffect(() => {
-    audioService.current = AudioCoachingService.getInstance();
-    return () => audioService.current?.stop();
-  }, []);
-
-  useEffect(() => {
-    if (adaptation && adaptation.notes) {
-      audioService.current?.announceAdaptation(adaptation.notes);
-    }
-  }, [adaptation]);
-
   const activeContext = useMemo(() => {
     if (!currentPlan || !currentSession) return null;
     
@@ -126,6 +119,81 @@ const LiveWorkoutSession = () => {
         registryData
     };
   }, [currentPlan, currentSession, activeExerciseIndex]);
+
+  // Form Correction Integration
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [formCorrectionActive, setFormCorrectionActive] = useState(false);
+  const [currentPoses, setCurrentPoses] = useState<Pose[]>([]);
+  const [currentFormAnalysis, setCurrentFormAnalysis] = useState<FormAnalysis | null>(null);
+  const formCorrectionService = useRef<FormCorrectionService>(FormCorrectionService.getInstance());
+
+  useEffect(() => {
+    audioService.current = AudioCoachingService.getInstance();
+    
+    // Initialize form correction listeners
+    formCorrectionService.current.registerListeners({
+      onAnalysisUpdate: (analysis, poses) => {
+        setCurrentPoses(poses);
+        setCurrentFormAnalysis(analysis);
+      },
+      onStatusUpdate: (status) => {
+        // Sync with Redux if needed
+        dispatch(updateRepCount(status.repCount));
+      },
+      onAdaptationRequired: (params) => {
+        dispatch(fetchWorkoutAdaptation({ 
+          activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
+          overrideHistory: [],
+          currentExercise: activeContext?.currentExercise ? {
+            reps: activeContext.currentExercise.reps,
+            sets: activeContext.currentExercise.sets,
+            restSeconds: activeContext.currentExercise.restSeconds
+          } : undefined
+        }));
+      }
+    });
+
+    return () => {
+      audioService.current?.stop();
+      formCorrectionService.current.stopFormCorrection();
+    };
+  }, [dispatch, activeContext]);
+
+  // Handle Form Correction Start/Stop
+  useEffect(() => {
+    const toggleFormCorrection = async () => {
+      if (cameraEnabled && !formCorrectionActive && videoRef.current) {
+        try {
+          await formCorrectionService.current.initialize(videoRef.current);
+          await formCorrectionService.current.startFormCorrection();
+          setFormCorrectionActive(true);
+        } catch (err) {
+          console.error('Failed to start form correction:', err);
+          showToast(toast.error('Camera Error', 'Could not start form correction.'));
+        }
+      } else if (!cameraEnabled && formCorrectionActive) {
+        await formCorrectionService.current.stopFormCorrection();
+        setFormCorrectionActive(false);
+        setCurrentPoses([]);
+        setCurrentFormAnalysis(null);
+      }
+    };
+
+    toggleFormCorrection();
+  }, [cameraEnabled, formCorrectionActive, showToast]);
+
+  // Update exercise type in service
+  useEffect(() => {
+    if (activeContext?.currentExercise) {
+      formCorrectionService.current.setExercise(activeContext.currentExercise.name.toLowerCase());
+    }
+  }, [activeContext]);
+
+  useEffect(() => {
+    if (adaptation && adaptation.notes) {
+      audioService.current?.announceAdaptation(adaptation.notes);
+    }
+  }, [adaptation]);
 
   const completedSetsCount = useMemo(() => {
     if (!currentSession || !activeContext) return 0;
@@ -583,6 +651,33 @@ const LiveWorkoutSession = () => {
                   </div>
                 </div>
                 
+                {cameraEnabled && (
+                  <div className="relative w-full aspect-video bg-black rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white dark:border-gray-800">
+                    <video
+                      ref={videoRef}
+                      className="w-full h-full object-cover"
+                      autoPlay
+                      playsInline
+                      muted
+                    />
+                    <FormFeedbackOverlay
+                      isVisible={formCorrectionActive}
+                      currentPoses={currentPoses}
+                      formAnalysis={currentFormAnalysis}
+                      videoWidth={videoRef.current?.videoWidth || 640}
+                      videoHeight={videoRef.current?.videoHeight || 480}
+                    />
+                    {!formCorrectionActive && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                        <div className="text-center space-y-2">
+                          <div className="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                          <p className="text-white text-xs font-bold uppercase tracking-widest">Initializing AI Form Guard...</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex justify-center gap-2">
                   <span className="px-3 py-1 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-bold rounded-full border border-gray-100 dark:border-gray-700 shadow-sm uppercase tracking-wider">{currentExercise?.sets} Sets</span>
                   <span className="px-3 py-1 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-bold rounded-full border border-gray-100 dark:border-gray-700 shadow-sm uppercase tracking-wider">{currentExercise?.reps} Reps</span>
@@ -640,43 +735,47 @@ const LiveWorkoutSession = () => {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => {
-                      dispatch(updateEnergyContext('tired'));
-                      dispatch(fetchWorkoutAdaptation({ 
-                        activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
-                        overrideHistory: overrideHistory || [],
-                        currentExercise: activeContext?.currentExercise ? {
-                          reps: activeContext.currentExercise.reps,
-                          sets: activeContext.currentExercise.sets,
-                          restSeconds: activeContext.currentExercise.restSeconds
-                        } : undefined
-                      }));
-                    }}
-                    className="flex flex-col items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-2xl transition-colors active:scale-95 border border-blue-100 dark:border-blue-800"
-                  >
-                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center"><span className="text-white text-lg">😴</span></div>
-                    <span className="text-sm font-bold text-blue-700 dark:text-blue-300">I'm Tired</span>
-                  </button>
+                  <MotionFeedback visible={true} type="glow" color="var(--mantine-color-blue-6)">
+                    <button
+                      onClick={() => {
+                        dispatch(updateEnergyContext('tired'));
+                        dispatch(fetchWorkoutAdaptation({ 
+                          activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
+                          overrideHistory: overrideHistory || [],
+                          currentExercise: activeContext?.currentExercise ? {
+                            reps: activeContext.currentExercise.reps,
+                            sets: activeContext.currentExercise.sets,
+                            restSeconds: activeContext.currentExercise.restSeconds
+                          } : undefined
+                        }));
+                      }}
+                      className="w-full flex flex-col items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-2xl transition-colors active:scale-95 border border-blue-100 dark:border-blue-800"
+                    >
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center"><span className="text-white text-lg">😴</span></div>
+                      <span className="text-sm font-bold text-blue-700 dark:text-blue-300">I'm Tired</span>
+                    </button>
+                  </MotionFeedback>
                   
-                  <button
-                    onClick={() => {
-                      dispatch(updateTimeContext('limited'));
-                      dispatch(fetchWorkoutAdaptation({ 
-                        activeContext: { energy: 'normal', time: 'limited', equipmentStatus: 'available' }, 
-                        overrideHistory: overrideHistory || [],
-                        currentExercise: activeContext?.currentExercise ? {
-                          reps: activeContext.currentExercise.reps,
-                          sets: activeContext.currentExercise.sets,
-                          restSeconds: activeContext.currentExercise.restSeconds
-                        } : undefined
-                      }));
-                    }}
-                    className="flex flex-col items-center gap-2 p-4 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-2xl transition-colors active:scale-95 border border-orange-100 dark:border-orange-800"
-                  >
-                    <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center"><span className="text-white text-lg">⏰</span></div>
-                    <span className="text-sm font-bold text-orange-700 dark:text-orange-300">Short on Time</span>
-                  </button>
+                  <MotionFeedback visible={true} type="glow" color="var(--mantine-color-orange-6)">
+                    <button
+                      onClick={() => {
+                        dispatch(updateTimeContext('limited'));
+                        dispatch(fetchWorkoutAdaptation({ 
+                          activeContext: { energy: 'normal', time: 'limited', equipmentStatus: 'available' }, 
+                          overrideHistory: overrideHistory || [],
+                          currentExercise: activeContext?.currentExercise ? {
+                            reps: activeContext.currentExercise.reps,
+                            sets: activeContext.currentExercise.sets,
+                            restSeconds: activeContext.currentExercise.restSeconds
+                          } : undefined
+                        }));
+                      }}
+                      className="w-full flex flex-col items-center gap-2 p-4 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-2xl transition-colors active:scale-95 border border-orange-100 dark:border-orange-800"
+                    >
+                      <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center"><span className="text-white text-lg">⏰</span></div>
+                      <span className="text-sm font-bold text-orange-700 dark:text-orange-300">Short on Time</span>
+                    </button>
+                  </MotionFeedback>
                 </div>
               </div>
 

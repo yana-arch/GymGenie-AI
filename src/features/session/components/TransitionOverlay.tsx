@@ -43,6 +43,7 @@ export const TransitionOverlay: React.FC = () => {
       centered
       radius="md"
       padding="xl"
+      transitionProps={{ transition: 'fade', duration: 400 }}
       styles={{
         content: {
           backgroundColor: 'var(--mantine-color-dark-7)',

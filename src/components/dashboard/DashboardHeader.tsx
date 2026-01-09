@@ -16,9 +16,9 @@ const DashboardHeader: React.FC = () => {
   ];
 
   return (
-    <header className="bg-gray-900/80 dark:bg-black/80 backdrop-blur-md text-white px-4 py-3 shadow-xl border-b border-gray-800 sticky top-0 z-50">
+    <header className="bg-white/80 dark:bg-gray-950/80 backdrop-blur-md text-gray-900 dark:text-white px-4 py-3 shadow-lg border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-black tracking-tighter text-white uppercase italic">
+        <h1 className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white uppercase italic">
           Gym<span style={{ color: 'var(--mantine-primary-color-filled)' }}>Genie</span>
         </h1>
         <nav className="hidden md:flex space-x-2">
@@ -29,7 +29,7 @@ const DashboardHeader: React.FC = () => {
               className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition-all duration-300 relative group ${
                 activeView === item.key
                   ? 'text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
               style={activeView === item.key ? { 
                 backgroundColor: 'var(--mantine-primary-color-filled)',

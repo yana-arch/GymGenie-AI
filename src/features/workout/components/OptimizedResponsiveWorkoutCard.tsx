@@ -113,13 +113,13 @@ const OptimizedMobileWorkoutCard = optimizedMemo<OptimizedResponsiveWorkoutCardP
     return (
       <LazyRender fallback={<div className="h-32 bg-gray-100 rounded-2xl animate-pulse" />}>
         <div 
-          className={`group bg-white p-4 rounded-2xl border transition-all duration-200 relative overflow-hidden touch-target ${
+          className={`group bg-white p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden touch-target ${
             isReadOnly 
               ? 'border-gray-200 bg-gray-50/30 shadow-none opacity-80' 
               : !isReordering && exercise.isCompleted 
                 ? 'border-green-200 bg-green-50/50 shadow-none' 
-                : 'border-gray-100 shadow-sm hover:shadow-md'
-          } ${!isReordering && !isReadOnly ? 'cursor-pointer active:scale-[0.99]' : ''} ${className}`}
+                : 'border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200'
+          } ${!isReordering && !isReadOnly ? 'cursor-pointer active:scale-[0.98] active:bg-gray-50' : ''} ${className}`}
           data-component="optimized-mobile-workout-card"
         >
           {isSwapping && (

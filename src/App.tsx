@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import ResponsiveNavigation from './components/ResponsiveNavigation';
 import ThemeProvider from './components/ThemeProvider';
 import { ToastProvider } from './components/ui/Toast';
+import { Transition } from '@mantine/core';
 
 const Onboarding = React.lazy(() => import('./features/onboarding/components/Onboarding'));
 const EquipmentScanner = React.lazy(() => import('./features/profile/components/EquipmentScanner'));
@@ -30,7 +31,7 @@ const AppContent = memo(() => {
 
   if (currentAppStep === 'session') {
     return (
-      <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin text-brand-600" size={32} /></div>}>
+      <Suspense fallback={<div className="flex items-center justify-center h-screen bg-gray-900"><Loader2 className="animate-spin text-brand-600" size={32} /></div>}>
         <AchievementManager />
         <AchievementCelebration />
         <LiveWorkoutSession />
@@ -40,11 +41,11 @@ const AppContent = memo(() => {
 
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 vibe-background font-sans text-gray-900 dark:text-gray-100 transition-colors duration-500">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 vibe-background font-sans text-gray-900 dark:text-gray-100 transition-colors duration-500">
       <ResponsiveNavigation>
         {/* Global Overlay Loader */}
         {isLoading && (
-          <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 z-50 flex items-center justify-center backdrop-blur-sm animate-fade-in">
+          <div className="absolute inset-0 bg-white/80 dark:bg-gray-950/80 z-50 flex items-center justify-center backdrop-blur-sm animate-fade-in">
             <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 flex flex-col items-center">
               <Loader2 size={48} className="animate-spin text-brand-600 mb-4" />
               <p className="font-bold text-lg text-gray-800 dark:text-gray-200">GymGenie AI</p>
@@ -61,15 +62,27 @@ const AppContent = memo(() => {
 
         {/* Page content */}
         <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-brand-600" size={32} /></div>}>
-          {currentAppStep === 'onboarding' && <Onboarding />}
-          {currentAppStep === 'scanning' && <EquipmentScanner />}
-          {currentAppStep === 'generatePlan' && <WorkoutPlanGenerator />} {/* New render condition */}
-          {currentAppStep === 'dashboard' && activeView === 'home' && <HomeDashboard />}
-          {currentAppStep === 'dashboard' && activeView === 'workout' && <WorkoutDashboard />}
-          {currentAppStep === 'dashboard' && activeView === 'progress' && <ProgressDashboard />}
-          {currentAppStep === 'dashboard' && activeView === 'profile' && <ProfileDashboard />}
-          {currentAppStep === 'dashboard' && activeView === 'kitchen' && <NutritionGenie />}
-          {currentAppStep === 'dashboard' && activeView === 'createWorkoutDay' && <CreateWorkoutDay />}
+          <Transition
+            mounted={true}
+            transition="fade"
+            duration={400}
+            timingFunction="ease"
+            key={`${currentAppStep}-${activeView}`}
+          >
+            {(styles) => (
+              <div style={styles} className="h-full">
+                {currentAppStep === 'onboarding' && <Onboarding />}
+                {currentAppStep === 'scanning' && <EquipmentScanner />}
+                {currentAppStep === 'generatePlan' && <WorkoutPlanGenerator />} {/* New render condition */}
+                {currentAppStep === 'dashboard' && activeView === 'home' && <HomeDashboard />}
+                {currentAppStep === 'dashboard' && activeView === 'workout' && <WorkoutDashboard />}
+                {currentAppStep === 'dashboard' && activeView === 'progress' && <ProgressDashboard />}
+                {currentAppStep === 'dashboard' && activeView === 'profile' && <ProfileDashboard />}
+                {currentAppStep === 'dashboard' && activeView === 'kitchen' && <NutritionGenie />}
+                {currentAppStep === 'dashboard' && activeView === 'createWorkoutDay' && <CreateWorkoutDay />}
+              </div>
+            )}
+          </Transition>
         </Suspense>
       </ResponsiveNavigation>
     </div>
@@ -82,15 +95,34 @@ import '@mantine/core/styles.css';
 import { theme } from '@/theme';
 import { useMemo } from 'react';
 
+import { useAppSelector } from '@/store';
+
 const MantineThemeManager = memo(({ children }: { children: React.ReactNode }) => {
   const { themeColor } = useApp();
+  const userTheme = useAppSelector((state) => state.user.preferences.theme);
+  
   const dynamicTheme = useMemo(() => ({
     ...theme,
     primaryColor: themeColor,
   }), [themeColor]);
 
+  // Handle system theme
+  const [systemTheme, setSystemTheme] = React.useState<'dark' | 'light'>('dark');
+  
+  React.useEffect(() => {
+    if (userTheme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
+      const handler = (e: MediaQueryListEvent) => setSystemTheme(e.matches ? 'dark' : 'light');
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    }
+  }, [userTheme]);
+
+  const resolvedColorScheme = userTheme === 'system' ? systemTheme : (userTheme as 'dark' | 'light');
+
   return (
-    <MantineProvider theme={dynamicTheme} defaultColorScheme="dark">
+    <MantineProvider theme={dynamicTheme} forceColorScheme={resolvedColorScheme}>
       {children}
     </MantineProvider>
   );

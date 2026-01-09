@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Target } from 'lucide-react';
+import { Card } from '@/components/ui';
 
 const ProgramOverview: React.FC = () => {
   const { currentPlan, user } = useApp();
@@ -29,7 +30,7 @@ const ProgramOverview: React.FC = () => {
   const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+    <Card className="p-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Active Program</p>
@@ -69,7 +70,7 @@ const ProgramOverview: React.FC = () => {
           </span>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

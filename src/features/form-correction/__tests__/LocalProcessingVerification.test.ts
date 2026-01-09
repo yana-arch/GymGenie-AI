@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 /**
  * P0 Local Processing Tests (R-002)
  * Tests local-only processing verification for sensitive form correction and AI coaching data
@@ -68,6 +69,7 @@ describe('P0 Local Processing Tests - Verification of Local-Only Processing', ()
   } as any;
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     vi.clearAllMocks();
     
     // Initialize mock services

@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 import { describe, it, expect, beforeEach } from 'vitest';
 import formCorrectionReducer, {
   setFormCorrectionState,
@@ -16,6 +17,7 @@ describe('FormCorrectionSlice', () => {
   let initialState: any;
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     initialState = {
       isActive: false,
       hasCameraPermission: false,

@@ -4,7 +4,7 @@ import ExerciseFinder from './ExerciseFinder';
 import { Exercise, WorkoutExercise, UserProfile } from '@/types';
 import { useApp } from '@/context/AppContext';
 import { generateSetsForExercises } from '../services/WorkoutGenerator';
-import { Button } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
 
 const CreateWorkoutDay = memo(() => {
   const { user } = useApp();
@@ -42,8 +42,8 @@ const CreateWorkoutDay = memo(() => {
   }, [user, selectedExercises]);
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full flex flex-col h-full pb-20 md:pb-0">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Create Custom Workout Day</h2>
+    <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full flex flex-col h-full pb-20 md:pb-0 bg-transparent text-gray-900 dark:text-gray-100">
+      <h2 className="text-2xl font-bold mb-6">Create Custom Workout Day</h2>
 
       {/* Button to Add Exercises */}
       <Button
@@ -66,7 +66,7 @@ const CreateWorkoutDay = memo(() => {
           {(aiGeneratedExercises.length > 0 ? aiGeneratedExercises : selectedExercises).map((exercise, index) => {
             const workoutEx = exercise as WorkoutExercise;
             return (
-              <div key={exercise.id} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+              <Card key={exercise.id} className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-bold text-gray-900 dark:text-gray-100">{exercise.name}</h3>
                   {selectedExercises.some(ex => ex.id === exercise.id) && ( // Only show remove button for manually added exercises
@@ -88,7 +88,7 @@ const CreateWorkoutDay = memo(() => {
                     {workoutEx.notes && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Notes: {workoutEx.notes}</p>}
                   </div>
                 )}
-              </div>
+              </Card>
             );
           })}
         </div>

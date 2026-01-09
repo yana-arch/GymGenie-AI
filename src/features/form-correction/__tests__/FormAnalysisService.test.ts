@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { FormAnalysisService, FormIssue } from '../services/FormAnalysisService';
 import { Pose, PoseKeypoint } from '../services/PoseDetectionService';
@@ -6,6 +7,7 @@ describe('FormAnalysisService', () => {
   let formAnalysisService: FormAnalysisService;
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     formAnalysisService = FormAnalysisService.getInstance();
     formAnalysisService.clearHistory();
   });

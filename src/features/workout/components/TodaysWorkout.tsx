@@ -4,6 +4,7 @@ import { useApp } from "@/context/AppContext";
 import { Exercise } from "@/types";
 import { exerciseCatalogService } from "../services/ExerciseCatalogService";
 import { toTitleCase } from "../../../utils/stringUtils";
+import { Card } from "@/components/ui";
 
 interface TodaysWorkoutProps {
   onStartWorkout: (weekId: string, dayId: string) => void;
@@ -68,13 +69,13 @@ const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
   }, [currentExercise, catalogExercises]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+    <Card className="p-4">
       <h2 className="text-2xl font-bold mb-4 dark:text-gray-100 flex items-center gap-2">
         <Dumbbell size={24} className="text-brand-500" />
         Your Workout Sets
       </h2>
       <div className="relative">
-        <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl shadow-sm p-5 border border-gray-100 dark:border-gray-600">
+        <div className="bg-gray-50 dark:bg-gray-900/60 rounded-2xl shadow-sm p-5 border border-gray-100 dark:border-gray-800">
           <div className="flex justify-between items-center mb-4">
             <div>
               <p className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1">
@@ -86,7 +87,7 @@ const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
           
           <div className="flex flex-col md:flex-row gap-6">
             {/* Reference Image */}
-            <div className="w-full md:w-48 h-48 bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm shrink-0">
+            <div className="w-full md:w-48 h-48 bg-white dark:bg-gray-800/60 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm shrink-0">
                {matchedCatalogExercise?.media?.gif ? (
                  <img 
                    src={matchedCatalogExercise.media.gif} 
@@ -104,10 +105,10 @@ const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
             {/* Stats & Technique */}
             <div className="flex-1 space-y-4">
                <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 font-bold rounded-lg border border-brand-100 dark:border-brand-800">
+                  <span className="px-3 py-1.5 bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 font-bold rounded-lg border border-brand-100 dark:border-brand-800">
                     {currentExercise.sets} Sets
                   </span>
-                  <span className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-bold rounded-lg border border-blue-100 dark:border-blue-800">
+                  <span className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold rounded-lg border border-blue-100 dark:border-blue-800">
                     {currentExercise.reps} Reps
                   </span>
                </div>
@@ -115,7 +116,7 @@ const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
                {matchedCatalogExercise && (
                  <div className="space-y-3">
                     {matchedCatalogExercise.cues?.length > 0 ? (
-                      <div className="bg-blue-50/50 dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100/50 dark:border-blue-800/30">
+                      <div className="bg-blue-50/50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100/50 dark:border-blue-800/30">
                         <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1 flex items-center gap-1">
                           <Sparkles size={10} /> Pro Tip
                         </p>
@@ -124,7 +125,7 @@ const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
                         </p>
                       </div>
                     ) : matchedCatalogExercise.instructions?.length > 0 ? (
-                      <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
+                      <div className="bg-gray-50 dark:bg-gray-800/40 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
                         <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Quick Tip</p>
                         <p className="text-xs text-gray-600 dark:text-gray-400 italic line-clamp-2">
                           {matchedCatalogExercise.instructions[0].replace(/^Step:\d+\s*/i, '')}
@@ -144,18 +145,18 @@ const TodaysWorkout: React.FC<TodaysWorkoutProps> = ({ onStartWorkout }) => {
         </div>
         <button
           onClick={prevSet}
-          className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-white dark:bg-gray-600 dark:text-gray-200 rounded-full p-2 shadow-md -ml-4"
+          className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-white dark:bg-gray-800 dark:text-gray-200 rounded-full p-2 shadow-md -ml-4 border border-gray-100 dark:border-gray-700"
         >
           {'<'}
         </button>
         <button
           onClick={nextSet}
-          className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-white dark:bg-gray-600 dark:text-gray-200 rounded-full p-2 shadow-md -mr-4"
+          className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-white dark:bg-gray-800 dark:text-gray-200 rounded-full p-2 shadow-md -mr-4 border border-gray-100 dark:border-gray-700"
         >
           {'>'}
         </button>
       </div>
-    </div>
+    </Card>
   );
 };
 

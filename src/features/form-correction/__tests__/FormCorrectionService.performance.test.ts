@@ -1,5 +1,5 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 import { describe, expect, vi, beforeEach, afterEach } from 'vitest';
-import { FormCorrectionService } from '../services/FormCorrectionService';
 import { given, when, then, and, createFormTest } from '../../../test-utils';
 
 // Mock HTMLVideoElement methods to prevent "Not implemented" warnings
@@ -108,7 +108,8 @@ describe('FormCorrectionService - Performance & Resource Management', () => {
   let formCorrectionService: FormCorrectionService;
 
   beforeEach(() => {
-    formCorrectionService = new FormCorrectionService();
+    FormCorrectionService.resetInstance();
+    formCorrectionService = FormCorrectionService.getInstance();
     vi.clearAllMocks();
   });
 

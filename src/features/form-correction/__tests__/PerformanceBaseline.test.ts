@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 /**
  * P0 Performance Baseline Tests (R-003)
  * Tests performance baselines with flexible device-specific SLAs for form correction and AI coaching
@@ -51,6 +52,7 @@ describe('P0 Performance Baseline Tests - Flexible Device SLAs', () => {
   } as any;
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     vi.clearAllMocks();
     
     // Initialize mock services

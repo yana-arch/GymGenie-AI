@@ -125,7 +125,7 @@ const ProgressDashboard: React.FC = () => {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl" py="xl" className="text-gray-900 dark:text-gray-100">
       <Stack gap="xl">
         <Group justify="space-between">
           <Title order={2} className="flex items-center gap-2">
@@ -146,7 +146,7 @@ const ProgressDashboard: React.FC = () => {
         {activeTab === 'progress' ? (
           <Stack gap="xl">
             {recentAchievements.length > 0 && (
-              <Paper withBorder p="md" radius="md" bg="blue.0" className="border-blue-100">
+              <Paper withBorder p="md" radius="md" className="bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30">
                 <Stack gap="xs">
                   <Group justify="space-between">
                     <Group gap="xs">

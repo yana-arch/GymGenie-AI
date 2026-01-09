@@ -62,7 +62,7 @@ export const startFormCorrection = createAsyncThunk(
     try {
       // Dynamic import to avoid circular dependencies
       const { FormCorrectionService } = await import('../services/FormCorrectionService');
-      const service = new FormCorrectionService();
+      const service = FormCorrectionService.getInstance();
       
       await service.initialize();
       await service.startFormCorrection();
@@ -80,7 +80,7 @@ export const stopFormCorrection = createAsyncThunk(
     try {
       // Dynamic import to avoid circular dependencies
       const { FormCorrectionService } = await import('../services/FormCorrectionService');
-      const service = new FormCorrectionService();
+      const service = FormCorrectionService.getInstance();
       
       await service.stopFormCorrection();
       

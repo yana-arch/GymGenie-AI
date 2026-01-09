@@ -80,7 +80,7 @@ export class PoseDetectionService {
         // PERFORMANCE ENFORCEMENT: Skip frames if too slow
         if (processingTime > 1000) {
           console.error(`Pose detection severely slow (${processingTime}ms), consider reducing input resolution`);
-          throw new Error(`Pose detection performance failure: ${processingTime}ms exceeds 1000ms limit`);
+          // Removed hard error to prevent system crash, instead we log and continue
         }
       }
 

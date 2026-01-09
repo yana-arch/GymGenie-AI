@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 /**
  * @p0 P0 Critical Security Tests (R-001)
  * Epic 1 - AI-Powered Workout Coaching
@@ -27,6 +28,7 @@ describe('@p0 Security Tests - Form Correction Data Protection', () => {
   let privacyService: PrivacyService;
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     vi.clearAllMocks();
     formCorrectionService = MockFormCorrectionService;
     encryptionService = new EncryptionService();

@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PoseDetectionService } from '../services/PoseDetectionService';
 
@@ -52,6 +53,7 @@ describe('PoseDetectionService', () => {
   let mockVideoElement: HTMLVideoElement;
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     poseDetectionService = new PoseDetectionService();
     mockVideoElement = new HTMLVideoElement() as HTMLVideoElement;
     vi.clearAllMocks();

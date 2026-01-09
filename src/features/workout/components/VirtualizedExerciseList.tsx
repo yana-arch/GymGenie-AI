@@ -4,6 +4,8 @@ import { CheckCircle2, Target, Info } from 'lucide-react';
 import { useExerciseById } from '@/hooks/useSelectiveSubscription';
 import { Exercise, WorkoutExercise } from '@/types'; // Assuming Exercise interface is defined in types
 import CompletionStats from './CompletionStats';
+import { Transition } from '@mantine/core';
+import { useReducedMotion } from '@mantine/hooks';
 
 export interface VirtualizedExerciseListProps {
   exerciseIds: string[];
@@ -39,6 +41,7 @@ const VirtualizedExerciseList: React.FC<VirtualizedExerciseListProps> = ({
 
   const ExerciseListItem = ({ 
     exerciseId, 
+    index,
     style, 
     onToggleExercise, 
     onExerciseDetails, 
@@ -46,6 +49,7 @@ const VirtualizedExerciseList: React.FC<VirtualizedExerciseListProps> = ({
     getDifficultyColor 
   }: { 
     exerciseId: string; 
+    index: number;
     style: React.CSSProperties; 
     onToggleExercise: (id: string) => void; 
     onExerciseDetails?: (exercise: Exercise | WorkoutExercise) => void; 
@@ -53,92 +57,102 @@ const VirtualizedExerciseList: React.FC<VirtualizedExerciseListProps> = ({
     getDifficultyColor: (difficulty?: string) => string;
   }) => {
     const exerciseData = useExerciseById(exerciseId);
+    const reducedMotion = useReducedMotion();
     
     if (!exerciseData || !exerciseData.exercise) return null;
 
     const { exercise } = exerciseData;
 
     return (
-      <div style={style} className="px-4 pb-2">
-        <div
-          className={`bg-white p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer ${
-            exercise.isCompleted
-              ? 'border-green-200 bg-green-50/30'
-              : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => onToggleExercise(exercise.id)}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              {/* Completion Status */}
-              {showCompletionStatus && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleExercise(exercise.id);
-                  }}
-                  className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                    exercise.isCompleted
-                      ? 'bg-green-500 border-green-500 text-white'
-                      : 'border-gray-300 hover:border-green-400'
-                  }`}
-                >
-                  {exercise.isCompleted && <CheckCircle2 size={14} />}
-                </button>
-              )}
-              
-              {/* Exercise Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className={`font-bold text-sm truncate ${
-                    exercise.isCompleted ? 'text-green-800' : 'text-gray-900'
-                  }`}>
-                    {exercise.name}
-                  </h3>
+      <Transition
+        mounted={true}
+        transition="slide-up"
+        duration={reducedMotion ? 0 : 400}
+        timingFunction="ease"
+      >
+        {(transitionStyles) => (
+          <div style={{ ...style, ...transitionStyles, transitionDelay: reducedMotion ? '0ms' : `${(index % 10) * 50}ms` }} className="px-4 pb-2">
+            <div
+              className={`bg-white p-4 rounded-xl border transition-all duration-300 ease-in-out cursor-pointer active:scale-[0.98] hover:shadow-md hover:border-brand-200 ${
+                exercise.isCompleted
+                  ? 'border-green-200 bg-green-50/30'
+                  : 'border-gray-200'
+              }`}
+              onClick={() => onToggleExercise(exercise.id)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  {/* Completion Status */}
+                  {showCompletionStatus && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleExercise(exercise.id);
+                      }}
+                      className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                        exercise.isCompleted
+                          ? 'bg-green-500 border-green-500 text-white'
+                          : 'border-gray-300 hover:border-green-400'
+                      }`}
+                    >
+                      {exercise.isCompleted && <CheckCircle2 size={14} />}
+                    </button>
+                  )}
                   
-                </div>
-                
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <Target size={12} />
-                    <span>{exercise.sets} sets × {exercise.reps} reps</span>
+                  {/* Exercise Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className={`font-bold text-sm truncate ${
+                        exercise.isCompleted ? 'text-green-800' : 'text-gray-900'
+                      }`}>
+                        {exercise.name}
+                      </h3>
+                      
+                    </div>
+                    
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Target size={12} />
+                        <span>{exercise.sets} sets × {exercise.reps} reps</span>
+                      </div>
+                      
+                    </div>
+                    
+                    {exercise.notes && (
+                      <p className="text-xs text-gray-400 mt-1 truncate">
+                        {exercise.notes}
+                      </p>
+                    )}
                   </div>
-                  
                 </div>
                 
-                {exercise.notes && (
-                  <p className="text-xs text-gray-400 mt-1 truncate">
-                    {exercise.notes}
-                  </p>
-                )}
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {onExerciseDetails && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onExerciseDetails(exercise);
+                      }}
+                      className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                      title="View details"
+                    >
+                      <Info size={14} />
+                    </button>
+                  )}
+                  
+                  {exercise.isCompleted && (
+                    <div className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                      <CheckCircle2 size={12} />
+                      Done
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-            
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
-              {onExerciseDetails && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onExerciseDetails(exercise);
-                  }}
-                  className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                  title="View details"
-                >
-                  <Info size={14} />
-                </button>
-              )}
-              
-              {exercise.isCompleted && (
-                <div className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                  <CheckCircle2 size={12} />
-                  Done
-                </div>
-              )}
-            </div>
           </div>
-        </div>
-      </div>
+        )}
+      </Transition>
     );
   };
 
@@ -146,6 +160,7 @@ const VirtualizedExerciseList: React.FC<VirtualizedExerciseListProps> = ({
     return (
       <ExerciseListItem
         exerciseId={exerciseIds[index]}
+        index={index}
         style={style}
         onToggleExercise={onToggleExercise}
         onExerciseDetails={onExerciseDetails}

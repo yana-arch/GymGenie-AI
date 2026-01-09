@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 /**
  * Shared test utilities for form-correction feature tests
  * Centralizes common mocking patterns to reduce duplication

@@ -1,5 +1,5 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { FormCorrectionService } from '../services/FormCorrectionService';
 
 // Mock Speech Synthesis for tests
 const mockSpeechSynthesis = {
@@ -108,7 +108,8 @@ describe('Performance Validation', () => {
   let formCorrectionService: FormCorrectionService;
 
   beforeEach(() => {
-    formCorrectionService = new FormCorrectionService();
+    FormCorrectionService.resetInstance();
+    formCorrectionService = FormCorrectionService.getInstance();
     vi.clearAllMocks();
   });
 

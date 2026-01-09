@@ -1,3 +1,4 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CameraService } from '../services/CameraService';
 
@@ -51,6 +52,7 @@ describe('CameraService', () => {
   let cameraService: CameraService;
 
   beforeEach(() => {
+    FormCorrectionService.resetInstance();
     cameraService = new CameraService();
     vi.clearAllMocks();
   });

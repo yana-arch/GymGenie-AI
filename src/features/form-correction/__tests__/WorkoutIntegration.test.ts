@@ -1,5 +1,5 @@
+import { FormCorrectionService } from "../services/FormCorrectionService";
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { FormCorrectionService } from '../services/FormCorrectionService';
 import { configureStore } from '@reduxjs/toolkit';
 import formCorrectionSlice, { 
   setFormCorrectionState, 
@@ -177,7 +177,8 @@ describe('AC7: Workout Adaptation Integration', () => {
   let store: ReturnType<typeof configureStore>;
 
   beforeEach(() => {
-    formCorrectionService = new FormCorrectionService();
+    FormCorrectionService.resetInstance();
+    formCorrectionService = FormCorrectionService.getInstance();
     
     // Create store with form correction slice
     store = configureStore({

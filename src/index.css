@@ -14,44 +14,10 @@
   --color-brand-900: var(--mantine-primary-color-9);
 }
 
-/* Dark mode color overrides */
+/* Dark mode base styles */
 .dark {
-  --color-gray-50: #1f2937;
-  --color-gray-100: #374151;
-  --color-gray-200: #4b5563;
-  --color-gray-300: #6b7280;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #d1d5db;
-  --color-gray-600: #e5e7eb;
-  --color-gray-700: #f3f4f6;
-  --color-gray-800: #f9fafb;
-  --color-gray-900: #ffffff;
-
-  --color-blue-50: #1e293b;
-  --color-blue-100: #334155;
-  --color-blue-500: #3b82f6;
-  --color-blue-600: #2563eb;
-  --color-blue-800: #1e40af;
-
-  --color-green-50: #064e3b;
-  --color-green-100: #065f46;
-  --color-green-500: #10b981;
-  --color-green-600: #059669;
-  --color-green-700: #047857;
-  --color-green-800: #065f46;
-
-  --color-orange-50: #7c2d12;
-  --color-orange-100: #9a3412;
-  --color-orange-500: #f97316;
-  --color-orange-600: #ea580c;
-  --color-orange-700: #c2410c;
-
-  --color-red-100: #450a0a;
-  --color-red-500: #ef4444;
-  --color-red-600: #dc2626;
-
-  --color-white: #1f2937;
-  --color-black: #ffffff;
+  background-color: #030712; /* gray-950 */
+  color: #f8fafc; /* gray-50 */
 }
 
 /* Responsive Foundation CSS Custom Properties */

@@ -66,6 +66,7 @@ const AchievementCelebration: React.FC = () => {
       centered
       size="md"
       radius="lg"
+      transitionProps={{ transition: 'slide-up', duration: 400, timingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
       overlayProps={{
         backgroundOpacity: 0.55,
         blur: 3,

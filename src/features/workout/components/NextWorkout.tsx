@@ -3,6 +3,7 @@ import { useApp } from '@/context/AppContext';
 import { PlayCircle, CheckCircle } from 'lucide-react';
 import { SessionState } from '@/types';
 import { useToast, toast } from '@/components/ui/Toast';
+import { Card } from '@/components/ui';
 
 const NextWorkout: React.FC = () => {
   const { currentPlan, getSessionState, startWorkoutSession, setStep } = useApp();
@@ -35,11 +36,11 @@ const NextWorkout: React.FC = () => {
 
   if (!nextWorkoutInfo) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center text-center">
+      <Card className="p-6 flex flex-col items-center justify-center text-center">
         <CheckCircle className="w-12 h-12 text-green-500 mb-4" />
         <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">All Done!</h3>
         <p className="text-gray-500 dark:text-gray-400 mt-1">You've completed all workouts in this plan.</p>
-      </div>
+      </Card>
     );
   }
 

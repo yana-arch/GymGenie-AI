@@ -25,6 +25,7 @@ export interface FormCorrectionState {
 }
 
 export class FormCorrectionService {
+  private static instance: FormCorrectionService;
   private cameraService: CameraService;
   private poseDetectionService: PoseDetectionService;
   private formAnalysisService: FormAnalysisService;
@@ -37,8 +38,9 @@ export class FormCorrectionService {
   private onMilestoneReached?: (milestone: any) => void;
   private onStatusUpdate?: (status: any) => void;
   private onAdaptationRequired?: (params: any) => void;
+  private onAnalysisUpdate?: (analysis: FormAnalysis, poses: Pose[]) => void;
 
-  constructor() {
+  private constructor() {
     this.cameraService = new CameraService();
     this.poseDetectionService = new PoseDetectionService();
     this.formAnalysisService = FormAnalysisService.getInstance();
@@ -58,6 +60,23 @@ export class FormCorrectionService {
     };
   }
 
+  public static getInstance(): FormCorrectionService {
+    if (!FormCorrectionService.instance) {
+      FormCorrectionService.instance = new FormCorrectionService();
+    }
+    return FormCorrectionService.instance;
+  }
+
+  /**
+   * Resets the singleton instance (primarily for testing)
+   */
+  public static resetInstance(): void {
+    if (FormCorrectionService.instance) {
+      FormCorrectionService.instance.stopFormCorrection();
+    }
+    FormCorrectionService.instance = undefined as any;
+  }
+
   /**
    * Register listeners to avoid direct Redux store access
    */
@@ -65,10 +84,12 @@ export class FormCorrectionService {
     onMilestone?: (milestone: any) => void;
     onStatusUpdate?: (status: any) => void;
     onAdaptationRequired?: (params: any) => void;
+    onAnalysisUpdate?: (analysis: FormAnalysis, poses: Pose[]) => void;
   }) {
     this.onMilestoneReached = callbacks.onMilestone;
     this.onStatusUpdate = callbacks.onStatusUpdate;
     this.onAdaptationRequired = callbacks.onAdaptationRequired;
+    this.onAnalysisUpdate = callbacks.onAnalysisUpdate;
   }
 
   /**
@@ -109,7 +130,7 @@ export class FormCorrectionService {
   /**
    * Initialize the form correction system
    */
-  async initialize(): Promise<void> {
+  async initialize(externalVideo?: HTMLVideoElement): Promise<void> {
     try {
       // Check camera availability first
       const hasCamera = await this.cameraService.isCameraAvailable();
@@ -122,8 +143,12 @@ export class FormCorrectionService {
       // Initialize pose detection
       await this.poseDetectionService.initialize();
 
-      // Create video element for processing
-      await this.createVideoElement();
+      // Use external video element if provided, otherwise create hidden one
+      if (externalVideo) {
+        this.videoElement = externalVideo;
+      } else {
+        await this.createVideoElement();
+      }
 
       this.state.isActive = true;
     } catch (error) {
@@ -249,10 +274,18 @@ export class FormCorrectionService {
         // Provide audio feedback for form issues
         this.audioCoachingService.provideFeedback(formAnalysis);
         
+        // Notify listeners of new analysis
+        if (this.onAnalysisUpdate) {
+          this.onAnalysisUpdate(formAnalysis, poses);
+        }
+
         // AC7 Integration: Sync with LiveSessionSlice for workout adaptations
         this.syncWithLiveSession(formAnalysis);
       } else {
         this.state.feedback = 'No pose detected';
+        if (this.onAnalysisUpdate) {
+          this.onAnalysisUpdate({ isValid: false, issues: [], score: 0, feedback: 'No pose detected', timestamp: Date.now() }, []);
+        }
       }
 
       // Update performance metrics and enforce 500ms requirement
