@@ -147,8 +147,8 @@ const Onboarding = () => {
         </div>
       </div>
 
-      <div className="md:col-span-7 p-6 md:p-10 flex flex-col">
-        <form onSubmit={handleSubmit} className="flex-grow space-y-6 max-w-lg mx-auto md:mx-0 w-full">
+      <div className="md:col-span-7 p-6 md:p-10 flex flex-col justify-center items-center">
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-lg w-full">
           {currentStep === 1 && (
             <>
               <div>
@@ -283,7 +283,7 @@ const Onboarding = () => {
             </>
           )}
 
-          <div className="pt-6 mt-auto flex items-center gap-4">
+          <div className="pt-6 flex items-center gap-4">
             {currentStep > 1 && (
               <button type="button" onClick={handleBack} className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-300 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 active:scale-95 transition-all">
                 <ArrowLeft size={20} /> Back
