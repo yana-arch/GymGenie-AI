@@ -8,6 +8,7 @@ const KEYS = {
   APP_STEP: 'gymgenie_step',
   WORKOUT_HISTORY: 'gymgenie_history',
   AI_CONFIG: 'gymgenie_ai_config',
+  THEME_COLOR: 'gymgenie_theme_color',
   // Session management keys
   WORKOUT_SESSIONS: 'gymgenie_sessions',
   ACTIVE_SESSION: 'gymgenie_active_session',
@@ -88,6 +89,14 @@ export const StorageService = {
     } catch (e) {
       return null;
     }
+  },
+
+  saveThemeColor: (color: string): void => {
+    localStorage.setItem(KEYS.THEME_COLOR, color);
+  },
+
+  getThemeColor: (): string | null => {
+    return localStorage.getItem(KEYS.THEME_COLOR);
   },
 
   // Session management methods

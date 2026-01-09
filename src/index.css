@@ -1,11 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-900: #1e3a8a;
+  --color-brand-50: var(--mantine-primary-color-0);
+  --color-brand-100: var(--mantine-primary-color-1);
+  --color-brand-200: var(--mantine-primary-color-2);
+  --color-brand-300: var(--mantine-primary-color-3);
+  --color-brand-400: var(--mantine-primary-color-4);
+  --color-brand-500: var(--mantine-primary-color-5);
+  --color-brand-600: var(--mantine-primary-color-6);
+  --color-brand-700: var(--mantine-primary-color-7);
+  --color-brand-800: var(--mantine-primary-color-8);
+  --color-brand-900: var(--mantine-primary-color-9);
 }
 
 /* Dark mode color overrides */
@@ -179,6 +184,20 @@ body {
   /* Minimum height for full viewport */
   min-height: 100vh;
   min-height: 100dvh; /* Dynamic viewport height for mobile */
+  background: fixed;
+}
+
+.vibe-background {
+  background: radial-gradient(
+    circle at 50% -20%,
+    color-mix(in srgb, var(--mantine-primary-color-filled), transparent 85%),
+    transparent 50%
+  ),
+  radial-gradient(
+    circle at 80% 80%,
+    color-mix(in srgb, var(--mantine-primary-color-filled), transparent 95%),
+    transparent 40%
+  );
 }
 
 /* Container utility class */

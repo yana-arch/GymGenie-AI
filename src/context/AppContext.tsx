@@ -19,6 +19,7 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
   const [activeView, setActiveViewState] = useState<ActiveView>('home');
   const [history, setHistoryState] = useState<WorkoutHistoryEntry[]>([]);
   const [isLoading, setLoading] = useState(false);
+  const [themeColor, setThemeColorState] = useState<string>('brand');
 
   // Timer State
   const [timerSeconds, setTimerSeconds] = useState(0);
@@ -195,6 +196,8 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     if (savedPlan) setPlanState(savedPlan);
     if (savedStep) setStepState(savedStep);
     if (savedHistory) setHistoryState(savedHistory);
+    const savedTheme = StorageService.getThemeColor();
+    if (savedTheme) setThemeColorState(savedTheme);
   }, []);
 
   // Sync Logic
@@ -340,6 +343,11 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
 
   const setActiveView = useCallback((v: ActiveView) => {
     setActiveViewState(v);
+  }, []);
+
+  const setThemeColor = useCallback((c: string) => {
+    setThemeColorState(c);
+    StorageService.saveThemeColor(c);
   }, []);
 
   // Memoized action functions
@@ -760,9 +768,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
-    user, equipment, currentPlan, step, isLoading, history, activeView,
+    user, equipment, currentPlan, step, isLoading, history, activeView, themeColor,
     timerSeconds, isTimerRunning,
-    setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, logWorkout, resetApp, setActiveView,
+    setUser, setEquipment, setPlan, setStep, setLoading, toggleExercise, updateDayInPlan, logWorkout, resetApp, setActiveView, setThemeColor,
     startRestTimer, stopRestTimer, addTimerSeconds, moveExercise, replaceExerciseInPlan,
     sessionStartTime, exerciseTimestamps,
     // New session management properties
@@ -770,9 +778,9 @@ export const AppProvider = ({ children }: PropsWithChildren) => {
     startWorkoutSession, completeWorkoutSession, logWorkoutSession, abandonWorkoutSession, addSetToSession,
     isWorkoutReadOnly, canModifyExercise, getSessionState
   }), [
-    user, equipment, currentPlan, step, isLoading, history, activeView,
+    user, equipment, currentPlan, step, isLoading, history, activeView, themeColor,
     timerSeconds, isTimerRunning,
-    setUser, setEquipment, setPlan, setStep, toggleExercise, updateDayInPlan, logWorkout, resetApp, setActiveView,
+    setUser, setEquipment, setPlan, setStep, toggleExercise, updateDayInPlan, logWorkout, resetApp, setActiveView, setThemeColor,
     startRestTimer, stopRestTimer, addTimerSeconds, moveExercise, replaceExerciseInPlan,
     sessionStartTime, exerciseTimestamps,
     sessionManager, currentSession,

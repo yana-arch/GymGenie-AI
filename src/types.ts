@@ -387,6 +387,7 @@ export interface AppState {
   activeView: ActiveView;
   isLoading: boolean;
   history: WorkoutHistoryEntry[];
+  themeColor: string;
 }
 
 // Enhanced AppContext interface with session management
@@ -398,6 +399,7 @@ export interface AppContextType extends AppState {
   setStep: (step: AppStep) => void;
   setActiveView: (view: ActiveView) => void;
   setLoading: (loading: boolean) => void;
+  setThemeColor: (color: string) => void;
   toggleExercise: (exerciseId: string) => Promise<boolean>;
   updateDayInPlan: (weekId: string, updatedDay: WorkoutDay) => void;
   logWorkout: (

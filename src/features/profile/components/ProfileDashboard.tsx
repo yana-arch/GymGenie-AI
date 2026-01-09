@@ -10,6 +10,7 @@ import EquipmentList from './EquipmentList';
 import SettingsMenu from './SettingsMenu';
 import DataManagementSection from './DataManagementSection';
 import EquipmentScanner from './EquipmentScanner';
+import { ThemeCustomizer } from '@/theme/ThemeCustomizer';
 
 interface ProfileDashboardProps {}
 
@@ -51,6 +52,7 @@ const ProfileDashboard: React.FC<ProfileDashboardProps> = () => {
 
         {/* Right Column (Settings & Data) */}
         <div className={`${isDesktop ? 'col-span-4 space-y-6' : 'space-y-6'}`}>
+            <ThemeCustomizer />
             <SettingsMenu />
             <DataManagementSection />
         </div>

@@ -16,23 +16,32 @@ const DashboardHeader: React.FC = () => {
   ];
 
   return (
-    <header className="bg-gray-800 dark:bg-gray-900 text-white dark:text-gray-100 px-4 py-3 shadow-md border-b border-gray-700 dark:border-gray-800">
+    <header className="bg-gray-900/80 dark:bg-black/80 backdrop-blur-md text-white px-4 py-3 shadow-xl border-b border-gray-800 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-xl font-bold text-white dark:text-gray-100">GymGenie</h1>
-        <nav className="hidden md:flex space-x-1">
+        <h1 className="text-2xl font-black tracking-tighter text-white uppercase italic">
+          Gym<span style={{ color: 'var(--mantine-primary-color-filled)' }}>Genie</span>
+        </h1>
+        <nav className="hidden md:flex space-x-2">
           {navItems.map((item) => (
             <button
               key={item.key}
               onClick={() => setActiveView(item.key as ActiveView)}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative ${
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition-all duration-300 relative group ${
                 activeView === item.key
-                  ? 'text-brand-400 bg-brand-50/10'
-                  : 'text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-100 hover:bg-gray-700/50'
+                  ? 'text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
               }`}
+              style={activeView === item.key ? { 
+                backgroundColor: 'var(--mantine-primary-color-filled)',
+                boxShadow: '0 10px 15px -3px var(--mantine-primary-color-light-hover)'
+              } : {}}
             >
               {item.label}
-              {activeView === item.key && (
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-brand-400 rounded-full"></div>
+              {activeView !== item.key && (
+                <div 
+                  className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 transition-all duration-300 group-hover:w-4"
+                  style={{ backgroundColor: 'var(--mantine-primary-color-filled)' }}
+                ></div>
               )}
             </button>
           ))}

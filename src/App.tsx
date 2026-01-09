@@ -40,7 +40,7 @@ const AppContent = memo(() => {
 
 
   return (
-    <div className="h-screen bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
+    <div className="h-screen bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100 transition-colors duration-500">
       <ResponsiveNavigation>
         {/* Global Overlay Loader */}
         {isLoading && (
@@ -77,11 +77,23 @@ const AppContent = memo(() => {
 });
 
 
-import { MantineProvider, createTheme } from '@mantine/core';
+import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
+import { theme } from '@/theme';
+import { useMemo } from 'react';
 
-const theme = createTheme({
-  primaryColor: 'blue',
+const MantineThemeManager = memo(({ children }: { children: React.ReactNode }) => {
+  const { themeColor } = useApp();
+  const dynamicTheme = useMemo(() => ({
+    ...theme,
+    primaryColor: themeColor,
+  }), [themeColor]);
+
+  return (
+    <MantineProvider theme={dynamicTheme} defaultColorScheme="dark">
+      {children}
+    </MantineProvider>
+  );
 });
 
 const App = memo(() => {
@@ -104,7 +116,7 @@ const App = memo(() => {
     <GlobalErrorBoundary onError={handleGlobalError}>
       <ReduxProvider>
         <AppProvider>
-          <MantineProvider theme={theme} defaultColorScheme="light">
+          <MantineThemeManager>
             <ThemeProvider>
               <ToastProvider>
                 <SessionErrorBoundary>
@@ -112,7 +124,7 @@ const App = memo(() => {
                 </SessionErrorBoundary>
               </ToastProvider>
             </ThemeProvider>
-          </MantineProvider>
+          </MantineThemeManager>
         </AppProvider>
       </ReduxProvider>
     </GlobalErrorBoundary>
