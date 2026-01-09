@@ -410,15 +410,23 @@ body {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .responsive-navigation {
-    border-color: ButtonText;
+    border-color: currentColor;
   }
   
   .responsive-navigation button {
-    border: 1px solid ButtonText;
+    border: 1px solid currentColor;
   }
   
   .responsive-navigation button:hover {
-    background-color: Highlight;
-    color: HighlightText;
+    background-color: #000;
+    color: #fff;
+    outline: 2px solid currentColor;
+  }
+  
+  .dark @media (prefers-contrast: high) {
+    .responsive-navigation button:hover {
+      background-color: #fff;
+      color: #000;
+    }
   }
 }

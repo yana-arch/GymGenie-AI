@@ -65,14 +65,15 @@ import { createTheme, MantineThemeOverride, MantineTheme } from '@mantine/core';
         },
         styles: (theme: MantineTheme) => ({
           root: {
-            backgroundColor: 'light-dark(rgba(255, 255, 255, 0.7), rgba(17, 24, 39, 0.7))',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+            backgroundColor: 'light-dark(rgba(255, 255, 255, 0.8), rgba(17, 24, 39, 0.7))',
+            backgroundImage: 'light-dark(linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%), none)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             transition: 'transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 300ms ease, border-color 300ms ease',
-            borderColor: 'light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1))',
+            borderColor: 'light-dark(var(--mantine-primary-color-light), rgba(255, 255, 255, 0.1))',
             '&:hover': {
               transform: 'translateY(-8px) scale(1.01)',
-              boxShadow: '0 20px 40px -15px var(--mantine-primary-color-light-hover)',
+              boxShadow: 'light-dark(0 20px 40px -15px var(--mantine-primary-color-light), 0 20px 40px -15px var(--mantine-primary-color-light-hover))',
               borderColor: 'var(--mantine-primary-color-filled)',
             },
           },
@@ -85,13 +86,13 @@ import { createTheme, MantineThemeOverride, MantineTheme } from '@mantine/core';
         styles: {
           root: {
             transition: 'transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 300ms ease, border-color 300ms ease',
-            backgroundColor: 'light-dark(rgba(255, 255, 255, 0.7), rgba(17, 24, 39, 0.7))',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderColor: 'light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1))',
+            backgroundColor: 'light-dark(rgba(255, 255, 255, 0.8), rgba(17, 24, 39, 0.7))',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderColor: 'light-dark(var(--mantine-primary-color-light), rgba(255, 255, 255, 0.1))',
             '&[data-with-border]:hover': {
               borderColor: 'var(--mantine-primary-color-filled)',
-              boxShadow: '0 10px 30px -10px var(--mantine-primary-color-light-hover)',
+              boxShadow: 'light-dark(0 10px 30px -10px var(--mantine-primary-color-light), 0 10px 30px -10px var(--mantine-primary-color-light-hover))',
               transform: 'translateY(-4px)',
             },
           },

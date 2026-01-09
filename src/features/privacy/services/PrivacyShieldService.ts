@@ -143,7 +143,7 @@ export class PrivacyShieldService {
   }
 
   private isIsolated = false;
-  private originalFetch = global.fetch;
+  private originalFetch = typeof window !== 'undefined' ? window.fetch : undefined;
 
   /**
    * Logs access to specific data fields
@@ -164,12 +164,12 @@ export class PrivacyShieldService {
    * Enables hard network isolation by intercepting fetch
    */
   async enableNetworkIsolation(): Promise<void> {
-    if (this.isIsolated) return;
+    if (this.isIsolated || typeof window === 'undefined') return;
     this.isIsolated = true;
-    this.originalFetch = global.fetch;
+    this.originalFetch = window.fetch;
     
     // @ts-ignore
-    global.fetch = async (...args: any[]) => {
+    window.fetch = async (...args: any[]) => {
       console.warn('❌ Network call blocked during privacy-isolated processing:', args[0]);
       throw new Error('Privacy Violation: Network access blocked during sensitive processing');
     };
@@ -181,8 +181,9 @@ export class PrivacyShieldService {
    * Restores original fetch
    */
   async disableNetworkIsolation(): Promise<void> {
-    if (!this.isIsolated) return;
-    global.fetch = this.originalFetch;
+    if (!this.isIsolated || typeof window === 'undefined') return;
+    // @ts-ignore
+    window.fetch = this.originalFetch!;
     this.isIsolated = false;
     
     await PrivacyAuditService.log('setting_change', 'network_isolation', 'success', 'Disabled');

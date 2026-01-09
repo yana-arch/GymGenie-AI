@@ -73,6 +73,16 @@ export const StorageService = {
     localStorage.clear();
   },
 
+  devPurge: (): void => {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith('gymgenie_') || key.startsWith('persist:')) {
+        localStorage.removeItem(key);
+      }
+    });
+    console.warn('🚀 [DEV] Cache Purged: LocalStorage and Redux state have been cleared.');
+  },
+
   saveAiConfig: (config: AiProviderConfig): void => {
     try {
       localStorage.setItem(KEYS.AI_CONFIG, JSON.stringify(config));

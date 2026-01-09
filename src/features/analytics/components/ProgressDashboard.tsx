@@ -125,7 +125,7 @@ const ProgressDashboard: React.FC = () => {
   }
 
   return (
-    <Container size="xl" py="xl" className="text-gray-900 dark:text-gray-100">
+    <Container size="xl" py="xl" className="text-gray-900 dark:text-gray-100 bg-transparent animate-fade-in pb-20 md:pb-0">
       <Stack gap="xl">
         <Group justify="space-between">
           <Title order={2} className="flex items-center gap-2">

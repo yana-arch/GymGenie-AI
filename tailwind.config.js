@@ -17,11 +17,16 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          500: '#3b82f6',
-          600: '#2563eb',
-          900: '#1e3a8a',
+          50: 'var(--mantine-primary-color-0)',
+          100: 'var(--mantine-primary-color-1)',
+          200: 'var(--mantine-primary-color-2)',
+          300: 'var(--mantine-primary-color-3)',
+          400: 'var(--mantine-primary-color-4)',
+          500: 'var(--mantine-primary-color-6)', // Primary
+          600: 'var(--mantine-primary-color-7)',
+          700: 'var(--mantine-primary-color-8)',
+          800: 'var(--mantine-primary-color-9)',
+          900: 'var(--mantine-primary-color-9)',
         }
       },
       // Responsive spacing system

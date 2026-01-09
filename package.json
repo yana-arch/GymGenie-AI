@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:fresh": "vite --open -- /?devMode=true",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest --run",
