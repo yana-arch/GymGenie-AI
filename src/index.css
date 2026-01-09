@@ -18,6 +18,56 @@
 .dark {
   background-color: #030712; /* gray-950 */
   color: #f8fafc; /* gray-50 */
+  color-scheme: dark;
+}
+
+.light {
+  color-scheme: light;
+}
+
+/* Base responsive styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* Prevent horizontal scrolling */
+  overflow-x: hidden;
+  /* Smooth scrolling for better UX */
+  scroll-behavior: smooth;
+  /* Optimize text rendering */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  transition: background-color 0.5s ease;
+}
+
+body {
+  /* Prevent horizontal scrolling */
+  overflow-x: hidden;
+  /* Minimum height for full viewport */
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
+  background: fixed;
+}
+
+.vibe-background {
+  background-attachment: fixed;
+  background-image: 
+    radial-gradient(
+      circle at 50% -10%,
+      color-mix(in srgb, var(--mantine-primary-color-filled, #f97316), transparent 70%),
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      color-mix(in srgb, var(--mantine-primary-color-filled, #f97316), transparent 80%),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 10% 90%,
+      color-mix(in srgb, var(--mantine-primary-color-filled, #f97316), transparent 85%),
+      transparent 40%
+    );
 }
 
 /* Responsive Foundation CSS Custom Properties */

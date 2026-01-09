@@ -41,15 +41,15 @@ const AppContent = memo(() => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 vibe-background font-sans text-gray-900 dark:text-gray-100 transition-colors duration-500">
+    <div className="min-h-screen bg-white dark:bg-gray-950 vibe-background font-sans text-gray-900 dark:text-gray-100 transition-colors duration-500">
       <ResponsiveNavigation>
         {/* Global Overlay Loader */}
         {isLoading && (
-          <div className="absolute inset-0 bg-white/80 dark:bg-gray-950/80 z-50 flex items-center justify-center backdrop-blur-sm animate-fade-in">
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 flex flex-col items-center">
+          <div className="absolute inset-0 bg-white/20 dark:bg-black/20 z-50 flex items-center justify-center backdrop-blur-xl animate-fade-in">
+            <div className="bg-white/40 dark:bg-gray-800/40 p-8 rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/30 flex flex-col items-center backdrop-blur-md">
               <Loader2 size={48} className="animate-spin text-brand-600 mb-4" />
               <p className="font-bold text-lg text-gray-800 dark:text-gray-200">GymGenie AI</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Crafting your plan...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Crafting your vibe...</p>
             </div>
           </div>
         )}
@@ -106,20 +106,20 @@ const MantineThemeManager = memo(({ children }: { children: React.ReactNode }) =
     primaryColor: themeColor,
   }), [themeColor]);
 
-  // Handle system theme
-  const [systemTheme, setSystemTheme] = React.useState<'dark' | 'light'>('dark');
+  // Read theme from document class (set by ThemeProvider)
+  const [resolvedColorScheme, setResolvedColorScheme] = React.useState<'dark' | 'light'>('dark');
   
   React.useEffect(() => {
-    if (userTheme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-      const handler = (e: MediaQueryListEvent) => setSystemTheme(e.matches ? 'dark' : 'light');
-      mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery.removeEventListener('change', handler);
-    }
-  }, [userTheme]);
+    const root = document.documentElement;
+    const updateTheme = () => {
+      setResolvedColorScheme(root.classList.contains('dark') ? 'dark' : 'light');
+    };
 
-  const resolvedColorScheme = userTheme === 'system' ? systemTheme : (userTheme as 'dark' | 'light');
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <MantineProvider theme={dynamicTheme} forceColorScheme={resolvedColorScheme}>

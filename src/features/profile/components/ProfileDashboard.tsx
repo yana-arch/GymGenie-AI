@@ -23,9 +23,9 @@ const ProfileDashboard: React.FC<ProfileDashboardProps> = () => {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 md:bg-white md:dark:bg-gray-800 animate-fade-in pb-20 md:pb-0">
+    <div className="flex flex-col h-full bg-transparent animate-fade-in pb-20 md:pb-0">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <div className="bg-white/10 dark:bg-black/10 p-6 border-b border-white/10 dark:border-white/5 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md shadow-sm">
         <div className="flex items-center gap-4">
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">

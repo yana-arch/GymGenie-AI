@@ -65,11 +65,11 @@ import { createTheme, MantineThemeOverride, MantineTheme } from '@mantine/core';
         },
         styles: (theme: MantineTheme) => ({
           root: {
-            backgroundColor: 'light-dark(var(--mantine-color-white), var(--mantine-color-dark-7))',
+            backgroundColor: 'light-dark(rgba(255, 255, 255, 0.7), rgba(17, 24, 39, 0.7))',
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
             transition: 'transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 300ms ease, border-color 300ms ease',
-            borderColor: 'light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6))',
+            borderColor: 'light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1))',
             '&:hover': {
               transform: 'translateY(-8px) scale(1.01)',
               boxShadow: '0 20px 40px -15px var(--mantine-primary-color-light-hover)',
@@ -85,8 +85,10 @@ import { createTheme, MantineThemeOverride, MantineTheme } from '@mantine/core';
         styles: {
           root: {
             transition: 'transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 300ms ease, border-color 300ms ease',
-            backgroundColor: 'light-dark(var(--mantine-color-white), var(--mantine-color-dark-7))',
-            borderColor: 'light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6))',
+            backgroundColor: 'light-dark(rgba(255, 255, 255, 0.7), rgba(17, 24, 39, 0.7))',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderColor: 'light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1))',
             '&[data-with-border]:hover': {
               borderColor: 'var(--mantine-primary-color-filled)',
               boxShadow: '0 10px 30px -10px var(--mantine-primary-color-light-hover)',
@@ -99,6 +101,9 @@ import { createTheme, MantineThemeOverride, MantineTheme } from '@mantine/core';
         styles: {
           tab: {
             fontWeight: 600,
+          },
+          panel: {
+            backgroundColor: 'transparent',
           },
         },
       },

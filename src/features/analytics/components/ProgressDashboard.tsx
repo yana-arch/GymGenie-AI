@@ -129,10 +129,10 @@ const ProgressDashboard: React.FC = () => {
       <Stack gap="xl">
         <Group justify="space-between">
           <Title order={2} className="flex items-center gap-2">
-            <TrendingUp size={28} className="text-blue-600" />
+            <TrendingUp size={28} className="text-brand-600" />
             Fitness Analytics
           </Title>
-          <Tabs value={activeTab} onChange={setActiveTab} variant="pills" color="blue">
+          <Tabs value={activeTab} onChange={setActiveTab} variant="pills" color="var(--mantine-primary-color-filled)">
             <Tabs.List>
               <Tabs.Tab value="progress" leftSection={<BarChart2 size={16} />}>Progress</Tabs.Tab>
               <Tabs.Tab value="trends" leftSection={<LineChart size={16} />}>Trends</Tabs.Tab>
@@ -146,21 +146,21 @@ const ProgressDashboard: React.FC = () => {
         {activeTab === 'progress' ? (
           <Stack gap="xl">
             {recentAchievements.length > 0 && (
-              <Paper withBorder p="md" radius="md" className="bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30">
+              <Paper withBorder p="md" radius="md" className="bg-white/10 dark:bg-black/10 border-white/10 dark:border-white/5 backdrop-blur-sm">
                 <Stack gap="xs">
                   <Group justify="space-between">
                     <Group gap="xs">
-                      <Trophy size={18} className="text-blue-600" />
+                      <Trophy size={18} className="text-brand-500" />
                       <Text fw={700} size="sm">Recent Achievements</Text>
                     </Group>
-                    <Button variant="subtle" size="xs" onClick={() => setActiveTab('achievements')}>
+                    <Button variant="subtle" size="xs" onClick={() => setActiveTab('achievements')} color="brand">
                       View Wall of Fame
                     </Button>
                   </Group>
                   <Group gap="md">
                     {recentAchievements.map((achievement) => (
                       <Group key={achievement.earnedId} gap="xs">
-                        <ThemeIcon size="sm" radius="xl" color="blue" variant="light">
+                        <ThemeIcon size="sm" radius="xl" color="brand" variant="light">
                           <Star size={12} />
                         </ThemeIcon>
                         <Text size="xs" fw={600}>{achievement.label}</Text>

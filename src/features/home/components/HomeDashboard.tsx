@@ -101,9 +101,9 @@ const HomeDashboard: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-white md:dark:bg-gray-800 animate-fade-in pb-20 md:pb-0">
+    <div className="h-full flex flex-col bg-transparent animate-fade-in pb-20 md:pb-0">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 p-6 border-b border-gray-100 dark:border-gray-700 shadow-sm">
+      <div className="bg-white/10 dark:bg-black/10 p-6 border-b border-white/10 dark:border-white/5 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -126,7 +126,7 @@ const HomeDashboard: React.FC = () => {
               {/* Widgets Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Workout Card */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                <div className="bg-white/40 dark:bg-gray-800/40 rounded-2xl shadow-xl border border-white/20 dark:border-white/5 p-6 backdrop-blur-md">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                       <Target className="text-blue-500" size={20} />
@@ -169,7 +169,7 @@ const HomeDashboard: React.FC = () => {
                 </div>
 
                 {/* Nutrition Card */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                <div className="bg-white/40 dark:bg-gray-800/40 rounded-2xl shadow-xl border border-white/20 dark:border-white/5 p-6 backdrop-blur-md">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                       <Flame className="text-orange-500" size={20} />
@@ -193,7 +193,7 @@ const HomeDashboard: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                    <div className="pt-2 border-t border-white/10 dark:border-white/5">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           Remaining
@@ -218,7 +218,7 @@ const HomeDashboard: React.FC = () => {
               </div>
 
               {/* Quick Actions Grid */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <div className="bg-white/40 dark:bg-gray-800/40 rounded-2xl shadow-xl border border-white/20 dark:border-white/5 p-6 backdrop-blur-md">
                 <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center gap-2">
                   <Zap className="text-purple-500" size={20} />
                   Quick Actions
@@ -293,7 +293,7 @@ const HomeDashboard: React.FC = () => {
               </div>
 
               {/* Motivational Quote */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <div className="bg-white/40 dark:bg-gray-800/40 rounded-2xl shadow-xl border border-white/20 dark:border-white/5 p-6 backdrop-blur-md">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/40 rounded-full flex items-center justify-center">
                     <span className="text-purple-600 text-sm">💪</span>
@@ -309,14 +309,14 @@ const HomeDashboard: React.FC = () => {
               </div>
 
               {/* Recent Activity Preview */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <div className="bg-white/40 dark:bg-gray-800/40 rounded-2xl shadow-xl border border-white/20 dark:border-white/5 p-6 backdrop-blur-md">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                     📈 Recent Activity
                   </h3>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-white/20 dark:bg-gray-700/30 rounded-lg">
                     <div className="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center">
                       <Target className="w-4 h-4 text-green-600" />
                     </div>
@@ -325,7 +325,7 @@ const HomeDashboard: React.FC = () => {
                       <p className="text-xs text-gray-500 dark:text-gray-400">2 hours ago</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-white/20 dark:bg-gray-700/30 rounded-lg">
                     <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/40 rounded-full flex items-center justify-center">
                       <Camera className="w-4 h-4 text-orange-600" />
                     </div>
