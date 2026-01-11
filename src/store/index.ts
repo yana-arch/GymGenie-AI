@@ -29,12 +29,16 @@ import analyticsReducer from "@/features/analytics/store/analyticsSlice";
 import { secureStorage } from "@/features/privacy/services/SecureStorage";
 import { preferenceLearningMiddleware } from "./middleware/preferenceLearningMiddleware";
 
+import featureFlagSlice from "@/features/ui/store/featureFlagSlice";
+import { migrate } from "./migrations";
+
 const rootReducer = combineReducers({
   session: sessionSlice,
   liveSession: liveSessionSlice,
   workout: workoutSlice,
   user: userSlice,
   ui: uiSlice,
+  featureFlags: featureFlagSlice,
   formCorrection: formCorrectionSlice,
   safetyOverride: safetyOverrideSlice,
   injuryAware: injuryAwareSlice,
@@ -49,8 +53,10 @@ const rootReducer = combineReducers({
 
 const persistConfig = {
   key: "root",
+  version: 1,
   storage: secureStorage,
-  whitelist: ["user", "workout", "session", "formCorrection", "safetyOverride", "injuryAware", "unifiedCoaching", "preferenceLearning", "historicalPatterns", "feedbackPersonalization", "privacy", "achievement", "analytics"], // Persist important data
+  migrate,
+  whitelist: ["user", "workout", "session", "liveSession", "featureFlags", "formCorrection", "safetyOverride", "injuryAware", "unifiedCoaching", "preferenceLearning", "historicalPatterns", "feedbackPersonalization", "privacy", "achievement", "analytics"], // Persist important data
   // ui slice is transient
 };
 

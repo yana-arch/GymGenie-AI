@@ -10,7 +10,14 @@ export const preferenceLearningMiddleware: Middleware = (store) => (next) => asy
 
   if (setIsActive.match(action) && action.payload === false) {
     // Session just ended
-    const state = store.getState();
+    const state = store.getState() as any;
+    
+    // Check if AI features are enabled
+    if (state.featureFlags && !state.featureFlags.enableAI) {
+      console.log('ℹ️ AI features disabled, skipping preference learning');
+      return result;
+    }
+
     const liveSession = state.liveSession;
     const formCorrection = state.formCorrection;
     const safetyOverride = state.safetyOverride;

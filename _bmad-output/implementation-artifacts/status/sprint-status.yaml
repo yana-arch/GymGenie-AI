@@ -84,8 +84,8 @@ development_status:
   6-5-responsive-polish-multi-device-harmony: done
   epic-6-retrospective: done
 
-  epic-7: backlog
-  7-1-backward-compatibility-foundation: backlog
+  epic-7: in-progress
+  7-1-backward-compatibility-foundation: done
   7-2-incremental-ai-adoption: backlog
   7-3-graceful-feature-degradation: backlog
   7-4-workflow-continuity-assurance: backlog
