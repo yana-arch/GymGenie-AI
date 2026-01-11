@@ -41,6 +41,7 @@ import { selectSessions } from '@/features/session/store/sessionSlice';
 import { useApp } from '@/context/AppContext';
 import { RootState, useAppSelector } from '@/store';
 import { SummaryCard } from '@/components/ui';
+import FeatureGuard from '@/components/ui/FeatureGuard';
 
 const ProgressDashboard: React.FC = () => {
   const history = useAppSelector((state: RootState) => state.workout.history);
@@ -135,10 +136,14 @@ const ProgressDashboard: React.FC = () => {
           <Tabs value={activeTab} onChange={setActiveTab} variant="pills" color="var(--mantine-primary-color-filled)">
             <Tabs.List>
               <Tabs.Tab value="progress" leftSection={<BarChart2 size={16} />}>Progress</Tabs.Tab>
-              <Tabs.Tab value="trends" leftSection={<LineChart size={16} />}>Trends</Tabs.Tab>
-              <Tabs.Tab value="predictions" leftSection={<Sparkles size={16} />}>Predictions</Tabs.Tab>
+              <FeatureGuard feature="enableAnalytics">
+                <Tabs.Tab value="trends" leftSection={<LineChart size={16} />}>Trends</Tabs.Tab>
+                <Tabs.Tab value="predictions" leftSection={<Sparkles size={16} />}>Predictions</Tabs.Tab>
+              </FeatureGuard>
               <Tabs.Tab value="achievements" leftSection={<Trophy size={16} />}>Achievements</Tabs.Tab>
-              <Tabs.Tab value="ai-impact" leftSection={<BrainCircuit size={16} />}>AI Impact</Tabs.Tab>
+              <FeatureGuard feature="enableAnalytics">
+                <Tabs.Tab value="ai-impact" leftSection={<BrainCircuit size={16} />}>AI Impact</Tabs.Tab>
+              </FeatureGuard>
             </Tabs.List>
           </Tabs>
         </Group>
@@ -234,13 +239,19 @@ const ProgressDashboard: React.FC = () => {
             </Grid>
           </Stack>
         ) : activeTab === 'trends' ? (
-          <TrendAnalysisTab period={period} setPeriod={setPeriod} />
+          <FeatureGuard feature="enableAnalytics" fallback={<Center h={200}><Text c="dimmed">AI Trends are disabled in settings.</Text></Center>}>
+            <TrendAnalysisTab period={period} setPeriod={setPeriod} />
+          </FeatureGuard>
         ) : activeTab === 'predictions' ? (
-          <PredictionTab period={period} setPeriod={setPeriod} />
+          <FeatureGuard feature="enableAnalytics" fallback={<Center h={200}><Text c="dimmed">AI Predictions are disabled in settings.</Text></Center>}>
+            <PredictionTab period={period} setPeriod={setPeriod} />
+          </FeatureGuard>
         ) : activeTab === 'achievements' ? (
           <AchievementList />
         ) : (
-          <CorrelationDashboard />
+          <FeatureGuard feature="enableAnalytics" fallback={<Center h={200}><Text c="dimmed">AI Impact analysis is disabled in settings.</Text></Center>}>
+            <CorrelationDashboard />
+          </FeatureGuard>
         )}
       </Stack>
     </Container>

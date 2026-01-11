@@ -6,6 +6,18 @@ import sessionSlice from '../../features/session/store/sessionSlice';
 import liveSessionSlice from '../../features/session/store/liveSessionSlice';
 import workoutSlice from '../../features/workout/store/workoutSlice';
 import userSlice from '../../features/user/store/userSlice';
+import featureFlagSlice from '../../features/ui/store/featureFlagSlice';
+import formCorrectionSlice from '../../features/form-correction/store/formCorrectionSlice';
+import safetyOverrideSlice from '../../features/safety-override/store/safetyOverrideSlice';
+import injuryAwareSlice from '../../features/injury-aware/store/injuryAwareSlice';
+import unifiedCoachingSlice from '../../store/unifiedCoachingSlice';
+import preferenceLearningSlice from '../../store/preferenceLearningSlice';
+import historicalPatternsSlice from '../../store/historicalPatternsSlice';
+import { feedbackPersonalizationReducer } from '../../features/feedback-driven-personalization/store/feedbackPersonalizationSlice';
+import privacyReducer from '../../features/privacy/store/privacySlice';
+import achievementReducer from '../../features/analytics/store/achievementSlice';
+import analyticsReducer from '../../features/analytics/store/analyticsSlice';
+import uiSlice from '../../features/ui/store/uiSlice';
 import { EnhancedUserProfile } from '../../types/enhanced';
 import { vi } from 'vitest';
 
@@ -18,6 +30,18 @@ export function createMockStore(preloadedState = {}) {
     liveSession: liveSessionSlice,
     workout: workoutSlice,
     user: userSlice,
+    ui: uiSlice,
+    featureFlags: featureFlagSlice,
+    formCorrection: formCorrectionSlice,
+    safetyOverride: safetyOverrideSlice,
+    injuryAware: injuryAwareSlice,
+    unifiedCoaching: unifiedCoachingSlice,
+    preferenceLearning: preferenceLearningSlice,
+    historicalPatterns: historicalPatternsSlice,
+    feedbackPersonalization: feedbackPersonalizationReducer,
+    privacy: privacyReducer,
+    achievement: achievementReducer,
+    analytics: analyticsReducer,
   });
 
   return configureStore({

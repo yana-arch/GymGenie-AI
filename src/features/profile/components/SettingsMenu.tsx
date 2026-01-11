@@ -4,6 +4,7 @@ import { Settings, Moon, Sun, Monitor, Bell, Timer, Key, Server, Lock } from 'lu
 import { useDispatch, useSelector } from 'react-redux';
 import { setTheme, toggleNotifications, setDefaultRestTime, updateAiConfig } from '@/features/user/store/userSlice';
 import { AiProviderConfig } from '@/types';
+import AISettings from '@/features/settings/components/AISettings';
 
 const SettingsMenu: React.FC = () => {
   const dispatch = useDispatch();
@@ -115,6 +116,10 @@ const SettingsMenu: React.FC = () => {
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="my-2">
+          <AISettings />
         </div>
 
         <div className="border-t border-gray-100 dark:border-gray-700 my-4"></div>

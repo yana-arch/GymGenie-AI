@@ -2,6 +2,9 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface FeatureFlagState {
   enableAI: boolean;
+  enableCoaching: boolean;
+  enablePersonalization: boolean;
+  enableAnalytics: boolean;
   enableFormCorrection: boolean;
   enableInjuryAwareness: boolean;
   enableUnifiedCoaching: boolean;
@@ -9,10 +12,13 @@ interface FeatureFlagState {
 }
 
 const initialState: FeatureFlagState = {
-  enableAI: true,
-  enableFormCorrection: true,
-  enableInjuryAwareness: true,
-  enableUnifiedCoaching: true,
+  enableAI: false,
+  enableCoaching: false,
+  enablePersonalization: false,
+  enableAnalytics: false,
+  enableFormCorrection: false,
+  enableInjuryAwareness: false,
+  enableUnifiedCoaching: false,
   debugMode: process.env.NODE_ENV !== 'production',
 };
 

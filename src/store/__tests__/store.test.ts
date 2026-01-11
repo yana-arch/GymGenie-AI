@@ -4,7 +4,7 @@ import { startSession, completeSession } from '@/features/session/store/sessionS
 import { setPlan, toggleExercise } from '@/features/workout/store/workoutSlice';
 import { setProfile, setEquipment } from '@/features/user/store/userSlice';
 import { startTimer, openModal } from '@/features/ui/store/uiSlice';
-import { SessionState, Gender, FitnessGoal } from '@/types';
+import { SessionState, Gender, FitnessGoal, Difficulty } from '@/types';
 
 describe('Redux Store Integration', () => {
   beforeEach(() => {
@@ -91,7 +91,7 @@ describe('Redux Store Integration', () => {
       weightKg: 80,
       gender: Gender.Male,
       goal: FitnessGoal.MuscleGain,
-      fitnessLevel: 'intermediate' as const,
+      fitnessLevel: Difficulty.Intermediate,
       workoutDays: 4,
       workoutDuration: 60,
       bmi: 24.7,

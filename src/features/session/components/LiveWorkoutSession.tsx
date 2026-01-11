@@ -32,6 +32,7 @@ import AtmosphericBackground from '@/components/ui/AtmosphericBackground';
 import WorkoutHUD from './WorkoutHUD';
 import ExerciseGuide from './ExerciseGuide';
 import { Maximize2, Minimize2 } from 'lucide-react';
+import FeatureGuard from '@/components/ui/FeatureGuard';
 
 import { sessionGuidanceService } from '../services/SessionGuidanceService';
 import { EncouragementService } from '../services/EncouragementService';
@@ -61,7 +62,8 @@ const LiveWorkoutSession = () => {
 
   const liveSessionState = useAppSelector(state => state.liveSession);
   const { focusMode, activeExerciseIndex } = liveSessionState;
-  const cameraEnabled = useAppSelector((state: RootState) => state.formCorrection.settings.cameraEnabled);
+  const isCoachingEnabled = useAppSelector((state: RootState) => state.featureFlags.enableCoaching);
+  const cameraEnabled = useAppSelector((state: RootState) => state.formCorrection.settings.cameraEnabled && isCoachingEnabled);
   const previousWorkouts = useAppSelector(state => Object.values(state.session.sessions));
   
   const historicalData = useMemo(() => {
@@ -169,7 +171,7 @@ const LiveWorkoutSession = () => {
   // Handle Form Correction Start/Stop
   useEffect(() => {
     const toggleFormCorrection = async () => {
-      if (cameraEnabled && !formCorrectionActive && videoRef.current) {
+      if (isCoachingEnabled && cameraEnabled && !formCorrectionActive && videoRef.current) {
         try {
           await formCorrectionService.current.initialize(videoRef.current);
           await formCorrectionService.current.startFormCorrection();
@@ -178,7 +180,7 @@ const LiveWorkoutSession = () => {
           console.error('Failed to start form correction:', err);
           showToast(toast.error('Camera Error', 'Could not start form correction.'));
         }
-      } else if (!cameraEnabled && formCorrectionActive) {
+      } else if ((!cameraEnabled || !isCoachingEnabled) && formCorrectionActive) {
         await formCorrectionService.current.stopFormCorrection();
         setFormCorrectionActive(false);
         setCurrentPoses([]);
@@ -187,7 +189,7 @@ const LiveWorkoutSession = () => {
     };
 
     toggleFormCorrection();
-  }, [cameraEnabled, formCorrectionActive, showToast]);
+  }, [cameraEnabled, isCoachingEnabled, formCorrectionActive, showToast]);
 
   // Update exercise type in service
   useEffect(() => {
@@ -648,18 +650,20 @@ const LiveWorkoutSession = () => {
               >
                 <ArrowLeft size={20} className="text-white" />
               </Button>
-              <Button 
-                variant="secondary" 
-                size="md" 
-                onClick={() => {
-                  hasShownCameraError.current = false;
-                  dispatch(updateFormSettings({ cameraEnabled: !cameraEnabled }));
-                }}
-                title={cameraEnabled ? "Disable Camera" : "Enable Camera"}
-                className={`${cameraEnabled ? "text-brand-400" : "text-gray-400"} bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20`}
-              >
-                {cameraEnabled ? <Camera size={20} /> : <CameraOff size={20} />}
-              </Button>
+              <FeatureGuard feature="enableCoaching">
+                <Button 
+                  variant="secondary" 
+                  size="md" 
+                  onClick={() => {
+                    hasShownCameraError.current = false;
+                    dispatch(updateFormSettings({ cameraEnabled: !cameraEnabled }));
+                  }}
+                  title={cameraEnabled ? "Disable Camera" : "Enable Camera"}
+                  className={`${cameraEnabled ? "text-brand-400" : "text-gray-400"} bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20`}
+                >
+                  {cameraEnabled ? <Camera size={20} /> : <CameraOff size={20} />}
+                </Button>
+              </FeatureGuard>
               <Button
                 variant="secondary"
                 size="md"
@@ -786,69 +790,71 @@ const LiveWorkoutSession = () => {
                 </div>
               </div>
 
-              {!focusMode && (
-                <Indicator 
-                  disabled={!adaptation} 
-                  label="New" 
-                  size={16} 
-                  offset={10} 
-                  position="top-end" 
-                  color="brand" 
-                  withBorder 
-                  processing
-                >
-                  <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-4 max-w-2xl mx-auto">
-                    <div className="text-center">
-                      <p className="text-brand-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-4">Need an Adjustment?</p>
-                      <p className="text-white/50 text-sm">Let AI adapt your workout to your current state</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-                      <MotionFeedback visible={true} type="glow" color="var(--mantine-color-blue-6)">
-                        <button
-                          onClick={() => {
-                            dispatch(updateEnergyContext('tired'));
-                            dispatch(fetchWorkoutAdaptation({ 
-                              activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
-                              overrideHistory: overrideHistory || [],
-                              currentExercise: activeContext?.currentExercise ? {
-                                reps: activeContext.currentExercise.reps,
-                                sets: activeContext.currentExercise.sets,
-                                restSeconds: activeContext.currentExercise.restSeconds
-                              } : undefined
-                            }));
-                          }}
-                          className="w-full flex flex-col items-center gap-2 p-4 md:p-6 bg-blue-500/10 hover:bg-blue-500/20 rounded-2xl transition-colors active:scale-95 border border-blue-500/30"
-                        >
-                          <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg"><span className="text-white text-lg md:text-xl">😴</span></div>
-                          <span className="text-sm font-bold text-blue-300">I'm Tired</span>
-                        </button>
-                      </MotionFeedback>
+              <FeatureGuard feature="enableCoaching">
+                {!focusMode && (
+                  <Indicator 
+                    disabled={!adaptation} 
+                    label="New" 
+                    size={16} 
+                    offset={10} 
+                    position="top-end" 
+                    color="brand" 
+                    withBorder 
+                    processing
+                  >
+                    <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-4 max-w-2xl mx-auto">
+                      <div className="text-center">
+                        <p className="text-brand-400 font-bold uppercase tracking-[0.2em] text-[10px] mb-4">Need an Adjustment?</p>
+                        <p className="text-white/50 text-sm">Let AI adapt your workout to your current state</p>
+                      </div>
                       
-                      <MotionFeedback visible={true} type="glow" color="var(--mantine-color-orange-6)">
-                        <button
-                          onClick={() => {
-                            dispatch(updateTimeContext('limited'));
-                            dispatch(fetchWorkoutAdaptation({ 
-                              activeContext: { energy: 'normal', time: 'limited', equipmentStatus: 'available' }, 
-                              overrideHistory: overrideHistory || [],
-                              currentExercise: activeContext?.currentExercise ? {
-                                reps: activeContext.currentExercise.reps,
-                                sets: activeContext.currentExercise.sets,
-                                restSeconds: activeContext.currentExercise.restSeconds
-                              } : undefined
-                            }));
-                          }}
-                          className="w-full flex flex-col items-center gap-2 p-4 md:p-6 bg-orange-500/10 hover:bg-orange-500/20 rounded-2xl transition-colors active:scale-95 border border-orange-500/30"
-                        >
-                          <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center shadow-lg"><span className="text-white text-lg md:text-xl">⏰</span></div>
-                          <span className="text-sm font-bold text-orange-300">Short on Time</span>
-                        </button>
-                      </MotionFeedback>
+                      <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+                        <MotionFeedback visible={true} type="glow" color="var(--mantine-color-blue-6)">
+                          <button
+                            onClick={() => {
+                              dispatch(updateEnergyContext('tired'));
+                              dispatch(fetchWorkoutAdaptation({ 
+                                activeContext: { energy: 'tired', time: 'normal', equipmentStatus: 'available' }, 
+                                overrideHistory: overrideHistory || [],
+                                currentExercise: activeContext?.currentExercise ? {
+                                  reps: activeContext.currentExercise.reps,
+                                  sets: activeContext.currentExercise.sets,
+                                  restSeconds: activeContext.currentExercise.restSeconds
+                                } : undefined
+                              }));
+                            }}
+                            className="w-full flex flex-col items-center gap-2 p-4 md:p-6 bg-blue-500/10 hover:bg-blue-500/20 rounded-2xl transition-colors active:scale-95 border border-blue-500/30"
+                          >
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg"><span className="text-white text-lg md:text-xl">😴</span></div>
+                            <span className="text-sm font-bold text-blue-300">I'm Tired</span>
+                          </button>
+                        </MotionFeedback>
+                        
+                        <MotionFeedback visible={true} type="glow" color="var(--mantine-color-orange-6)">
+                          <button
+                            onClick={() => {
+                              dispatch(updateTimeContext('limited'));
+                              dispatch(fetchWorkoutAdaptation({ 
+                                activeContext: { energy: 'normal', time: 'limited', equipmentStatus: 'available' }, 
+                                overrideHistory: overrideHistory || [],
+                                currentExercise: activeContext?.currentExercise ? {
+                                  reps: activeContext.currentExercise.reps,
+                                  sets: activeContext.currentExercise.sets,
+                                  restSeconds: activeContext.currentExercise.restSeconds
+                                } : undefined
+                              }));
+                            }}
+                            className="w-full flex flex-col items-center gap-2 p-4 md:p-6 bg-orange-500/10 hover:bg-orange-500/20 rounded-2xl transition-colors active:scale-95 border border-orange-500/30"
+                          >
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center shadow-lg"><span className="text-white text-lg md:text-xl">⏰</span></div>
+                            <span className="text-sm font-bold text-orange-300">Short on Time</span>
+                          </button>
+                        </MotionFeedback>
+                      </div>
                     </div>
-                  </div>
-                </Indicator>
-              )}
+                  </Indicator>
+                )}
+              </FeatureGuard>
 
               <div className="max-w-2xl mx-auto w-full">
                 <Button 
@@ -967,9 +973,11 @@ const LiveWorkoutSession = () => {
              </div>
            )}
 
-          <LiveGuidanceOverlay guidance={activeGuidance} />
+          <FeatureGuard feature="enableCoaching">
+            <LiveGuidanceOverlay guidance={activeGuidance} />
+            <MilestoneCelebration milestones={milestoneHistory} />
+          </FeatureGuard>
           <SessionProgressHUD />
-          <MilestoneCelebration milestones={milestoneHistory} />
           {transitionState.active && (
             <TransitionPrep 
               nextExercise={toTitleCase(transitionState.nextName)} 
