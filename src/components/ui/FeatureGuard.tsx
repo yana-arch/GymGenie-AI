@@ -8,14 +8,28 @@ interface FeatureGuardProps {
   fallback?: React.ReactNode;
 }
 
+const AI_FEATURES: (keyof RootState['featureFlags'])[] = [
+  'enableAI',
+  'enableCoaching',
+  'enablePersonalization',
+  'enableAnalytics',
+  'enableFormCorrection',
+  'enableInjuryAwareness',
+  'enableUnifiedCoaching'
+];
+
 /**
  * FeatureGuard conditionally renders children based on the provided feature flag.
  * If the feature is enabled, children are rendered. Otherwise, the fallback (or null) is rendered.
  */
 const FeatureGuard: React.FC<FeatureGuardProps> = ({ feature, children, fallback = null }) => {
   const isEnabled = useAppSelector((state) => state.featureFlags[feature]);
+  const serviceStatus = useAppSelector((state) => state.featureFlags.serviceStatus);
 
-  if (!isEnabled) {
+  // If the feature is an AI feature and service is not available, hide it
+  const isAiFeature = AI_FEATURES.includes(feature);
+  
+  if (!isEnabled || (isAiFeature && serviceStatus !== 'available')) {
     return <>{fallback}</>;
   }
 

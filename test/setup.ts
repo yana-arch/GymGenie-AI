@@ -48,3 +48,13 @@ global.fetch = vi.fn().mockImplementation((url) => {
   
   return Promise.reject(new Error(`Unhandled request: ${urlString}`));
 });
+
+// Mock Capacitor Network
+vi.mock('@capacitor/network', () => ({
+  Network: {
+    getStatus: vi.fn().mockResolvedValue({ connected: true, connectionType: 'wifi' }),
+    addListener: vi.fn().mockImplementation((event, callback) => {
+      return { remove: vi.fn() };
+    }),
+  },
+}));

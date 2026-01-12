@@ -1,5 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+export type ServiceStatus = 'available' | 'degraded' | 'offline';
+export type DegradationReason = 'network' | 'api' | null;
+
 interface FeatureFlagState {
   enableAI: boolean;
   enableCoaching: boolean;
@@ -9,6 +12,8 @@ interface FeatureFlagState {
   enableInjuryAwareness: boolean;
   enableUnifiedCoaching: boolean;
   debugMode: boolean;
+  serviceStatus: ServiceStatus;
+  degradationReason: DegradationReason;
 }
 
 const initialState: FeatureFlagState = {
@@ -20,6 +25,8 @@ const initialState: FeatureFlagState = {
   enableInjuryAwareness: false,
   enableUnifiedCoaching: false,
   debugMode: process.env.NODE_ENV !== 'production',
+  serviceStatus: 'available',
+  degradationReason: null,
 };
 
 const featureFlagSlice = createSlice({
@@ -38,9 +45,17 @@ const featureFlagSlice = createSlice({
         (state[feature] as boolean) = enabled;
       }
     },
+    updateServiceStatus: (state, action: PayloadAction<{ status: ServiceStatus; reason: DegradationReason }>) => {
+      state.serviceStatus = action.payload.status;
+      state.degradationReason = action.payload.reason;
+      
+      // If service is unavailable, we might want to temporarily disable AI features
+      // but the FeatureGuard should handle this reactively based on serviceStatus
+    },
     resetFlags: () => initialState,
   },
 });
 
-export const { toggleFeature, setFeature, resetFlags } = featureFlagSlice.actions;
+export const { toggleFeature, setFeature, updateServiceStatus, resetFlags } = featureFlagSlice.actions;
+
 export default featureFlagSlice.reducer;

@@ -73,14 +73,15 @@ export class PoseDetectionService {
         score: pose.score || 0
       }));
 
-      // Enforce 500ms requirement with performance constraints
+      // ACTIVE PERFORMANCE ENFORCEMENT: 500ms requirement
       if (processingTime > 500) {
         console.warn(`Pose detection took ${processingTime}ms, exceeding 500ms target`);
         
-        // PERFORMANCE ENFORCEMENT: Skip frames if too slow
-        if (processingTime > 1000) {
-          console.error(`Pose detection severely slow (${processingTime}ms), consider reducing input resolution`);
-          // Removed hard error to prevent system crash, instead we log and continue
+        // Mitigation: If severely slow, force model re-init with higher optimization or skip frames
+        if (processingTime > 800 && !this.mobileOptimized) {
+          console.info('SLA breach detected: Switching to mobile-optimized model for better performance');
+          this.mobileOptimized = true;
+          await this.initialize(); // Re-initialize with lightning settings
         }
       }
 

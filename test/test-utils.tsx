@@ -26,6 +26,7 @@ import formCorrectionSlice from '../src/features/form-correction/store/formCorre
 import safetyOverrideSlice from '../src/features/safety-override/store/safetyOverrideSlice';
 import injuryAwareSlice from '../src/features/injury-aware/store/injuryAwareSlice';
 import achievementSlice from '../src/features/analytics/store/achievementSlice';
+import featureFlagSlice from '../src/features/ui/store/featureFlagSlice';
 import { JSX } from 'react/jsx-dev-runtime';
 
 const theme = createTheme({
@@ -38,6 +39,7 @@ const rootReducer = combineReducers({
   workout: workoutSlice,
   user: userSlice,
   ui: uiSlice,
+  featureFlags: featureFlagSlice,
   formCorrection: formCorrectionSlice,
   safetyOverride: safetyOverrideSlice,
   injuryAware: injuryAwareSlice,
@@ -47,7 +49,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["user", "workout", "session", "liveSession", "formCorrection", "safetyOverride", "injuryAware", "achievement"],
+  whitelist: ["user", "workout", "session", "liveSession", "featureFlags", "formCorrection", "safetyOverride", "injuryAware", "achievement"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

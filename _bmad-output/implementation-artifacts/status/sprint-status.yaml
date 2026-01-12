@@ -87,7 +87,7 @@ development_status:
   epic-7: in-progress
   7-1-backward-compatibility-foundation: done
   7-2-incremental-ai-adoption: done
-  7-3-graceful-feature-degradation: backlog
+  7-3-graceful-feature-degradation: done
   7-4-workflow-continuity-assurance: backlog
   7-5-progressive-enhancement-indicators: backlog
   epic-7-retrospective: optional

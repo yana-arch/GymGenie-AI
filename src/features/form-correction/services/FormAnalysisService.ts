@@ -33,6 +33,47 @@ export interface PerformanceMetrics {
   slaCompliance: number; // Percentage of analyses under 500ms
 }
 
+const DEFAULT_RULES: { [exercise: string]: ExerciseFormRule } = {
+  squat: {
+    name: 'Squat',
+    keypointAngles: {
+      'hip_knee_ankle': { min: 80, max: 100 },
+      'knee_alignment': { min: -5, max: 5 }
+    },
+    verticalAlignment: {
+      'shoulder_hip_alignment': { expectedY: 0.95, tolerance: 0.1 }
+    },
+    stabilityChecks: {
+      'hip_stability': { maxMovement: 0.05 }
+    }
+  },
+  pushup: {
+    name: 'Push-up',
+    keypointAngles: {
+      'elbow_angle': { min: 80, max: 100 },
+      'body_line': { min: 170, max: 190 }
+    },
+    verticalAlignment: {
+      'head_alignment': { expectedY: 0.98, tolerance: 0.05 }
+    },
+    stabilityChecks: {
+      'hip_stability': { maxMovement: 0.03 }
+    }
+  },
+  plank: {
+    name: 'Plank',
+    keypointAngles: {
+      'body_line': { min: 175, max: 185 }
+    },
+    verticalAlignment: {
+      'hip_shoulder_alignment': { expectedY: 1.0, tolerance: 0.05 }
+    },
+    stabilityChecks: {
+      'overall_stability': { maxMovement: 0.02 }
+    }
+  }
+};
+
 export class FormAnalysisService {
   private static instance: FormAnalysisService;
   private exerciseRules: Map<string, ExerciseFormRule> = new Map();
@@ -55,7 +96,7 @@ export class FormAnalysisService {
    * Resets the singleton instance (primarily for testing)
    */
   public static resetInstance(): void {
-    FormAnalysisService.instance = undefined as any;
+    FormAnalysisService.instance = null as any;
   }
 
   public static getInstance(): FormAnalysisService {
@@ -69,59 +110,8 @@ export class FormAnalysisService {
    * Initialize exercise-specific form validation rules
    */
   private initializeExerciseRules(): void {
-    // Squat form rules
-    this.exerciseRules.set('squat', {
-      name: 'Squat',
-      keypointAngles: {
-        // Hip angle at bottom of squat (should be ~90 degrees)
-        'hip_knee_ankle': { min: 80, max: 100 },
-        // Knee tracking over feet
-        'knee_alignment': { min: -5, max: 5 } // degrees from vertical
-      },
-      verticalAlignment: {
-        // Spine should be relatively straight
-        'shoulder_hip_alignment': { expectedY: 0.95, tolerance: 0.1 }
-      },
-      stabilityChecks: {
-        // Minimal lateral movement
-        'hip_stability': { maxMovement: 0.05 }
-      }
-    });
-
-    // Push-up form rules
-    this.exerciseRules.set('pushup', {
-      name: 'Push-up',
-      keypointAngles: {
-        // Elbow angle at bottom (should be ~90 degrees)
-        'elbow_angle': { min: 80, max: 100 },
-        // Body alignment
-        'body_line': { min: 170, max: 190 } // degrees from horizontal
-      },
-      verticalAlignment: {
-        // Head should be neutral
-        'head_alignment': { expectedY: 0.98, tolerance: 0.05 }
-      },
-      stabilityChecks: {
-        // Core stability
-        'hip_stability': { maxMovement: 0.03 }
-      }
-    });
-
-    // Plank form rules
-    this.exerciseRules.set('plank', {
-      name: 'Plank',
-      keypointAngles: {
-        // Body should be straight line
-        'body_line': { min: 175, max: 185 }
-      },
-      verticalAlignment: {
-        // Hips should be level with shoulders
-        'hip_shoulder_alignment': { expectedY: 1.0, tolerance: 0.05 }
-      },
-      stabilityChecks: {
-        // Minimal movement
-        'overall_stability': { maxMovement: 0.02 }
-      }
+    Object.entries(DEFAULT_RULES).forEach(([key, rule]) => {
+      this.exerciseRules.set(key, rule);
     });
   }
 

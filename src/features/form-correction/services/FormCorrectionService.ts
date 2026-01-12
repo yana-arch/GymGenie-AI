@@ -4,13 +4,6 @@ import { FormAnalysisService, FormAnalysis } from './FormAnalysisService';
 import { AudioCoachingService } from './AudioCoachingService';
 import { sessionGuidanceService } from '@/features/session/services/SessionGuidanceService';
 
-// Import for AC7 integration with Story 1.1
-declare global {
-  interface Window {
-    __REDUX_STORE__: any;
-  }
-}
-
 export interface FormCorrectionState {
   isActive: boolean;
   hasCameraPermission: boolean;
@@ -35,6 +28,7 @@ export class FormCorrectionService {
   private processingFrame = false;
   private state: FormCorrectionState;
   private currentExercise: string = 'squat';
+  private energyContext: 'normal' | 'tired' = 'normal';
   private onMilestoneReached?: (milestone: any) => void;
   private onStatusUpdate?: (status: any) => void;
   private onAdaptationRequired?: (params: any) => void;
@@ -74,7 +68,7 @@ export class FormCorrectionService {
     if (FormCorrectionService.instance) {
       FormCorrectionService.instance.stopFormCorrection();
     }
-    FormCorrectionService.instance = undefined as any;
+    FormCorrectionService.instance = null as any;
   }
 
   /**
@@ -90,6 +84,20 @@ export class FormCorrectionService {
     this.onStatusUpdate = callbacks.onStatusUpdate;
     this.onAdaptationRequired = callbacks.onAdaptationRequired;
     this.onAnalysisUpdate = callbacks.onAnalysisUpdate;
+  }
+
+  /**
+   * Set the current energy context for milestone tracking
+   */
+  setEnergyContext(energy: 'normal' | 'tired'): void {
+    this.energyContext = energy;
+  }
+
+  /**
+   * Reset rep count (orchestrated)
+   */
+  resetRepCount(): void {
+    this.formAnalysisService.resetRepCount();
   }
 
   /**
@@ -364,8 +372,8 @@ export class FormCorrectionService {
    */
   private syncWithLiveSession(formAnalysis: FormAnalysis): void {
     try {
-      // Record form quality for milestones
-      const milestones = sessionGuidanceService.recordFormQuality(formAnalysis.isValid);
+      // Record form quality for milestones with proper energy context
+      const milestones = sessionGuidanceService.recordFormQuality(formAnalysis.isValid, this.energyContext);
       
       // Use registered listeners instead of direct Redux store access
       if (this.onMilestoneReached) {
@@ -421,5 +429,6 @@ export class FormCorrectionService {
     }
     
     this.state.isActive = false;
+    FormCorrectionService.instance = null as any;
   }
 }

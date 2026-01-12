@@ -126,6 +126,21 @@ export const fetchWorkoutAdaptation = createAsyncThunk(
     try {
       const geminiService = GeminiService.getInstance();
       
+      // Proactive check: if Gemini is already failing, don't even try the network
+      if (geminiService.isCircuitOpen()) {
+        const currentReps = context.currentExercise ? parseInt(context.currentExercise.reps) || 10 : 10;
+        const fallbackAdaptation = context.activeContext.energy === 'tired' 
+          ? { 
+              newReps: Math.max(1, Math.floor(currentReps * 0.7)), 
+              notes: "Proactive safety reduction: AI service is currently recovering" 
+            }
+          : { 
+              newReps: currentReps,
+              notes: "AI service currently recovering - maintaining current intensity" 
+            };
+        return { adaptation: fallbackAdaptation, responseTime: 0, slaBreach: false };
+      }
+
       const formattedOverrideHistory = context.overrideHistory.map(override => ({
         type: override.recommendationId,
         userAction: override.userAction,

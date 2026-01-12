@@ -22,8 +22,15 @@ const HomeDashboard = React.lazy(() => import('./features/home/components/HomeDa
 const AchievementManager = React.lazy(() => import('./features/analytics/components/AchievementManager'));
 const AchievementCelebration = React.lazy(() => import('./features/analytics/components/AchievementCelebration'));
 
+import { healthService } from './services/HealthService';
+
 const AppContent = memo(() => {
   const { step, isLoading, activeView, setActiveView, setStep } = useApp();
+
+  // Initialize health monitoring on boot
+  React.useEffect(() => {
+    healthService.initialize();
+  }, []);
 
   // Define new AppStep type for plan generation
   type OnboardingAppStep = 'onboarding' | 'scanning' | 'generatePlan' | 'dashboard' | 'session';
@@ -91,13 +98,17 @@ const AppContent = memo(() => {
 
 
 import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 import { theme } from '@/theme';
 import { useMemo } from 'react';
 
 import { useAppSelector } from '@/store';
+import { ServiceHealthNotifier } from './components/ui/ServiceHealthNotifier';
 
 const MantineThemeManager = memo(({ children }: { children: React.ReactNode }) => {
+
   const { themeColor } = useApp();
   const userTheme = useAppSelector((state) => state.user.preferences.theme);
   
@@ -123,6 +134,8 @@ const MantineThemeManager = memo(({ children }: { children: React.ReactNode }) =
 
   return (
     <MantineProvider theme={dynamicTheme} forceColorScheme={resolvedColorScheme}>
+      <Notifications />
+      <ServiceHealthNotifier />
       {children}
     </MantineProvider>
   );

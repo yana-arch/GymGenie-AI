@@ -1,7 +1,35 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { WorkoutPlan, WorkoutDay, Exercise, WorkoutExercise, WorkoutHistoryEntry } from '@/types';
+import { handleAsyncError } from '@/utils/errorUtils';
+
+export const reconcileOfflineData = createAsyncThunk(
+  'workout/reconcileOfflineData',
+  async (_, { getState, dispatch }) => {
+    return handleAsyncError(async () => {
+      const state = getState() as { workout: WorkoutSliceState };
+      const offlineEntries = state.workout.history.filter(h => h.syncStatus === 'pending');
+      
+      if (offlineEntries.length === 0) return;
+
+      // Simulate network latency for reconciliation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // In a real app, this would be a POST to /api/reconcile
+      // We simulate successful processing by the personalization engine
+      const updatedHistory = state.workout.history.map(h => 
+        (h.syncStatus === 'pending') 
+          ? { ...h, syncStatus: 'synced' as const, reconciledAt: new Date().toISOString() } 
+          : h
+      );
+      
+      dispatch(setHistory(updatedHistory));
+      console.info(`Successfully reconciled ${offlineEntries.length} workout entries with personalization engine.`);
+    }, 'Reconciliation Failed');
+  }
+);
 
 interface WorkoutSliceState {
+
   currentPlan: WorkoutPlan | null;
   history: WorkoutHistoryEntry[];
   isLoading: boolean;

@@ -31,10 +31,9 @@ import { PrivacyAuditService } from "@/features/privacy/services/PrivacyAuditSer
 import { recordSanitization, addAuditEntry } from "@/features/privacy/store/privacySlice";
 import { DataCategories } from "@/features/privacy/types/privacy.types";
 import { v4 as uuidv4 } from "uuid";
+import { healthService } from "../HealthService";
 
 // Schemas for AI Generation (Google GenAI SDK)
-// Recruited from enhanced-gemini-service.ts and AIGeneratorService.ts
-
 const recipeSchema: Schema = {
   type: Type.ARRAY,
   items: {
@@ -220,11 +219,24 @@ const workoutExerciseSchema: Schema = {
   },
 };
 
+enum CircuitState {
+  CLOSED,
+  OPEN,
+  HALF_OPEN
+}
+
 export class GeminiService {
   private static instance: GeminiService;
   private ai: GoogleGenAI;
   private model: string;
   private privacyShield: PrivacyShieldService;
+
+  // Circuit Breaker State
+  private circuitState: CircuitState = CircuitState.CLOSED;
+  private failureCount: number = 0;
+  private lastFailureTime: number = 0;
+  private readonly FAILURE_THRESHOLD = 3;
+  private readonly RESET_TIMEOUT = 30000; // 30 seconds
 
   private constructor() {
     this.refreshConfig();
@@ -248,6 +260,66 @@ export class GeminiService {
       GeminiService.instance = new GeminiService();
     }
     return GeminiService.instance;
+  }
+
+  public isCircuitOpen(): boolean {
+    return this.circuitState === CircuitState.OPEN;
+  }
+
+  /**
+   * Perform a lightweight health check to see if the API is responsive
+   */
+  public async checkHealth(): Promise<boolean> {
+    if (!healthService.isOnline()) return false;
+    try {
+      // Use a very simple, fast model if possible or just a basic prompt
+      await this.ai.models.generateContent({
+        model: this.model,
+        contents: [{ parts: [{ text: "health check" }] }],
+        config: {
+          maxOutputTokens: 1,
+        }
+      });
+      this.handleSuccess();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private checkCircuit(): boolean {
+    if (!healthService.isOnline()) return false;
+
+    if (this.circuitState === CircuitState.OPEN) {
+      const now = Date.now();
+      if (now - this.lastFailureTime > this.RESET_TIMEOUT) {
+        this.circuitState = CircuitState.HALF_OPEN;
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  private handleSuccess() {
+    if (this.circuitState !== CircuitState.CLOSED) {
+      this.circuitState = CircuitState.CLOSED;
+      this.failureCount = 0;
+      healthService.setServiceStatus('available', null);
+    }
+  }
+
+  private handleFailure(error: any) {
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+
+    const isRateLimit = error?.status === 429 || error?.message?.includes('429');
+    const isServerError = error?.status >= 500 || error?.message?.includes('500');
+
+    if (this.failureCount >= this.FAILURE_THRESHOLD || isRateLimit || isServerError) {
+      this.circuitState = CircuitState.OPEN;
+      healthService.setServiceStatus('degraded', 'api');
+    }
   }
 
   public refreshConfig(): void {
@@ -286,6 +358,7 @@ export class GeminiService {
    * Identify equipment from an image
    */
   public async identifyEquipment(base64Image: string): Promise<string[]> {
+    if (!this.checkCircuit()) return [];
     try {
       const response = await this.ai.models.generateContent({
         model: this.model,
@@ -307,8 +380,7 @@ export class GeminiService {
       });
 
       if (response.text) {
-        // Log AI inference - equipment ID usually doesn't need personal data categories
-        // but we log it as success with default empty categories if none specified
+        this.handleSuccess();
         PrivacyAuditService.logAiInference(this.model, {
           injuryHistory: false,
           biologicalData: false,
@@ -321,6 +393,7 @@ export class GeminiService {
       }
       return [];
     } catch (error) {
+      this.handleFailure(error);
       console.error("Equipment Identification Error:", error);
       toast.error("Equipment Identification Failed", "Could not identify equipment from image. Please try again or enter manually.");
       return [];
@@ -335,6 +408,7 @@ export class GeminiService {
     user: UserProfile,
     privacyCategories?: DataCategories
   ): Promise<Recipe[]> {
+    if (!this.checkCircuit()) return [];
     try {
       const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
       const prompt = `
@@ -366,6 +440,7 @@ export class GeminiService {
       });
 
       if (response.text) {
+        this.handleSuccess();
         PrivacyAuditService.logAiInference(
           this.model, 
           privacyCategories || {
@@ -387,6 +462,7 @@ export class GeminiService {
       }
       return [];
     } catch (error) {
+      this.handleFailure(error);
       console.error("Recipe Generation Error:", error);
       toast.error("Recipe Generation Failed", "Could not generate recipes. Please try again with different ingredients.");
       return [];
@@ -401,6 +477,7 @@ export class GeminiService {
     equipment: string[],
     privacyCategories?: DataCategories
   ): Promise<WorkoutPlan> {
+    if (!this.checkCircuit()) throw new Error("Service unavailable");
     try {
       const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
       const prompt = `
@@ -433,6 +510,7 @@ export class GeminiService {
 
       if (!response.text) throw new Error("No response from AI");
 
+      this.handleSuccess();
       PrivacyAuditService.logAiInference(
         this.model, 
         privacyCategories || {
@@ -473,6 +551,7 @@ export class GeminiService {
         })),
       };
     } catch (error) {
+      this.handleFailure(error);
       console.error("Workout Planning Error:", error);
       toast.error("Workout Planning Failed", "Could not generate workout plan. Please try again.");
       throw error;
@@ -488,6 +567,7 @@ export class GeminiService {
     user: UserProfile,
     privacyCategories?: DataCategories
   ): Promise<WorkoutDay> {
+    if (!this.checkCircuit()) throw new Error("Service unavailable");
     try {
       const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
       const prompt = `
@@ -517,6 +597,7 @@ export class GeminiService {
 
       if (!response.text) throw new Error("No response from AI");
 
+      this.handleSuccess();
       PrivacyAuditService.logAiInference(
         this.model, 
         privacyCategories || {
@@ -544,6 +625,7 @@ export class GeminiService {
         })),
       };
     } catch (error) {
+      this.handleFailure(error);
       console.error("Modify Workout Day Error:", error);
       throw error;
     }
@@ -558,6 +640,7 @@ export class GeminiService {
     commonMistakes: string[];
     proTips: string[];
   }> {
+    if (!this.checkCircuit()) throw new Error("Service unavailable");
     try {
       const prompt = `
         Provide a concise, professional guide for the exercise: "${exerciseName}".
@@ -575,9 +658,11 @@ export class GeminiService {
 
       if (!response.text) throw new Error("No details returned");
 
+      this.handleSuccess();
       const rawData = JSON.parse(response.text);
       return ApiResponseValidator.validateExerciseDetailsResponse(rawData);
     } catch (error) {
+      this.handleFailure(error);
       console.error("Exercise Details Error:", error);
       throw error;
     }
@@ -590,6 +675,7 @@ export class GeminiService {
     currentExerciseName: string,
     availableEquipment: string[]
   ): Promise<z.infer<typeof ExerciseSwapResponseSchema>> {
+    if (!this.checkCircuit()) throw new Error("Service unavailable");
     try {
       const prompt = `
         The user wants to SWAP the exercise "${currentExerciseName}" for something else.
@@ -614,9 +700,11 @@ export class GeminiService {
 
       if (!response.text) throw new Error("No alternative found");
 
+      this.handleSuccess();
       const rawData = JSON.parse(response.text);
       return ApiResponseValidator.validateExerciseSwapResponse(rawData);
     } catch (error) {
+      this.handleFailure(error);
       console.error("Exercise Swap Error:", error);
       throw error;
     }
@@ -639,6 +727,7 @@ export class GeminiService {
       timeBucket?: string;
     }>;
   }, privacyCategories?: DataCategories): Promise<any> {
+    if (!this.checkCircuit()) return null;
     // Start performance monitoring
     const monitoring = performanceMonitoringService.startMonitoring(
       'GeminiService.generateWorkoutAdaptation', 
@@ -651,6 +740,7 @@ export class GeminiService {
 
       const adaptation = await this.generateWorkoutAdaptationInternal(sanitizedContext);
       
+      this.handleSuccess();
       PrivacyAuditService.logAiInference(
         this.model, 
         privacyCategories || {
@@ -673,6 +763,7 @@ export class GeminiService {
       
       return adaptation;
     } catch (error) {
+      this.handleFailure(error);
       // Record failed performance metrics
       performanceMonitoringService.endMonitoring(
         monitoring.monitoringId,
@@ -765,6 +856,7 @@ export class GeminiService {
     totalCount: number,
     averageGapSeconds: number
   ): Promise<WorkoutAnalysis> {
+    if (!this.checkCircuit()) return ValidatedApiHandlers.workoutAnalysis({});
     try {
       const prompt = `
         Analyze this workout session based on the metrics.
@@ -787,12 +879,14 @@ export class GeminiService {
       });
 
       if (response.text) {
+        this.handleSuccess();
         const rawData = JSON.parse(response.text);
         return ValidatedApiHandlers.workoutAnalysis(rawData);
       }
 
       return ValidatedApiHandlers.workoutAnalysis({});
     } catch (error) {
+      this.handleFailure(error);
       console.error("Workout Analysis Error:", error);
       return ValidatedApiHandlers.workoutAnalysis({});
     }
@@ -807,6 +901,7 @@ export class GeminiService {
     privacyCategories?: DataCategories
   ): Promise<any> {
     if (exercises.length === 0) return [];
+    if (!this.checkCircuit()) return [];
 
     const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
 
@@ -827,74 +922,92 @@ export class GeminiService {
         For 'notes', provide concise progressive overload suggestions.
     `;
 
-    const response = await this.ai.models.generateContent({
-      model: this.model,
-      contents: [
-        {
-          parts: [{ text: prompt }],
+    try {
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: workoutExerciseSchema,
         },
-      ],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: workoutExerciseSchema,
-      },
-    });
+      });
 
-    if (!response.text) return [];
+      if (!response.text) return [];
 
-    PrivacyAuditService.logAiInference(
-      this.model, 
-      privacyCategories || {
-        injuryHistory: false,
-        biologicalData: false,
-        locationData: false,
-        workoutPatterns: false,
-        usageAnalytics: false,
-      }, 
-      'success', 
-      'Exercise set generation'
-    );
+      this.handleSuccess();
+      PrivacyAuditService.logAiInference(
+        this.model, 
+        privacyCategories || {
+          injuryHistory: false,
+          biologicalData: false,
+          locationData: false,
+          workoutPatterns: false,
+          usageAnalytics: false,
+        }, 
+        'success', 
+        'Exercise set generation'
+      );
 
-    return JSON.parse(response.text);
+      return JSON.parse(response.text);
+    } catch (error) {
+      this.handleFailure(error);
+      console.error("Generate Sets Error:", error);
+      return [];
+    }
   }
 
   public async generateTechniqueTip(exerciseName: string): Promise<string> {
+    if (!this.checkCircuit()) return "Focus on form.";
     const prompt = `
           Give me a very concise (max 2 sentences) technique tip for the exercise: "${exerciseName}".
           Focus on safety and maximum muscle engagement.
           Return only the tip text.
       `;
 
-    const response = await this.ai.models.generateContent({
-      model: this.model,
-      contents: [
-        {
-          parts: [{ text: prompt }],
-        },
-      ],
-    });
+    try {
+      const response = await this.ai.models.generateContent({
+        model: this.model,
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      });
 
-    return response.text ? response.text.trim() : "Focus on form.";
+      if (response.text) this.handleSuccess();
+      return response.text ? response.text.trim() : "Focus on form.";
+    } catch (error) {
+      this.handleFailure(error);
+      return "Focus on form.";
+    }
   }
 
   /**
    * Generate natural language explanation for progress predictions
    */
   public async generatePredictionExplanation(prompt: string): Promise<string> {
+    if (!this.checkCircuit()) return "Unable to generate explanation at this time.";
     try {
       const response = await this.ai.models.generateContent({
         model: this.model,
         contents: prompt,
       });
 
+      if (response.text) this.handleSuccess();
       return response.text ? response.text.trim() : "Unable to generate explanation at this time.";
     } catch (error) {
+      this.handleFailure(error);
       console.error("Prediction Explanation Error:", error);
       return "Based on your current trend, keep up the consistency to reach your goals.";
     }
   }
 
   public async suggestMeals(user: UserProfile, privacyCategories?: DataCategories): Promise<string[]> {
+    if (!this.checkCircuit()) return ["Could not fetch suggestions."];
     try {
       const sanitizedUser = this.privacyShield.sanitizeForExternalUse(user, privacyCategories);
       const prompt = `
@@ -918,6 +1031,7 @@ export class GeminiService {
       });
 
       if (response.text) {
+        this.handleSuccess();
         PrivacyAuditService.logAiInference(
           this.model, 
           privacyCategories || {
@@ -934,6 +1048,7 @@ export class GeminiService {
       }
       return [];
     } catch (error) {
+      this.handleFailure(error);
       console.error("Meal Suggestion API Error:", error);
       return ["Could not fetch suggestions."];
     }

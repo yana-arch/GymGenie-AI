@@ -238,6 +238,7 @@ export interface WorkoutHistoryEntry {
   rpe?: number; // 1-10 intensity rating
   analysis?: WorkoutAnalysis;
   syncStatus: "pending" | "synced";
+  ai_assisted: boolean;
 }
 
 // Session State Management Types

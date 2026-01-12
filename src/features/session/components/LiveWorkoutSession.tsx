@@ -168,6 +168,11 @@ const LiveWorkoutSession = () => {
     };
   }, [dispatch, activeContext]);
 
+  // Sync energy context with form correction service
+  useEffect(() => {
+    formCorrectionService.current.setEnergyContext(liveSessionState.activeContext.energy);
+  }, [liveSessionState.activeContext.energy]);
+
   // Handle Form Correction Start/Stop
   useEffect(() => {
     const toggleFormCorrection = async () => {
@@ -392,8 +397,8 @@ const LiveWorkoutSession = () => {
 
       setSetStartTime(now);
 
-      // Reset rep count for next set
-      FormAnalysisService.getInstance().resetRepCount();
+      // Reset rep count for next set via orchestrated service
+      formCorrectionService.current.resetRepCount();
       dispatch(updateRepCount(0));
 
       if (activeContext.currentExercise.restSeconds > 0) {
