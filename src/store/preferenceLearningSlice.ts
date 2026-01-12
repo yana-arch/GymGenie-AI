@@ -98,6 +98,15 @@ export const importPreferences = createAsyncThunk(
   }
 );
 
+export const logSuggestionFeedback = createAsyncThunk(
+  'preference-learning/logSuggestionFeedback',
+  async (payload: { userId: string; event: any }) => {
+    const preferenceService = await getServiceInstance();
+    await preferenceService.recordAdaptationResponse(payload.userId, payload.event);
+    return payload.event;
+  }
+);
+
 const initialState: any = {
   patterns: [],
   config: {

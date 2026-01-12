@@ -15,6 +15,14 @@ interface PerformanceMetrics {
   error?: string;
 }
 
+export interface Suggestion {
+  id: string;
+  type: 'safety' | 'performance' | 'motivation';
+  message: string;
+  autoDismissTimeout?: number;
+  timestamp: number;
+}
+
 // Define a type for the workout adaptation with safety constraints
 export interface WorkoutAdaptation {
   newExercise?: string;
@@ -70,8 +78,17 @@ interface LiveSessionState {
   sessionStartTime: number | null;
   sessionProgress: number; // 0 to 1
   focusMode: boolean;
+  suggestions: Suggestion[];
   // Note: injuryFilterService is managed outside Redux to avoid non-serializable state
 }
+
+const SUGGESTION_PRIORITY: Record<string, number> = {
+  safety: 0,
+  performance: 1,
+  motivation: 2
+};
+
+export const DEFAULT_SUGGESTION_TIMEOUT = 10000;
 
 const initialState: LiveSessionState = {
   activeContext: {
@@ -113,6 +130,7 @@ const initialState: LiveSessionState = {
     sessionStartTime: null,
     sessionProgress: 0,
     focusMode: false,
+    suggestions: [],
   };
 
 export const fetchWorkoutAdaptation = createAsyncThunk(
@@ -366,6 +384,21 @@ const liveSessionSlice = createSlice({
       state.currentSetProgress = 0;
       state.exercisesCompleted = 0;
       state.activeExerciseIndex = 0;
+    },
+    addSuggestion(state, action: PayloadAction<Suggestion>) {
+      state.suggestions.push(action.payload);
+      state.suggestions.sort((a, b) => SUGGESTION_PRIORITY[a.type] - SUGGESTION_PRIORITY[b.type]);
+      
+      // Limit queue to top 3 to prevent "whack-a-mole" UI
+      if (state.suggestions.length > 3) {
+        state.suggestions = state.suggestions.slice(0, 3);
+      }
+    },
+    dismissSuggestion(state, action: PayloadAction<string>) {
+      state.suggestions = state.suggestions.filter(s => s.id !== action.payload);
+    },
+    clearSuggestions(state) {
+      state.suggestions = [];
     }
   },
   extraReducers: (builder) => {
@@ -432,7 +465,10 @@ export const {
   setCurrentSetProgress,
   setActiveExerciseIndex,
   incrementExercisesCompleted,
-  resetAggregateProgress
+  resetAggregateProgress,
+  addSuggestion,
+  dismissSuggestion,
+  clearSuggestions
 } = liveSessionSlice.actions;
 
 export default liveSessionSlice.reducer;

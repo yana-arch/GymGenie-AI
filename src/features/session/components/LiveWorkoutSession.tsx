@@ -19,7 +19,27 @@ import { Button, Indicator } from '@mantine/core';
 import { useToast, toast } from '@/components/ui/Toast';
 import { useErrorHandler } from '@/utils/errorHandler';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { fetchWorkoutAdaptation, updateEnergyContext, updateTimeContext, clearAdaptation, setIsActive, addMilestone, addSessionVolume, setCurrentSetProgress, incrementExercisesCompleted, setActiveExerciseIndex as setActiveExerciseIndexAction, setSessionProgress, toggleFocusMode } from '../store/liveSessionSlice';
+import { 
+  fetchWorkoutAdaptation, 
+  updateEnergyContext, 
+  updateTimeContext, 
+  clearAdaptation, 
+  setIsActive, 
+  addMilestone, 
+  addSessionVolume, 
+  setCurrentSetProgress, 
+  incrementExercisesCompleted, 
+  setActiveExerciseIndex as setActiveExerciseIndexAction, 
+  setSessionProgress, 
+  toggleFocusMode,
+  addSuggestion,
+  dismissSuggestion,
+  clearSuggestions,
+  Suggestion
+} from '../store/liveSessionSlice';
+import SuggestionOverlay from './SuggestionOverlay';
+import { healthService } from '@/services/HealthService';
+import { logSuggestionFeedback } from '@/store/preferenceLearningSlice';
 import { updateSettings as updateFormSettings, updateRepCount } from '@/features/form-correction/store/formCorrectionSlice';
 import { useGuidanceLoop } from '../hooks/useGuidanceLoop';
 import { useEncouragement } from '../hooks/useEncouragement';
@@ -61,7 +81,7 @@ const LiveWorkoutSession = () => {
   } = useApp();
 
   const liveSessionState = useAppSelector(state => state.liveSession);
-  const { focusMode, activeExerciseIndex } = liveSessionState;
+  const { focusMode, activeExerciseIndex, suggestions } = liveSessionState;
   const isCoachingEnabled = useAppSelector((state: RootState) => state.featureFlags.enableCoaching);
   const cameraEnabled = useAppSelector((state: RootState) => state.formCorrection.settings.cameraEnabled && isCoachingEnabled);
   const previousWorkouts = useAppSelector(state => Object.values(state.session.sessions));
@@ -81,6 +101,7 @@ const LiveWorkoutSession = () => {
   const { adaptation, isLoading, error, performance, activeContext: reduxActiveContext, overrideHistory } = liveSessionState;
 
   const [isLogging, setIsLogging] = useState(false);
+  const [adaptationModalOpen, setAdaptationModalOpen] = useState(false);
   const [rpe, setRpe] = useState(5);
   const [loggingStats, setLoggingStats] = useState({ duration: 0 });
   
@@ -204,13 +225,24 @@ const LiveWorkoutSession = () => {
   }, [activeContext]);
 
   useEffect(() => {
-    if (adaptation) {
+    if (adaptation && healthService.isServiceAvailable()) {
+      // Instead of just showing toast, add to suggestions queue
+      const suggestion: Suggestion = {
+        id: crypto.randomUUID(),
+        type: (adaptation.notes?.toLowerCase().includes('safety') ? 'safety' : 
+               adaptation.notes?.toLowerCase().includes('performance') ? 'performance' : 'motivation') as any,
+        message: adaptation.notes || "AI suggested a workout adaptation.",
+        timestamp: Date.now(),
+        autoDismissTimeout: 10000
+      };
+      dispatch(addSuggestion(suggestion));
+      
       if (adaptation.notes) {
         audioService.current?.announceAdaptation(adaptation.notes);
       }
-      showToast(toast.info("AI Adaptation Ready", "A new optimization is available for your workout."));
+      // Toast removed to avoid redundancy with SuggestionOverlay
     }
-  }, [adaptation, showToast]);
+  }, [adaptation, dispatch, showToast]);
 
   const completedSetsCount = useMemo(() => {
     if (!currentSession || !activeContext) return 0;
@@ -590,14 +622,28 @@ const LiveWorkoutSession = () => {
         showToast(toast.success("Adaptation Applied", `Reps adjusted to ${adaptation.newReps}`));
       }
       dispatch(clearAdaptation());
+      dispatch(clearSuggestions());
+      setAdaptationModalOpen(false);
     } catch (error) {
       showToast(toast.error("Adaptation Failed", "Could not apply adaptation."));
     }
   };
 
-  const handleRejectAdaptation = () => {
+  const handleRejectAdaptation = useCallback(() => {
+    if (adaptation) {
+      dispatch(logSuggestionFeedback({
+        userId: 'current-user',
+        event: {
+          recommendationId: 'adaptation',
+          userResponse: 'ignored',
+          timestamp: Date.now()
+        }
+      }));
+    }
     dispatch(clearAdaptation());
-  };
+    dispatch(clearSuggestions());
+    setAdaptationModalOpen(false);
+  }, [adaptation, dispatch]);
 
   const handleRetryAdaptation = () => {
     try {
@@ -938,7 +984,7 @@ const LiveWorkoutSession = () => {
           )}
 
           <AdaptationPrompt
-            opened={!!adaptation}
+            opened={adaptationModalOpen}
             onClose={handleRejectAdaptation}
             adaptation={mappedAdaptation!}
             currentValues={{
@@ -989,6 +1035,10 @@ const LiveWorkoutSession = () => {
               secondsRemaining={transitionState.seconds} 
             />
           )}
+          <SuggestionOverlay 
+            suggestion={suggestions[0] || null} 
+            onAction={() => setAdaptationModalOpen(true)}
+          />
         </>
       )}
     </div>
